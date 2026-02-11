@@ -68,12 +68,12 @@ export function ToothIcon(props: SVGProps<SVGSVGElement>) {
       <path d="M12 4c-2.5 0-4.5 1.5-5 3.5-.3 1-.4 2-.4 3 0 1.5.5 3 1.5 4 .5.5 1 1 1.5 1.5.3.3.6.5 1 .5.2 0 .4-.1.6-.2.4-.1.7-.3 1-.6.5-.5 1-1 1.5-1.5 1-1 1.5-2.5 1.5-4 0-1-.1-2-.4-3C16.5 5.5 14.5 4 12 4z" />
       {/* Ligne horizontale - surface de mastication */}
       <line x1="8" y1="9" x2="16" y2="9" />
-      {/* Racine gauche pointue */}
-      <line x1="10" y1="17" x2="9" y2="21" />
-      {/* Racine droite pointue */}
-      <line x1="14" y1="17" x2="15" y2="21" />
       {/* Ligne de séparation entre couronne et racines */}
       <line x1="8" y1="16" x2="16" y2="16" />
+      {/* Racine gauche pointue */}
+      <line x1="10" y1="16" x2="9" y2="21" />
+      {/* Racine droite pointue */}
+      <line x1="14" y1="16" x2="15" y2="21" />
     </svg>
   );
 }
