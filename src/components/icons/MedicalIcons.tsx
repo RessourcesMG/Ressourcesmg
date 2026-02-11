@@ -64,18 +64,16 @@ export function ToothIcon(props: SVGProps<SVGSVGElement>) {
       strokeLinejoin="round"
       {...props}
     >
-      {/* Couronne de la dent - forme plus moderne et arrondie */}
-      <path d="M12 3c-1.5 0-2.8.6-3.5 1.5-.4.5-.7 1.1-.8 1.7-.1.6-.1 1.2 0 1.8.2 1.2.6 2.2 1.2 3 .3.4.7.8 1.1 1.1.2.2.5.4.8.5.3.1.6.2 1 .2h1.2c.4 0 .7-.1 1-.2.3-.1.6-.3.8-.5.4-.3.8-.7 1.1-1.1.6-.8 1-1.8 1.2-3 .1-.6.1-1.2 0-1.8-.1-.6-.4-1.2-.8-1.7C14.8 3.6 13.5 3 12 3z" />
-      {/* Surface de mastication avec détails */}
-      <path d="M9 8c0 .5.2 1 .5 1.3.3.3.7.5 1.2.5h2.6c.5 0 .9-.2 1.2-.5.3-.3.5-.8.5-1.3" />
-      {/* Racines - deux racines principales */}
-      <path d="M10 18c0 1.5.5 2.5 1.5 2.5s1.5-1 1.5-2.5" />
-      <path d="M13 18c0 1.5.5 2.5 1.5 2.5s1.5-1 1.5-2.5" />
+      {/* Couronne arrondie en haut */}
+      <path d="M12 4c-2.5 0-4.5 1.5-5 3.5-.3 1-.4 2-.4 3 0 1.5.5 3 1.5 4 .5.5 1 1 1.5 1.5.3.3.6.5 1 .5.2 0 .4-.1.6-.2.4-.1.7-.3 1-.6.5-.5 1-1 1.5-1.5 1-1 1.5-2.5 1.5-4 0-1-.1-2-.4-3C16.5 5.5 14.5 4 12 4z" />
+      {/* Ligne horizontale - surface de mastication */}
+      <line x1="8" y1="9" x2="16" y2="9" />
       {/* Ligne de séparation entre couronne et racines */}
-      <path d="M9 17h6" />
-      {/* Détails sur la couronne */}
-      <path d="M10.5 11h3" />
-      <path d="M11 13h2" />
+      <line x1="8" y1="16" x2="16" y2="16" />
+      {/* Racine gauche pointue */}
+      <line x1="10" y1="16" x2="9" y2="21" />
+      {/* Racine droite pointue */}
+      <line x1="14" y1="16" x2="15" y2="21" />
     </svg>
   );
 }
