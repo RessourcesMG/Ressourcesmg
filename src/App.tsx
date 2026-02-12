@@ -5,14 +5,20 @@ import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
 import { categories, medicalSpecialties } from '@/types/resources';
 import { getSearchTermGroups, matchesSearch } from '@/lib/searchSynonyms';
+import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { SearchX, Stethoscope, Globe } from 'lucide-react';
 
 // General categories (first 3: diagnostic, IA, other)
-const generalCategories = categories.slice(0, 3);
+const baseGeneralCategories = categories.slice(0, 3);
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const { generalCategories, medicalSpecialties: mergedSpecialties } = useCategoriesWithCustom(
+    baseGeneralCategories,
+    medicalSpecialties
+  );
 
   // Quand on commence à taper une recherche, scroller vers la section des ressources
   useEffect(() => {
@@ -58,10 +64,10 @@ function App() {
     }
 
     return result;
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, generalCategories]);
 
   const filteredSpecialties = useMemo(() => {
-    let result = medicalSpecialties;
+    let result = mergedSpecialties;
 
     // Filter by selected category
     if (selectedCategory) {
@@ -85,7 +91,7 @@ function App() {
     }
 
     return result;
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, mergedSpecialties]);
 
   // Check if any results found
   const hasGeneralResults = filteredGeneralCategories.length > 0;
@@ -98,7 +104,7 @@ function App() {
   );
 
   // Check if viewing a specialty section
-  const isViewingSpecialties = !selectedCategory || medicalSpecialties.some(s => s.id === selectedCategory);
+  const isViewingSpecialties = !selectedCategory || mergedSpecialties.some(s => s.id === selectedCategory);
   const isViewingGeneral = !selectedCategory || generalCategories.some(s => s.id === selectedCategory);
 
   return (
