@@ -76,9 +76,10 @@ export default defineConfig([
 
 Pour ajouter des ressources directement sur le site :
 
-1. Créez un fichier `.env` à la racine (copiez `.env.example`)
-2. Définissez `VITE_WEBMASTER_PASSWORD` avec un mot de passe sécurisé
-3. Accédez à `/webmaster` (lien en bas de page)
-4. Connectez-vous et ajoutez vos ressources par catégorie
+1. **Sur Vercel** : ajoutez la variable d'environnement `WEBMASTER_PASSWORD` (Settings > Environment Variables)
+2. Accédez à `/webmaster` (lien en bas de page)
+3. Connectez-vous et ajoutez vos ressources par catégorie
 
-Les ressources ajoutées sont stockées localement (localStorage) sur l'appareil utilisé.
+Le mot de passe est vérifié côté serveur uniquement (jamais exposé dans le code client).
+
+**En local** : lancez `npm run dev:api` dans un terminal, puis `npm run dev` dans un autre. Définissez `WEBMASTER_PASSWORD` dans `.env`.

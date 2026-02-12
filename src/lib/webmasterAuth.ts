@@ -1,28 +1,44 @@
 /**
- * Authentification webmaster : mot de passe unique (défini dans .env).
- * Session stockée en sessionStorage (perdure jusqu'à fermeture de l'onglet).
+ * Authentification webmaster : mot de passe vérifié côté serveur uniquement.
+ * Aucun mot de passe n'est stocké ou exposé dans le code client.
  */
 
-const SESSION_KEY = 'ressourcesmg_webmaster_session';
+const SESSION_KEY = 'ressourcesmg_webmaster_token';
 
-export function isWebmasterLoggedIn(): boolean {
-  const session = sessionStorage.getItem(SESSION_KEY);
-  if (!session) return false;
+export async function isWebmasterLoggedIn(): Promise<boolean> {
+  const token = sessionStorage.getItem(SESSION_KEY);
+  if (!token) return false;
   try {
-    const { expiry } = JSON.parse(session);
-    return Date.now() < expiry;
+    const res = await fetch('/api/verify', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (!data.valid) {
+      sessionStorage.removeItem(SESSION_KEY);
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }
 }
 
-const EXPECTED_PASSWORD = 'Michel31000!';
-
-export function login(password: string): boolean {
-  if (password !== EXPECTED_PASSWORD) return false;
-  const expiry = Date.now() + 8 * 60 * 60 * 1000; // 8 heures
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ expiry }));
-  return true;
+export async function login(password: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    const data = await res.json();
+    if (data.success && data.token) {
+      sessionStorage.setItem(SESSION_KEY, data.token);
+      return { success: true };
+    }
+    return { success: false, error: data.error || 'Échec de connexion' };
+  } catch (err) {
+    return { success: false, error: 'Erreur réseau' };
+  }
 }
 
 export function logout(): void {

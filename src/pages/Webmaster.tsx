@@ -26,9 +26,10 @@ import { Textarea } from '@/components/ui/textarea';
 
 export function Webmaster() {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [customResources, setCustomResources] = useState<CustomResource[]>([]);
   const [form, setForm] = useState<CustomResourceInput>({
     categoryId: '',
@@ -40,18 +41,23 @@ export function Webmaster() {
   });
 
   useEffect(() => {
-    setIsLoggedIn(isWebmasterLoggedIn());
-    setCustomResources(getCustomResources());
+    isWebmasterLoggedIn().then((ok) => {
+      setIsLoggedIn(ok);
+      setCustomResources(getCustomResources());
+    });
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (login(password)) {
+    setLoading(true);
+    const result = await login(password);
+    setLoading(false);
+    if (result.success) {
       setIsLoggedIn(true);
       setCustomResources(getCustomResources());
     } else {
-      setError('Mot de passe incorrect.');
+      setError(result.error || 'Mot de passe incorrect.');
     }
   };
 
@@ -86,6 +92,14 @@ export function Webmaster() {
 
   const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
 
+  if (isLoggedIn === null) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <p className="text-slate-600">Chargement...</p>
+      </div>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -119,8 +133,8 @@ export function Webmaster() {
               {error && (
                 <p className="text-sm text-red-600">{error}</p>
               )}
-              <Button type="submit" className="w-full">
-                Se connecter
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
               <Button
                 type="button"
