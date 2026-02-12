@@ -1,19 +1,27 @@
 import { useMemo } from 'react';
 import type { Category, Resource } from '@/types/resources';
-import { getCustomResources } from '@/lib/customResources';
+
+export interface CustomResourceForMerge {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string;
+  url: string;
+  requiresAuth?: boolean;
+  note?: string;
+}
 
 /**
- * Fusionne les catégories statiques avec les ressources personnalisées (localStorage).
+ * Fusionne les catégories statiques avec les ressources personnalisées (Supabase).
  */
 export function useCategoriesWithCustom(
   generalCategories: Category[],
-  medicalSpecialties: Category[]
+  medicalSpecialties: Category[],
+  customResources: CustomResourceForMerge[] = []
 ): { generalCategories: Category[]; medicalSpecialties: Category[] } {
   return useMemo(() => {
-    const custom = getCustomResources();
-
     const mergeCustomInto = (category: Category): Category => {
-      const customInCategory = custom.filter((r) => r.categoryId === category.id);
+      const customInCategory = customResources.filter((r) => r.categoryId === category.id);
       if (customInCategory.length === 0) return category;
       const baseResources: Resource[] = [...category.resources];
       const merged = customInCategory.reduce(
@@ -37,5 +45,5 @@ export function useCategoriesWithCustom(
       generalCategories: generalCategories.map(mergeCustomInto),
       medicalSpecialties: medicalSpecialties.map(mergeCustomInto),
     };
-  }, [generalCategories, medicalSpecialties]);
+  }, [generalCategories, medicalSpecialties, customResources]);
 }

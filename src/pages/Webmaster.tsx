@@ -1,14 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Plus, Trash2, ExternalLink, LogOut, Shield } from 'lucide-react';
-import { isWebmasterLoggedIn, login, logout } from '@/lib/webmasterAuth';
-import {
-  getCustomResources,
-  addCustomResource,
-  removeCustomResource,
-  type CustomResource,
-  type CustomResourceInput,
-} from '@/lib/customResources';
+import { isWebmasterLoggedIn, login, logout, getToken } from '@/lib/webmasterAuth';
+import { useCustomResources, type CustomResourceInput } from '@/hooks/useCustomResources';
 import { categories } from '@/types/resources';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +24,8 @@ export function Webmaster() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [customResources, setCustomResources] = useState<CustomResource[]>([]);
+  const [addLoading, setAddLoading] = useState(false);
+  const { resources: customResources, addResource, removeResource } = useCustomResources();
   const [form, setForm] = useState<CustomResourceInput>({
     categoryId: '',
     name: '',
@@ -41,10 +36,7 @@ export function Webmaster() {
   });
 
   useEffect(() => {
-    isWebmasterLoggedIn().then((ok) => {
-      setIsLoggedIn(ok);
-      setCustomResources(getCustomResources());
-    });
+    isWebmasterLoggedIn().then(setIsLoggedIn);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -55,7 +47,6 @@ export function Webmaster() {
     setLoading(false);
     if (result.success) {
       setIsLoggedIn(true);
-      setCustomResources(getCustomResources());
     } else {
       setError(result.error || 'Mot de passe incorrect.');
     }
@@ -66,28 +57,40 @@ export function Webmaster() {
     setIsLoggedIn(false);
   };
 
-  const handleAddResource = (e: React.FormEvent) => {
+  const handleAddResource = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.categoryId || !form.name.trim() || !form.url.trim()) {
       setError('Remplissez au moins : catégorie, nom et URL.');
       return;
     }
     setError('');
-    const added = addCustomResource(form);
-    setCustomResources((prev) => [...prev, added]);
-    setForm({
-      categoryId: form.categoryId,
-      name: '',
-      description: '',
-      url: '',
-      requiresAuth: false,
-      note: '',
-    });
+    setAddLoading(true);
+    const token = getToken();
+    if (!token) {
+      setError('Session expirée. Reconnectez-vous.');
+      setAddLoading(false);
+      return;
+    }
+    const added = await addResource(form, token);
+    setAddLoading(false);
+    if (added) {
+      setForm({
+        categoryId: form.categoryId,
+        name: '',
+        description: '',
+        url: '',
+        requiresAuth: false,
+        note: '',
+      });
+    } else {
+      setError('Erreur lors de l\'ajout. Vérifiez la configuration Supabase.');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    removeCustomResource(id);
-    setCustomResources((prev) => prev.filter((r) => r.id !== id));
+  const handleDelete = async (id: string) => {
+    const token = getToken();
+    if (!token) return;
+    await removeResource(id, token);
   };
 
   const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
@@ -180,7 +183,7 @@ export function Webmaster() {
               Ajouter une ressource
             </CardTitle>
             <p className="text-sm text-slate-600">
-              La ressource sera visible dans la section choisie sur le site.
+              La ressource sera enregistrée de manière durable et visible pour tous les visiteurs.
             </p>
           </CardHeader>
           <CardContent>
@@ -260,9 +263,13 @@ export function Webmaster() {
               {error && (
                 <p className="text-sm text-red-600">{error}</p>
               )}
-              <Button type="submit">
-                <Plus className="w-4 h-4 mr-2" />
-                Ajouter
+              <Button type="submit" disabled={addLoading}>
+                {addLoading ? 'Ajout...' : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
@@ -273,7 +280,7 @@ export function Webmaster() {
           <CardHeader>
             <CardTitle>Ressources ajoutées ({customResources.length})</CardTitle>
             <p className="text-sm text-slate-600">
-              Ces ressources sont stockées localement sur cet appareil.
+              Stockées durablement dans la base de données. Visibles par tous les visiteurs.
             </p>
           </CardHeader>
           <CardContent>

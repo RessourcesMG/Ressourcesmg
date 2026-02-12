@@ -46,12 +46,87 @@ function parseBody(req) {
   });
 }
 
+// Stockage en mémoire pour /api/resources en dev local (sans Supabase)
+const devResources = new Map();
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  // GET /api/resources
+  if (url.pathname === '/api/resources' && req.method === 'GET') {
+    const list = Array.from(devResources.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    res.writeHead(200);
+    res.end(JSON.stringify(list.map(r => ({
+      id: r.id,
+      categoryId: r.category_id,
+      name: r.name,
+      description: r.description,
+      url: r.url,
+      requiresAuth: r.requires_auth,
+      note: r.note,
+    }))));
+    return;
+  }
+
+  // POST /api/resources (avec token)
+  if (url.pathname === '/api/resources' && req.method === 'POST') {
+    const auth = req.headers.authorization || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+    if (!token || !verifyToken(token)) {
+      res.writeHead(401);
+      res.end(JSON.stringify({ error: 'Non autorisé' }));
+      return;
+    }
+    const body = await parseBody(req);
+    if (!body.categoryId || !body.name || !body.url) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ error: 'categoryId, name et url requis' }));
+      return;
+    }
+    const id = crypto.randomUUID();
+    const r = {
+      id,
+      category_id: body.categoryId,
+      name: body.name,
+      description: body.description || '',
+      url: body.url,
+      requires_auth: body.requiresAuth ?? false,
+      note: body.note || null,
+      created_at: new Date().toISOString(),
+    };
+    devResources.set(id, r);
+    res.writeHead(201);
+    res.end(JSON.stringify({
+      id: r.id,
+      categoryId: r.category_id,
+      name: r.name,
+      description: r.description,
+      url: r.url,
+      requiresAuth: r.requires_auth,
+      note: r.note,
+    }));
+    return;
+  }
+
+  // DELETE /api/resources?id=xxx
+  if (url.pathname === '/api/resources' && req.method === 'DELETE') {
+    const auth = req.headers.authorization || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+    if (!token || !verifyToken(token)) {
+      res.writeHead(401);
+      res.end(JSON.stringify({ error: 'Non autorisé' }));
+      return;
+    }
+    const id = url.searchParams.get('id');
+    if (id) devResources.delete(id);
     res.writeHead(204);
     res.end();
     return;

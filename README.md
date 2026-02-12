@@ -74,12 +74,17 @@ export default defineConfig([
 
 ## Espace Webmaster
 
-Pour ajouter des ressources directement sur le site :
+Pour ajouter des ressources **de manière durable** (stockées en base de données) :
 
-1. **Sur Vercel** : ajoutez la variable d'environnement `WEBMASTER_PASSWORD` (Settings > Environment Variables)
-2. Accédez à `/webmaster` (lien en bas de page)
-3. Connectez-vous et ajoutez vos ressources par catégorie
+1. **Supabase** : créez un projet gratuit sur [supabase.com](https://supabase.com)
+   - Exécutez le script `supabase/schema.sql` dans SQL Editor
+   - Dans Settings > API : copiez l'URL et la clé `service_role`
+2. **Vercel** : ajoutez les variables d'environnement :
+   - `WEBMASTER_PASSWORD` : votre mot de passe
+   - `SUPABASE_URL` : l'URL du projet
+   - `SUPABASE_SERVICE_ROLE_KEY` : la clé service_role
+3. Accédez à `/webmaster`, connectez-vous et ajoutez vos ressources
 
-Le mot de passe est vérifié côté serveur uniquement (jamais exposé dans le code client).
+Les ressources sont stockées dans Supabase et visibles par tous les visiteurs.
 
-**En local** : lancez `npm run dev:api` dans un terminal, puis `npm run dev` dans un autre. Définissez `WEBMASTER_PASSWORD` dans `.env`.
+**En local** : `npm run dev:api` puis `npm run dev`. Sans Supabase, les ressources sont en mémoire (perdues au redémarrage).

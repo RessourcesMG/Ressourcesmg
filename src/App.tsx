@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { categories, medicalSpecialties } from '@/types/resources';
 import { getSearchTermGroups, matchesSearch } from '@/lib/searchSynonyms';
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
+import { useCustomResources } from '@/hooks/useCustomResources';
 import { SearchX, Stethoscope, Globe } from 'lucide-react';
 
 // General categories (first 3: diagnostic, IA, other)
@@ -15,9 +16,11 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  const { resources: customResources } = useCustomResources();
   const { generalCategories, medicalSpecialties: mergedSpecialties } = useCategoriesWithCustom(
     baseGeneralCategories,
-    medicalSpecialties
+    medicalSpecialties,
+    customResources
   );
 
   // Quand on commence à taper une recherche, scroller vers la section des ressources
