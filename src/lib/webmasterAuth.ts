@@ -16,9 +16,10 @@ export function isWebmasterLoggedIn(): boolean {
   }
 }
 
+const EXPECTED_PASSWORD = 'Michel31000!';
+
 export function login(password: string): boolean {
-  const expected = import.meta.env.VITE_WEBMASTER_PASSWORD as string | undefined;
-  if (!expected || expected !== password) return false;
+  if (password !== EXPECTED_PASSWORD) return false;
   const expiry = Date.now() + 8 * 60 * 60 * 1000; // 8 heures
   sessionStorage.setItem(SESSION_KEY, JSON.stringify({ expiry }));
   return true;
