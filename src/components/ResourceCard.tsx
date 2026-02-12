@@ -11,8 +11,11 @@ interface ResourceCardProps {
 function getFaviconSources(url: string): string[] {
   try {
     const { origin } = new URL(url);
-    // Chemins directs du site uniquement → vraies 404 si absent, pas de placeholder
+    const apiBase = typeof window !== 'undefined' ? window.location.origin : '';
     return [
+      // 1. API qui parse le HTML du site pour trouver le favicon réel
+      `${apiBase}/api/favicon?url=${encodeURIComponent(url)}`,
+      // 2. Chemins directs (vraies 404 si absent)
       `${origin}/favicon.ico`,
       `${origin}/favicon.png`,
       `${origin}/apple-touch-icon.png`,

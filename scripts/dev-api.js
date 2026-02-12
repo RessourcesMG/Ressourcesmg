@@ -49,6 +49,56 @@ function parseBody(req) {
 // Stockage en mémoire pour /api/resources en dev local (sans Supabase)
 const devResources = new Map();
 
+async function findFavicon(pageUrlStr) {
+  try {
+    const pageUrl = new URL(pageUrlStr);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(pageUrl.toString(), {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RessourcesMG/1.0)' },
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+    const html = await response.text();
+    const finalUrl = new URL(response.url);
+
+    const linkRegex = /<link\s[^>]*>/gi;
+    const candidates = [];
+    let m;
+    while ((m = linkRegex.exec(html)) !== null) {
+      const tag = m[0];
+      const relMatch = tag.match(/rel\s*=\s*["']([^"']*)["']/i);
+      const hrefMatch = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+      if (!relMatch || !hrefMatch) continue;
+      const rel = relMatch[1].toLowerCase();
+      const href = hrefMatch[1];
+      let priority = 0;
+      if (rel.includes('apple-touch-icon')) priority = 3;
+      else if ((rel.includes('icon') || rel.includes('shortcut')) && /32|64|128|192|512/.test(rel)) priority = 2;
+      else if (rel.includes('icon') || rel.includes('shortcut')) priority = 1;
+      if (priority > 0) candidates.push({ href, priority });
+    }
+    candidates.sort((a, b) => b.priority - a.priority);
+
+    for (const { href } of candidates) {
+      try {
+        const absolute = new URL(href.trim(), finalUrl.origin + finalUrl.pathname);
+        return absolute.toString();
+      } catch {
+        continue;
+      }
+    }
+
+    const fallback = `${finalUrl.origin}/favicon.ico`;
+    const check = await fetch(fallback, { method: 'HEAD' });
+    if (check.ok) return fallback;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -154,6 +204,31 @@ const server = createServer(async (req, res) => {
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     res.writeHead(200);
     res.end(JSON.stringify({ valid: token ? verifyToken(token) : false }));
+    return;
+  }
+
+  // GET /api/favicon?url=...
+  if (url.pathname === '/api/favicon' && req.method === 'GET') {
+    const targetUrl = url.searchParams.get('url');
+    if (!targetUrl) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ error: 'Paramètre url requis' }));
+      return;
+    }
+    try {
+      const favicon = await findFavicon(targetUrl);
+      if (favicon) {
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.writeHead(302, { Location: favicon });
+        res.end();
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    } catch {
+      res.writeHead(404);
+      res.end();
+    }
     return;
   }
 
