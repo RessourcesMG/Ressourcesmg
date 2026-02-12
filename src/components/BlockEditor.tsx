@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, ChevronDown, ChevronRight, Database } from 'lucide-react';
+import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus } from 'lucide-react';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import type { Category } from '@/types/resources';
 import { Button } from '@/components/ui/button';
@@ -8,21 +8,23 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { IconPicker } from '@/components/IconPicker';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-
-const ICON_OPTIONS = [
-  'Stethoscope', 'Sparkles', 'MoreHorizontal', 'Wind', 'Heart', 'ToothIcon',
-  'ScanFace', 'ThyroidIcon', 'User', 'PregnantWomanIcon', 'TestTubeIcon', 'Bug',
-  'Search', 'Briefcase', 'Accessibility', 'Brain', 'Apple', 'Ribbon', 'Eye',
-  'Ear', 'Bone', 'Baby', 'Pill', 'BrainCircuit', 'Scan', 'Hand', 'FileText',
-  'HeartHandshake', 'Circle',
-];
 
 export function BlockEditor() {
   const {
@@ -31,18 +33,24 @@ export function BlockEditor() {
     fromDb,
     loading,
     seedBlocks,
+    addCategory,
     updateResource,
     updateCategory,
-    refresh,
+    deleteResource,
+    deleteCategory,
   } = useManagedBlocks();
 
   const [seedLoading, setSeedLoading] = useState(false);
   const [seedError, setSeedError] = useState('');
-  const [editType, setEditType] = useState<'resource' | 'category' | null>(null);
+  const [editType, setEditType] = useState<'resource' | 'category' | 'newCategory' | null>(null);
   const [editItem, setEditItem] = useState<{ id: string; categoryId?: string } & Partial<Category['resources'][0]> & Partial<Pick<Category, 'name' | 'icon'>> | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'resource' | 'category'; id: string; name: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('Circle');
 
   const allCategories = [...generalCategories, ...medicalSpecialties];
 
@@ -51,11 +59,8 @@ export function BlockEditor() {
     setSeedLoading(true);
     const result = await seedBlocks();
     setSeedLoading(false);
-    if (result.success) {
-      setSeedError('');
-    } else {
-      setSeedError(result.error || 'Erreur');
-    }
+    if (result.success) setSeedError('');
+    else setSeedError(result.error || 'Erreur');
   };
 
   const openEditResource = (cat: Category, res: Category['resources'][0]) => {
@@ -73,11 +78,13 @@ export function BlockEditor() {
 
   const openEditCategory = (cat: Category) => {
     setEditType('category');
-    setEditItem({
-      id: cat.id,
-      name: cat.name,
-      icon: cat.icon,
-    });
+    setEditItem({ id: cat.id, name: cat.name, icon: cat.icon });
+  };
+
+  const openAddCategory = () => {
+    setEditType('newCategory');
+    setNewCatName('');
+    setNewCatIcon('Circle');
   };
 
   const handleSave = async () => {
@@ -101,6 +108,31 @@ export function BlockEditor() {
     } else {
       setSaveError(result.error || 'Erreur');
     }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCatName.trim()) return;
+    setSaveError('');
+    setSaving(true);
+    const result = await addCategory(newCatName.trim(), newCatIcon);
+    setSaving(false);
+    if (result.success) {
+      setEditType(null);
+    } else {
+      setSaveError(result.error || 'Erreur');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    const result =
+      deleteTarget.type === 'resource'
+        ? await deleteResource(deleteTarget.id)
+        : await deleteCategory(deleteTarget.id);
+    setDeleteLoading(false);
+    if (result.success) setDeleteTarget(null);
+    else setSaveError(result.error || 'Erreur');
   };
 
   const toggleCategory = (id: string) => {
@@ -127,7 +159,7 @@ export function BlockEditor() {
           </CardTitle>
           <p className="text-sm text-slate-600">
             {fromDb
-              ? 'Les catégories et ressources sont gérées en base. Cliquez sur le crayon pour modifier.'
+              ? 'Cliquez sur le crayon pour modifier, la corbeille pour supprimer.'
               : 'Initialisez d\'abord les blocs pour pouvoir les éditer.'}
           </p>
         </CardHeader>
@@ -142,8 +174,9 @@ export function BlockEditor() {
           )}
           {fromDb && (
             <div className="space-y-2">
-              <Button variant="outline" size="sm" onClick={refresh}>
-                Actualiser
+              <Button variant="outline" size="sm" onClick={openAddCategory}>
+                <Plus className="w-4 h-4 mr-1" />
+                Ajouter une catégorie
               </Button>
               <div className="max-h-[400px] overflow-y-auto space-y-2">
                 {allCategories.map((cat) => (
@@ -176,6 +209,18 @@ export function BlockEditor() {
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget({ type: 'category', id: cat.id, name: cat.name });
+                            }}
+                            title="Supprimer la catégorie"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
@@ -189,15 +234,32 @@ export function BlockEditor() {
                                 <p className="font-medium text-slate-800 truncate">{res.name}</p>
                                 <p className="text-xs text-slate-500 truncate">{res.description}</p>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 shrink-0"
-                                onClick={() => openEditResource(cat, res)}
-                                title="Modifier la ressource"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </Button>
+                              <div className="flex gap-1 shrink-0">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => openEditResource(cat, res)}
+                                  title="Modifier la ressource"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      type: 'resource',
+                                      id: res.id,
+                                      name: res.name,
+                                    })
+                                  }
+                                  title="Supprimer la ressource"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -211,7 +273,11 @@ export function BlockEditor() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+      {/* Dialog modifier ressource / catégorie */}
+      <Dialog
+        open={!!editItem && (editType === 'resource' || editType === 'category')}
+        onOpenChange={(open) => !open && setEditItem(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
@@ -272,17 +338,10 @@ export function BlockEditor() {
               </div>
               <div>
                 <Label>Icône</Label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                <IconPicker
                   value={editItem.icon ?? 'Circle'}
-                  onChange={(e) => setEditItem((i) => (i ? { ...i, icon: e.target.value } : null))}
-                >
-                  {ICON_OPTIONS.map((ico) => (
-                    <option key={ico} value={ico}>
-                      {ico}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(icon) => setEditItem((i) => (i ? { ...i, icon } : null))}
+                />
               </div>
             </div>
           )}
@@ -297,6 +356,65 @@ export function BlockEditor() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog nouvelle catégorie */}
+      <Dialog open={editType === 'newCategory'} onOpenChange={(open) => !open && setEditType(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nouvelle catégorie</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label>Nom (ex: Néphrologie)</Label>
+              <Input
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                placeholder="Néphrologie"
+              />
+            </div>
+            <div>
+              <Label>Icône</Label>
+              <IconPicker value={newCatIcon} onChange={setNewCatIcon} />
+            </div>
+          </div>
+          {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setEditType(null)}>
+              Annuler
+            </Button>
+            <Button onClick={handleAddCategory} disabled={saving || !newCatName.trim()}>
+              {saving ? 'Création...' : 'Créer'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation suppression */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.type === 'category'
+                ? `Supprimer la catégorie « ${deleteTarget.name} » et toutes ses ressources ? Cette action est irréversible.`
+                : `Supprimer la ressource « ${deleteTarget?.name} » ? Cette action est irréversible.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? 'Suppression...' : 'Supprimer'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

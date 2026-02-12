@@ -141,6 +141,84 @@ export function useManagedBlocks() {
     [fetchBlocks]
   );
 
+  const addCategory = useCallback(
+    async (name: string, icon?: string): Promise<{ success: boolean; error?: string; id?: string }> => {
+      const token = getToken();
+      if (!token) return { success: false, error: 'Session expirée' };
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ action: 'addCategory', name: name.trim(), icon: icon || 'Circle' }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.success) {
+          await fetchBlocks();
+          return { success: true, id: out.id };
+        }
+        return { success: false, error: out?.error || `Erreur ${res.status}` };
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Erreur réseau' };
+      }
+    },
+    [fetchBlocks]
+  );
+
+  const deleteResource = useCallback(
+    async (id: string): Promise<{ success: boolean; error?: string }> => {
+      const token = getToken();
+      if (!token) return { success: false, error: 'Session expirée' };
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ action: 'deleteResource', id }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.success) {
+          await fetchBlocks();
+          return { success: true };
+        }
+        return { success: false, error: out?.error || `Erreur ${res.status}` };
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Erreur réseau' };
+      }
+    },
+    [fetchBlocks]
+  );
+
+  const deleteCategory = useCallback(
+    async (id: string): Promise<{ success: boolean; error?: string }> => {
+      const token = getToken();
+      if (!token) return { success: false, error: 'Session expirée' };
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ action: 'deleteCategory', id }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.success) {
+          await fetchBlocks();
+          return { success: true };
+        }
+        return { success: false, error: out?.error || `Erreur ${res.status}` };
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Erreur réseau' };
+      }
+    },
+    [fetchBlocks]
+  );
+
   const updateCategory = useCallback(
     async (id: string, data: { name?: string; icon?: string }): Promise<{ success: boolean; error?: string }> => {
       const token = getToken();
@@ -175,8 +253,11 @@ export function useManagedBlocks() {
     refresh: fetchBlocks,
     seedBlocks,
     addResource,
+    addCategory,
     updateResource,
     updateCategory,
+    deleteResource,
+    deleteCategory,
     staticCategories,
   };
 }
