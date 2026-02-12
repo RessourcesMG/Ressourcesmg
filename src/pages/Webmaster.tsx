@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Plus, Trash2, ExternalLink, LogOut, Shield } from 'lucide-react';
+import { Lock, Plus, LogOut, Shield } from 'lucide-react';
 import { isWebmasterLoggedIn, login, logout, getToken } from '@/lib/webmasterAuth';
-import { useCustomResources, type CustomResourceInput } from '@/hooks/useCustomResources';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import { BlockEditor } from '@/components/BlockEditor';
 import { Button } from '@/components/ui/button';
@@ -26,13 +25,12 @@ export function Webmaster() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
-  const { generalCategories, medicalSpecialties } = useManagedBlocks();
+  const { generalCategories, medicalSpecialties, fromDb, addResource } = useManagedBlocks();
   const categoriesForSelect = useMemo(
     () => [...generalCategories, ...medicalSpecialties],
     [generalCategories, medicalSpecialties]
   );
-  const { resources: customResources, addResource, removeResource } = useCustomResources();
-  const [form, setForm] = useState<CustomResourceInput>({
+  const [form, setForm] = useState({
     categoryId: '',
     name: '',
     description: '',
@@ -77,7 +75,7 @@ export function Webmaster() {
       setAddLoading(false);
       return;
     }
-    const result = await addResource(form, token);
+    const result = await addResource(form);
     setAddLoading(false);
     if (result.success) {
       setForm({
@@ -93,14 +91,6 @@ export function Webmaster() {
       setError(result.error || 'Erreur lors de l\'ajout.');
     }
   };
-
-  const handleDelete = async (id: string) => {
-    const token = getToken();
-    if (!token) return;
-    await removeResource(id, token);
-  };
-
-  const getCategoryName = (id: string) => categoriesForSelect.find((c) => c.id === id)?.name ?? id;
 
   if (isLoggedIn === null) {
     return (
@@ -190,10 +180,13 @@ export function Webmaster() {
               Ajouter une ressource
             </CardTitle>
             <p className="text-sm text-slate-600">
-              La ressource sera enregistrée de manière durable et visible pour tous les visiteurs.
+              La ressource sera ajoutée dans les blocs éditables ci-dessous et visible pour tous les visiteurs.
             </p>
           </CardHeader>
           <CardContent>
+            {!fromDb ? (
+              <p className="text-slate-500 text-sm">Initialisez d'abord les blocs dans la section « Éditer les blocs » pour pouvoir ajouter des ressources.</p>
+            ) : (
             <form onSubmit={handleAddResource} className="space-y-4">
               <div>
                 <Label>Catégorie</Label>
@@ -279,62 +272,12 @@ export function Webmaster() {
                 )}
               </Button>
             </form>
+            )}
           </CardContent>
         </Card>
 
         {/* Éditer les blocs */}
         <BlockEditor />
-
-        {/* Liste des ressources ajoutées */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ressources ajoutées ({customResources.length})</CardTitle>
-            <p className="text-sm text-slate-600">
-              Stockées durablement dans la base de données. Visibles par tous les visiteurs.
-            </p>
-          </CardHeader>
-          <CardContent>
-            {customResources.length === 0 ? (
-              <p className="text-slate-500 text-sm">
-                Aucune ressource personnalisée. Utilisez le formulaire ci-dessus pour en ajouter.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {customResources.map((r) => (
-                  <li
-                    key={r.id}
-                    className="flex items-center justify-between gap-4 p-3 bg-slate-50 rounded-lg"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-slate-900 truncate">{r.name}</p>
-                      <p className="text-sm text-slate-500">{getCategoryName(r.categoryId)}</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <a
-                        href={r.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 text-slate-400 hover:text-teal-600"
-                        title="Ouvrir le lien"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDelete(r.id)}
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
       </main>
     </div>
   );
