@@ -7,6 +7,10 @@ export function getSupabase(): SupabaseClient | null {
   const url = process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) return null;
-  _supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
-  return _supabase;
+  try {
+    _supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
+    return _supabase;
+  } catch {
+    return null;
+  }
 }
