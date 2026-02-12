@@ -44,3 +44,7 @@ export async function login(password: string): Promise<{ success: boolean; error
 export function logout(): void {
   sessionStorage.removeItem(SESSION_KEY);
 }
+
+export function getToken(): string | null {
+  return sessionStorage.getItem(SESSION_KEY);
+}
