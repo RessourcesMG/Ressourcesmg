@@ -20,4 +20,13 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  // Composants UI (shadcn) et API Vercel - règles assouplies
+  {
+    files: ['src/components/ui/**/*.{ts,tsx}', 'api/**/*.ts'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+      'react-hooks/purity': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
 ])
