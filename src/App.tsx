@@ -152,7 +152,7 @@ function App() {
                 {/* Big Section Header */}
                 {!selectedCategory && (
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="p-3 bg-indigo-600 rounded-xl">
+                    <div className="p-3 bg-teal-600 rounded-xl">
                       <Globe className="w-6 h-6 text-white" />
                     </div>
                     <div>
