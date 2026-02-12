@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
@@ -13,6 +13,16 @@ const generalCategories = categories.slice(0, 3);
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Quand on commence à taper une recherche, scroller vers la section des ressources
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const el = document.getElementById('resources-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [searchQuery]);
 
   // Calculate totals
   const totalResources = useMemo(() => {
@@ -101,10 +111,13 @@ function App() {
       />
       
       <main>
-        <Hero 
-          totalResources={totalResources} 
-          totalCategories={specialtyCount} 
-        />
+        {/* Hero affiché uniquement quand il n'y a ni recherche ni catégorie sélectionnée */}
+        {!searchQuery && !selectedCategory && (
+          <Hero 
+            totalResources={totalResources} 
+            totalCategories={specialtyCount} 
+          />
+        )}
 
         <section id="resources-section" className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
