@@ -167,14 +167,6 @@ function extractKeyword(word: string): string {
 }
 
 /**
- * Vérifie si un mot est un mot vide (à ignorer).
- */
-function isStopWord(word: string): boolean {
-  const cleaned = extractKeyword(word);
-  return STOP_WORDS.has(cleaned) || STOP_WORDS.has(word.toLowerCase()) || cleaned.length < 2;
-}
-
-/**
  * Décompose une requête en groupes de synonymes (un groupe par mot).
  * Les mots vides sont inclus mais seront matchés en mot entier uniquement
  * (ex: "sur" ne matche pas "surveillance", donc 0 résultat).
@@ -218,9 +210,9 @@ export function matchesSearch(text: string, termGroups: string[][]): boolean {
       if (normalizedTerm.length < 2) return false;
 
       if (isStopWordTerm(term)) {
-        // Mot de liaison : match en mot entier uniquement (\b en regex)
+        // Mot de liaison : match en mot entier uniquement (pas "sur" dans "surveillance")
         const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const wordBoundaryRegex = new RegExp(`(^|[^a-z0-9àâäéèêëïîôùûüç])${escaped}([^a-z0-9àâäéèêëïîôùûüç]|$)`, 'i');
+        const wordBoundaryRegex = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i');
         return wordBoundaryRegex.test(normalizedText);
       }
 
