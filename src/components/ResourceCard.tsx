@@ -8,19 +8,31 @@ interface ResourceCardProps {
   resource: Resource;
 }
 
-function getFaviconUrl(url: string, size = 128): string {
+function getFaviconSources(url: string): string[] {
   try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`;
+    const { hostname, origin } = new URL(url);
+    return [
+      `${origin}/favicon.ico`,
+      `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+    ];
   } catch {
-    return '';
+    return [];
   }
 }
 
 export function ResourceCard({ resource }: ResourceCardProps) {
-  const faviconUrl = getFaviconUrl(resource.url);
-  const [faviconError, setFaviconError] = useState(false);
-  const showFallbackIcon = !faviconUrl || faviconError;
+  const sources = getFaviconSources(resource.url);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const faviconUrl = sources[currentIndex] ?? '';
+  const showFallbackIcon = !faviconUrl || currentIndex >= sources.length;
+
+  const handleFaviconError = () => {
+    if (currentIndex < sources.length - 1) {
+      setCurrentIndex((i) => i + 1);
+    } else {
+      setCurrentIndex(sources.length); // Force fallback
+    }
+  };
 
   return (
     <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
@@ -38,7 +50,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
                   width={32}
                   height={32}
                   loading="lazy"
-                  onError={() => setFaviconError(true)}
+                  onError={handleFaviconError}
                 />
               )}
             </div>
