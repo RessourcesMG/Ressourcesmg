@@ -74,13 +74,13 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string }>
 };
 
 interface HeaderProps {
+  searchQuery: string;
   onSearch: (query: string) => void;
   onCategorySelect: (categoryId: string | null) => void;
   selectedCategory: string | null;
 }
 
-export function Header({ onSearch, onCategorySelect, selectedCategory }: HeaderProps) {
-  const [searchValue, setSearchValue] = useState('');
+export function Header({ searchQuery, onSearch, onCategorySelect, selectedCategory }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -92,9 +92,7 @@ export function Header({ onSearch, onCategorySelect, selectedCategory }: HeaderP
   }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchValue(value);
-    onSearch(value);
+    onSearch(e.target.value);
   };
 
   const handleCategoryClick = (categoryId: string) => {
@@ -134,7 +132,7 @@ export function Header({ onSearch, onCategorySelect, selectedCategory }: HeaderP
               <Input
                 type="text"
                 placeholder="Rechercher une ressource..."
-                value={searchValue}
+                value={searchQuery}
                 onChange={handleSearchChange}
                 className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white"
               />

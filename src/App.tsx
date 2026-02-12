@@ -33,12 +33,16 @@ function App() {
 
     // Filter by search query (with synonym support)
     if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       const termGroups = getSearchTermGroups(searchQuery);
       result = result.map(category => ({
         ...category,
         resources: category.resources.filter(resource => {
-          const searchableText = `${resource.name} ${resource.description}`;
-          return matchesSearch(searchableText, termGroups);
+          const searchableText = `${resource.name} ${resource.description}`.toLowerCase();
+          // Match if: original query is substring OR synonym-expanded search matches
+          const matchesSimple = searchableText.includes(query);
+          const matchesSynonyms = matchesSearch(searchableText, termGroups);
+          return matchesSimple || matchesSynonyms;
         })
       })).filter(category => category.resources.length > 0);
     }
@@ -56,12 +60,16 @@ function App() {
 
     // Filter by search query (with synonym support)
     if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       const termGroups = getSearchTermGroups(searchQuery);
       result = result.map(category => ({
         ...category,
         resources: category.resources.filter(resource => {
-          const searchableText = `${resource.name} ${resource.description}`;
-          return matchesSearch(searchableText, termGroups);
+          const searchableText = `${resource.name} ${resource.description}`.toLowerCase();
+          // Match if: original query is substring OR synonym-expanded search matches
+          const matchesSimple = searchableText.includes(query);
+          const matchesSynonyms = matchesSearch(searchableText, termGroups);
+          return matchesSimple || matchesSynonyms;
         })
       })).filter(category => category.resources.length > 0);
     }
@@ -86,6 +94,7 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Header 
+        searchQuery={searchQuery}
         onSearch={setSearchQuery} 
         onCategorySelect={setSelectedCategory}
         selectedCategory={selectedCategory}
