@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function handleRequest(req: VercelRequest, res: VercelResponse) {
   const supabase = getSupabase();
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -91,9 +91,41 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     if (!verifyToken(getToken(req))) return res.status(401).json({ error: 'Non autorisé' });
-    const body = req.body as { action?: string; categories?: Array<{ id: string; name: string; icon: string; isSpecialty?: boolean; resources: Array<{ id: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string }> }> };
+    const body = req.body as {
+      action?: string;
+      categories?: Array<{ id: string; name: string; icon: string; isSpecialty?: boolean; resources: Array<{ id: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string }> }>;
+      categoryId?: string;
+      name?: string;
+      description?: string;
+      url?: string;
+      requiresAuth?: boolean;
+      note?: string;
+    };
+    if (body?.action === 'addResource') {
+      const { categoryId, name, url } = body;
+      if (!categoryId || !name?.trim() || !url?.trim()) {
+        return res.status(400).json({ error: 'categoryId, name et url requis' });
+      }
+      const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const { data, error } = await supabase
+        .from('managed_resources')
+        .insert({
+          id,
+          category_id: categoryId,
+          name: name.trim(),
+          description: body.description ?? '',
+          url: url.trim(),
+          requires_auth: body.requiresAuth ?? false,
+          note: body.note ?? null,
+          sort_order: 9999,
+        })
+        .select('id')
+        .single();
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(201).json({ success: true, id: data.id });
+    }
     if (body?.action !== 'seed' || !Array.isArray(body.categories)) {
-      return res.status(400).json({ error: 'Action seed et categories requis' });
+      return res.status(400).json({ error: 'Action seed ou addResource et champs requis' });
     }
     const { count } = await supabase.from('managed_categories').select('id', { count: 'exact', head: true });
     if ((count ?? 0) > 0) {

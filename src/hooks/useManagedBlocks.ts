@@ -107,6 +107,40 @@ export function useManagedBlocks() {
     [fetchBlocks]
   );
 
+  const addResource = useCallback(
+    async (input: { categoryId: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string }): Promise<{ success: boolean; error?: string }> => {
+      const token = getToken();
+      if (!token) return { success: false, error: 'Session expirée' };
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            action: 'addResource',
+            categoryId: input.categoryId,
+            name: input.name,
+            description: input.description ?? '',
+            url: input.url,
+            requiresAuth: input.requiresAuth ?? false,
+            note: input.note ?? undefined,
+          }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.success) {
+          await fetchBlocks();
+          return { success: true };
+        }
+        return { success: false, error: out?.error || `Erreur ${res.status}` };
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Erreur réseau' };
+      }
+    },
+    [fetchBlocks]
+  );
+
   const updateCategory = useCallback(
     async (id: string, data: { name?: string; icon?: string }): Promise<{ success: boolean; error?: string }> => {
       const token = getToken();
@@ -140,6 +174,7 @@ export function useManagedBlocks() {
     loading,
     refresh: fetchBlocks,
     seedBlocks,
+    addResource,
     updateResource,
     updateCategory,
     staticCategories,
