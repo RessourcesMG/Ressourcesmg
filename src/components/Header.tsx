@@ -28,7 +28,8 @@ import {
   HeartHandshake,
   Sparkles,
   MoreHorizontal,
-  Circle
+  Circle,
+  BriefcaseMedical
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -65,6 +66,8 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string }>
   HeartHandshake,
   Sparkles,
   MoreHorizontal,
+  Circle,
+  BriefcaseMedical,
   // Icônes médicales personnalisées
   ThyroidIcon,
   UterusIcon,
