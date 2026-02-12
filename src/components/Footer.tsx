@@ -7,27 +7,38 @@ import { Textarea } from '@/components/ui/textarea';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', url: '', description: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Créer le lien mailto avec les données du formulaire
-    const subject = encodeURIComponent(`Proposition de ressource - ${formData.name}`);
-    const body = encodeURIComponent(
-      `Nom: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
-    );
-    
-    // Ouvrir le client mail
-    window.location.href = `mailto:ressourcesmedge@gmail.com?subject=${subject}&body=${body}`;
-    
-    // Afficher le message de confirmation
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', message: '' });
-    }, 3000);
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch('/api/proposals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          url: formData.url.trim(),
+          description: formData.description.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setSubmitted(true);
+        setFormData({ name: '', url: '', description: '' });
+        setTimeout(() => setSubmitted(false), 4000);
+      } else {
+        setError(data?.error || 'Une erreur est survenue. Réessayez.');
+      }
+    } catch {
+      setError('Erreur réseau. Réessayez.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,41 +67,44 @@ export function Footer() {
             <h3 className="font-semibold text-white mb-4">Proposer une ressource</h3>
             {submitted ? (
               <div className="bg-teal-900/50 border border-teal-700 rounded-lg p-4 text-center">
-                <p className="text-teal-300 text-sm">Merci pour votre message !</p>
-                <p className="text-teal-400 text-xs mt-1">Votre client mail va s'ouvrir...</p>
+                <p className="text-teal-300 text-sm">Merci pour votre proposition !</p>
+                <p className="text-teal-400 text-xs mt-1">Elle sera examinée par l&apos;équipe.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3">
                 <Input
                   type="text"
-                  placeholder="Votre nom"
+                  placeholder="Nom du site"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-sm"
                   required
                 />
                 <Input
-                  type="email"
-                  placeholder="Votre email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  type="url"
+                  placeholder="Lien du site (https://...)"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-sm"
                   required
                 />
                 <Textarea
-                  placeholder="Votre message ou proposition de site..."
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  placeholder="Description brève..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-sm min-h-[80px]"
-                  required
                 />
+                {error && (
+                  <p className="text-red-400 text-xs">{error}</p>
+                )}
                 <Button 
                   type="submit"
                   size="sm"
                   className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+                  disabled={loading}
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  Envoyer
+                  {loading ? 'Envoi...' : 'Proposer'}
                 </Button>
               </form>
             )}
