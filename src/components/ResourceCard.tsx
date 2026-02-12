@@ -8,22 +8,35 @@ interface ResourceCardProps {
   resource: Resource;
 }
 
-function getFaviconUrl(url: string): string {
+function getFaviconSources(url: string): string[] {
   try {
     const { origin } = new URL(url);
-    return `${origin}/favicon.ico`;
+    // Chemins directs du site uniquement → vraies 404 si absent, pas de placeholder
+    return [
+      `${origin}/favicon.ico`,
+      `${origin}/favicon.png`,
+      `${origin}/apple-touch-icon.png`,
+      `${origin}/favicon-32x32.png`,
+      `${origin}/favicon-16x16.png`,
+    ];
   } catch {
-    return '';
+    return [];
   }
 }
 
-// Les services Google/DuckDuckGo renvoient une planète grise pixélisée en placeholder
-// au lieu d'échouer → on utilise uniquement le favicon direct du site
-
 export function ResourceCard({ resource }: ResourceCardProps) {
-  const faviconUrl = getFaviconUrl(resource.url);
-  const [faviconFailed, setFaviconFailed] = useState(false);
-  const showFallbackIcon = !faviconUrl || faviconFailed;
+  const sources = getFaviconSources(resource.url);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const faviconUrl = sources[currentIndex] ?? '';
+  const showFallbackIcon = !faviconUrl || currentIndex >= sources.length;
+
+  const handleFaviconError = () => {
+    if (currentIndex < sources.length - 1) {
+      setCurrentIndex((i) => i + 1);
+    } else {
+      setCurrentIndex(sources.length);
+    }
+  };
 
   return (
     <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
@@ -41,7 +54,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
                   width={32}
                   height={32}
                   loading="lazy"
-                  onError={() => setFaviconFailed(true)}
+                  onError={handleFaviconError}
                 />
               )}
             </div>
