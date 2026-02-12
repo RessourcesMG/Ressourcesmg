@@ -19,6 +19,11 @@ const STOP_WORDS = new Set([
   'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles', 'y', 'lui', 'eux',
 ]);
 
+/** Version normalisée (sans accents) pour les comparaisons */
+const STOP_WORDS_NORMALIZED = new Set(
+  [...STOP_WORDS].map((w) => w.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+);
+
 /**
  * Dictionnaire de synonymes pour la recherche de ressources médicales.
  * Les termes sont en minuscules pour une recherche insensible à la casse.
@@ -170,15 +175,15 @@ function isStopWord(word: string): boolean {
 }
 
 /**
- * Décompose une requête en groupes de synonymes (un groupe par mot clé).
- * Ignore les mots vides (articles, prépositions, etc.).
- * Ex: "aide à la prescription d'antibiotiques" -> [["aide"], ["prescription", ...], ["antibiotique", "antibio", ...]]
+ * Décompose une requête en groupes de synonymes (un groupe par mot).
+ * Les mots vides sont inclus mais seront matchés en mot entier uniquement
+ * (ex: "sur" ne matche pas "surveillance", donc 0 résultat).
  */
 export function getSearchTermGroups(query: string): string[][] {
   const rawWords = query.toLowerCase().split(/[\s,;.!?]+/);
   const words = rawWords
     .map((w) => extractKeyword(w.replace(/^['']|['']$/g, '')))
-    .filter((w) => w.length >= 2 && !isStopWord(w));
+    .filter((w) => w.length >= 2);
 
   return words.map((word) => {
     const synonyms = findSynonyms(word);
@@ -188,9 +193,19 @@ export function getSearchTermGroups(query: string): string[][] {
 }
 
 /**
+ * Vérifie si un terme est un mot de liaison (stop word).
+ * Ces termes sont matchés en mot entier uniquement (pas en sous-chaîne).
+ */
+function isStopWordTerm(term: string): boolean {
+  const normalized = normalizeTerm(term);
+  return STOP_WORDS_NORMALIZED.has(normalized) || STOP_WORDS.has(term.toLowerCase());
+}
+
+/**
  * Vérifie si un texte correspond à la requête de recherche.
- * Pour une requête multi-mots : chaque mot (ou un de ses synonymes) doit être présent.
- * Ex: "aide antibiotique" matche si le texte contient ("aide") ET ("antibiotique" OU "antibio" OU "atb")
+ * Pour les mots de liaison (sur, à, etc.) : match en mot entier uniquement
+ * (ex: "sur" ne matche pas "surveillance" → 0 résultat).
+ * Pour les mots clés : match en sous-chaîne comme avant.
  */
 export function matchesSearch(text: string, termGroups: string[][]): boolean {
   if (termGroups.length === 0) return true;
@@ -201,6 +216,14 @@ export function matchesSearch(text: string, termGroups: string[][]): boolean {
     group.some(term => {
       const normalizedTerm = normalizeTerm(term);
       if (normalizedTerm.length < 2) return false;
+
+      if (isStopWordTerm(term)) {
+        // Mot de liaison : match en mot entier uniquement (\b en regex)
+        const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const wordBoundaryRegex = new RegExp(`(^|[^a-z0-9àâäéèêëïîôùûüç])${escaped}([^a-z0-9àâäéèêëïîôùûüç]|$)`, 'i');
+        return wordBoundaryRegex.test(normalizedText);
+      }
+
       return normalizedText.includes(normalizedTerm);
     })
   );
