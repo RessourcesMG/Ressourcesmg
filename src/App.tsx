@@ -4,6 +4,7 @@ import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
 import { categories, medicalSpecialties } from '@/types/resources';
+import { getSearchTermGroups, matchesSearch } from '@/lib/searchSynonyms';
 import { SearchX, Stethoscope, Globe } from 'lucide-react';
 
 // General categories (first 3: diagnostic, IA, other)
@@ -30,15 +31,15 @@ function App() {
       result = result.filter(cat => cat.id === selectedCategory);
     }
 
-    // Filter by search query
+    // Filter by search query (with synonym support)
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+      const termGroups = getSearchTermGroups(searchQuery);
       result = result.map(category => ({
         ...category,
-        resources: category.resources.filter(resource =>
-          resource.name.toLowerCase().includes(query) ||
-          resource.description.toLowerCase().includes(query)
-        )
+        resources: category.resources.filter(resource => {
+          const searchableText = `${resource.name} ${resource.description}`;
+          return matchesSearch(searchableText, termGroups);
+        })
       })).filter(category => category.resources.length > 0);
     }
 
@@ -53,15 +54,15 @@ function App() {
       result = result.filter(cat => cat.id === selectedCategory);
     }
 
-    // Filter by search query
+    // Filter by search query (with synonym support)
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+      const termGroups = getSearchTermGroups(searchQuery);
       result = result.map(category => ({
         ...category,
-        resources: category.resources.filter(resource =>
-          resource.name.toLowerCase().includes(query) ||
-          resource.description.toLowerCase().includes(query)
-        )
+        resources: category.resources.filter(resource => {
+          const searchableText = `${resource.name} ${resource.description}`;
+          return matchesSearch(searchableText, termGroups);
+        })
       })).filter(category => category.resources.length > 0);
     }
 
