@@ -100,6 +100,8 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       url?: string;
       requiresAuth?: boolean;
       note?: string;
+      icon?: string;
+      id?: string;
     };
     if (body?.action === 'addResource') {
       const { categoryId, name, url } = body;
@@ -123,6 +125,37 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         .single();
       if (error) return res.status(500).json({ error: error.message });
       return res.status(201).json({ success: true, id: data.id });
+    }
+    if (body?.action === 'addCategory') {
+      const { name, icon } = body as { name?: string; icon?: string };
+      if (!name?.trim()) return res.status(400).json({ error: 'name requis' });
+      const id = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || `cat-${Date.now()}`;
+      const { count } = await supabase.from('managed_categories').select('id', { count: 'exact', head: true });
+      const sortOrder = count ?? 0;
+      const { error: err } = await supabase.from('managed_categories').insert({
+        id,
+        name: name.trim(),
+        icon: icon || 'Circle',
+        sort_order: sortOrder,
+        is_specialty: true,
+      });
+      if (err) return res.status(500).json({ error: err.message });
+      return res.status(201).json({ success: true, id });
+    }
+    if (body?.action === 'deleteResource') {
+      const { id } = body as { id?: string };
+      if (!id) return res.status(400).json({ error: 'id requis' });
+      const { error } = await supabase.from('managed_resources').delete().eq('id', id);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
+    }
+    if (body?.action === 'deleteCategory') {
+      const { id } = body as { id?: string };
+      if (!id) return res.status(400).json({ error: 'id requis' });
+      await supabase.from('managed_resources').delete().eq('category_id', id);
+      const { error } = await supabase.from('managed_categories').delete().eq('id', id);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
     }
     if (body?.action !== 'seed' || !Array.isArray(body.categories)) {
       return res.status(400).json({ error: 'Action seed ou addResource et champs requis' });

@@ -2,76 +2,8 @@ import { useState } from 'react';
 import type { Category } from '@/types/resources';
 import { ResourceCard } from './ResourceCard';
 import { Button } from '@/components/ui/button';
-import { 
-  ChevronDown, 
-  ChevronUp,
-  Stethoscope,
-  Wind,
-  Heart,
-  Smile,
-  ScanFace,
-  Activity,
-  User,
-  Baby,
-  Droplet,
-  Bug,
-  Search,
-  Briefcase,
-  Accessibility,
-  Brain,
-  Apple,
-  Ribbon,
-  Eye,
-  Ear,
-  Bone,
-  Pill,
-  BrainCircuit,
-  Scan,
-  Hand,
-  FileText,
-  HeartHandshake,
-  Sparkles,
-  MoreHorizontal,
-  Circle
-} from 'lucide-react';
-import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
-
-// Icon mapping for categories
-const iconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
-  Stethoscope,
-  Wind,
-  Heart,
-  Smile,
-  ScanFace,
-  Activity,
-  User,
-  Baby,
-  Droplet,
-  Bug,
-  Search,
-  Briefcase,
-  Accessibility,
-  Brain,
-  Apple,
-  Ribbon,
-  Eye,
-  Ear,
-  Bone,
-  Pill,
-  BrainCircuit,
-  Scan,
-  Hand,
-  FileText,
-  HeartHandshake,
-  Sparkles,
-  MoreHorizontal,
-  // Icônes médicales personnalisées
-  ThyroidIcon,
-  UterusIcon,
-  ToothIcon,
-  TestTubeIcon,
-  PregnantWomanIcon,
-};
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { iconComponents } from '@/lib/categoryIcons';
 
 interface CategorySectionProps {
   category: Category;
@@ -81,7 +13,7 @@ interface CategorySectionProps {
 export function CategorySection({ category, isExpanded = true }: CategorySectionProps) {
   const [expanded, setExpanded] = useState(isExpanded);
   
-  const IconComponent = iconComponents[category.icon] || Circle;
+  const IconComponent = iconComponents[category.icon] || iconComponents.Circle;
 
   return (
     <section 
