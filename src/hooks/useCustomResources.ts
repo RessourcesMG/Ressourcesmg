@@ -34,10 +34,18 @@ export function useCustomResources() {
     fetchResources();
   }, [fetchResources]);
 
+  const getApiUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/api/resources`;
+    }
+    return '/api/resources';
+  };
+
   const addResource = useCallback(
-    async (input: CustomResourceInput, token: string): Promise<CustomResource | null> => {
+    async (input: CustomResourceInput, token: string): Promise<{ success: true; resource: CustomResource } | { success: false; error: string }> => {
       try {
-        const res = await fetch('/api/resources', {
+        const url = getApiUrl();
+        const res = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -45,18 +53,20 @@ export function useCustomResources() {
           },
           body: JSON.stringify(input),
         });
-        const data = await res.json();
+        const text = await res.text();
+        const data = text ? (() => { try { return JSON.parse(text); } catch { return {}; } })() : {};
         if (res.ok && data.id) {
           const newResource: CustomResource = {
             id: data.id,
             ...input,
           };
           setResources((prev) => [newResource, ...prev]);
-          return newResource;
+          return { success: true, resource: newResource };
         }
-        return null;
-      } catch {
-        return null;
+        const msg = data?.error || (res.status === 404 ? 'API non trouvée (404). Vérifiez le déploiement Vercel.' : `Erreur ${res.status}: ${text.slice(0, 100)}`);
+        return { success: false, error: msg };
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Erreur réseau' };
       }
     },
     []
