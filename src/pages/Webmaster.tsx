@@ -71,9 +71,9 @@ export function Webmaster() {
       setAddLoading(false);
       return;
     }
-    const added = await addResource(form, token);
+    const result = await addResource(form, token);
     setAddLoading(false);
-    if (added) {
+    if (result.success) {
       setForm({
         categoryId: form.categoryId,
         name: '',
@@ -82,8 +82,9 @@ export function Webmaster() {
         requiresAuth: false,
         note: '',
       });
+      setError('');
     } else {
-      setError('Erreur lors de l\'ajout. Vérifiez la configuration Supabase.');
+      setError(result.error || 'Erreur lors de l\'ajout.');
     }
   };
 

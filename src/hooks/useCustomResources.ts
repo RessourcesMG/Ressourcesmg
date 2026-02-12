@@ -35,7 +35,7 @@ export function useCustomResources() {
   }, [fetchResources]);
 
   const addResource = useCallback(
-    async (input: CustomResourceInput, token: string): Promise<CustomResource | null> => {
+    async (input: CustomResourceInput, token: string): Promise<{ success: true; resource: CustomResource } | { success: false; error: string }> => {
       try {
         const res = await fetch('/api/resources', {
           method: 'POST',
@@ -45,18 +45,19 @@ export function useCustomResources() {
           },
           body: JSON.stringify(input),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (res.ok && data.id) {
           const newResource: CustomResource = {
             id: data.id,
             ...input,
           };
           setResources((prev) => [newResource, ...prev]);
-          return newResource;
+          return { success: true, resource: newResource };
         }
-        return null;
-      } catch {
-        return null;
+        const msg = data?.error || `Erreur ${res.status}`;
+        return { success: false, error: msg };
+      } catch (err) {
+        return { success: false, error: err instanceof Error ? err.message : 'Erreur réseau' };
       }
     },
     []
