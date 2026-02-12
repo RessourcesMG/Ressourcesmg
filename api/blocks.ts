@@ -99,18 +99,17 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     if ((count ?? 0) > 0) {
       return res.status(400).json({ error: 'Données déjà initialisées' });
     }
-    let sortCat = 0;
-    for (const cat of body.categories) {
-      await supabase.from('managed_categories').insert({
-        id: cat.id,
-        name: cat.name,
-        icon: cat.icon,
-        sort_order: sortCat++,
-        is_specialty: cat.isSpecialty ?? false,
-      });
-      let sortRes = 0;
-      for (const res of cat.resources || []) {
-        await supabase.from('managed_resources').insert({
+    const catsToInsert = body.categories.map((cat, i) => ({
+      id: cat.id,
+      name: cat.name,
+      icon: cat.icon,
+      sort_order: i,
+      is_specialty: cat.isSpecialty ?? false,
+    }));
+    const ressToInsert: Array<{ id: string; category_id: string; name: string; description: string; url: string; requires_auth: boolean; note: string | null; sort_order: number }> = [];
+    body.categories.forEach((cat, catIdx) => {
+      (cat.resources || []).forEach((res, resIdx) => {
+        ressToInsert.push({
           id: res.id,
           category_id: cat.id,
           name: res.name,
@@ -118,9 +117,15 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
           url: res.url,
           requires_auth: res.requiresAuth ?? false,
           note: res.note ?? null,
-          sort_order: sortRes++,
+          sort_order: resIdx,
         });
-      }
+      });
+    });
+    const { error: errCat } = await supabase.from('managed_categories').insert(catsToInsert);
+    if (errCat) return res.status(500).json({ error: errCat.message });
+    if (ressToInsert.length > 0) {
+      const { error: errRes } = await supabase.from('managed_resources').insert(ressToInsert);
+      if (errRes) return res.status(500).json({ error: errRes.message });
     }
     return res.status(200).json({ success: true });
   }
