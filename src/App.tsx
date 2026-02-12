@@ -152,8 +152,8 @@ function App() {
                 {/* Big Section Header */}
                 {!selectedCategory && (
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="p-3 bg-teal-600 rounded-xl">
-                      <Globe className="w-6 h-6 text-white" />
+                    <div className="p-3 bg-teal-100 rounded-xl">
+                      <Globe className="w-6 h-6 text-teal-600" />
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-slate-900">Ressources globales</h2>
@@ -180,8 +180,8 @@ function App() {
                 {/* Big Section Header */}
                 {!selectedCategory && (
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="p-3 bg-teal-600 rounded-xl">
-                      <Stethoscope className="w-6 h-6 text-white" />
+                    <div className="p-3 bg-teal-100 rounded-xl">
+                      <Stethoscope className="w-6 h-6 text-teal-600" />
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-slate-900">Ressources par spécialités médicales</h2>
