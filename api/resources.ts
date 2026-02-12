@@ -3,6 +3,15 @@ import { getSupabase } from './lib/supabase';
 import { verifyToken } from './lib/auth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    return await handleRequest(req, res);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erreur serveur inattendue';
+    return res.status(500).json({ error: msg });
+  }
+}
+
+async function handleRequest(req: VercelRequest, res: VercelResponse) {
   const supabase = getSupabase();
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');

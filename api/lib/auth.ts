@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 const SECRET = process.env.WEBMASTER_SECRET || 'ressourcesmg-default-secret-change-me';
 const TOKEN_DURATION_MS = 8 * 60 * 60 * 1000;
