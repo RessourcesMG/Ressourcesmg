@@ -12,7 +12,13 @@ function getFaviconSources(url: string): string[] {
   try {
     const { hostname, origin } = new URL(url);
     return [
+      // Google Favicon V2 : analyse la page pour trouver le favicon réel
+      `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(origin)}&size=128`,
+      // Favicon direct du site
       `${origin}/favicon.ico`,
+      // Google s2 (fallback, parfois différent du V2)
+      `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
+      // DuckDuckGo
       `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
     ];
   } catch {
@@ -39,7 +45,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-50 overflow-hidden">
+            <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
               {showFallbackIcon ? (
                 <Globe className="w-5 h-5 text-slate-400" />
               ) : (
