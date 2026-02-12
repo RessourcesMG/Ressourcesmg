@@ -36,7 +36,7 @@ export async function login(password: string): Promise<{ success: boolean; error
       return { success: true };
     }
     return { success: false, error: data.error || 'Échec de connexion' };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Erreur réseau' };
   }
 }

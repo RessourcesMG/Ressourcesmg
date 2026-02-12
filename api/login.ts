@@ -10,20 +10,6 @@ function createToken(): string {
   return Buffer.from(payload).toString('base64url') + '.' + signature;
 }
 
-function verifyToken(token: string): boolean {
-  try {
-    const [payloadB64, signature] = token.split('.');
-    if (!payloadB64 || !signature) return false;
-    const payload = Buffer.from(payloadB64, 'base64url').toString();
-    const expected = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
-    if (signature !== expected) return false;
-    const data = JSON.parse(payload);
-    return Date.now() - data.t < TOKEN_DURATION_MS;
-  } catch {
-    return false;
-  }
-}
-
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

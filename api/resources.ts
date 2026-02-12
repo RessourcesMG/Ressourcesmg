@@ -73,7 +73,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         note: r.note,
       }));
       return res.status(200).json(resources);
-    } catch (err) {
+    } catch {
       return res.status(500).json({ error: 'Erreur serveur' });
     }
   }
@@ -117,7 +117,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         requiresAuth: body.requiresAuth ?? false,
         note: body.note || null,
       });
-    } catch (err) {
+    } catch {
       return res.status(500).json({ error: 'Erreur serveur' });
     }
   }
@@ -141,7 +141,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ error: error.message });
       }
       return res.status(204).end();
-    } catch (err) {
+    } catch {
       return res.status(500).json({ error: 'Erreur serveur' });
     }
   }
