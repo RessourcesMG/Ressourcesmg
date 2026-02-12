@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Inbox, Check, X, Pencil, ExternalLink } from 'lucide-react';
+import { Inbox, Check, X, Pencil, ExternalLink, Trash2 } from 'lucide-react';
 import { getToken } from '@/lib/webmasterAuth';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ export function ProposalManager() {
   const [error, setError] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editProposal, setEditProposal] = useState<Proposal | null>(null);
   const [editForm, setEditForm] = useState({ name: '', url: '', description: '' });
   const [acceptCategoryId, setAcceptCategoryId] = useState<Record<string, string>>({});
@@ -164,6 +165,42 @@ export function ProposalManager() {
   const openEdit = (p: Proposal) => {
     setEditProposal(p);
     setEditForm({ name: p.name, url: p.url, description: p.description });
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    setError(null);
+    const token = getToken();
+    if (!token) {
+      setError('Session expirée');
+      setDeletingId(null);
+      return;
+    }
+    try {
+      const res = await fetch(PROPOSALS_API, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id, action: 'delete' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        await fetchProposals();
+        setAcceptCategoryId((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      } else {
+        setError(data?.error || 'Erreur suppression');
+      }
+    } catch {
+      setError('Erreur réseau');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleEditSave = async () => {
@@ -313,8 +350,19 @@ export function ProposalManager() {
                               className="h-8"
                               disabled={rejectingId === p.id}
                               onClick={() => handleReject(p.id)}
+                              title="Refuser"
                             >
                               {rejectingId === p.id ? '...' : <X className="w-3 h-3" />}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 text-slate-500 hover:text-red-600"
+                              disabled={deletingId === p.id}
+                              onClick={() => handleDelete(p.id)}
+                              title="Supprimer définitivement"
+                            >
+                              {deletingId === p.id ? '...' : <Trash2 className="w-3 h-3" />}
                             </Button>
                           </div>
                         </div>
@@ -334,20 +382,32 @@ export function ProposalManager() {
                   {accepted.map((p) => (
                     <div
                       key={p.id}
-                      className="border rounded-lg p-3 bg-green-50/50 border-green-200"
+                      className="border rounded-lg p-3 bg-green-50/50 border-green-200 flex items-center justify-between gap-2"
                     >
-                      <div className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-600" />
-                        <a
-                          href={p.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium text-slate-900 hover:text-teal-600"
-                        >
-                          {p.name}
-                        </a>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Check className="w-4 h-4 text-green-600 shrink-0" />
+                          <a
+                            href={p.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-slate-900 hover:text-teal-600"
+                          >
+                            {p.name}
+                          </a>
+                        </div>
+                        <p className="text-slate-500 text-xs mt-1 truncate">{p.url}</p>
                       </div>
-                      <p className="text-slate-500 text-xs mt-1 truncate">{p.url}</p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-slate-500 hover:text-red-600 shrink-0"
+                        disabled={deletingId === p.id}
+                        onClick={() => handleDelete(p.id)}
+                        title="Supprimer de la liste"
+                      >
+                        {deletingId === p.id ? '...' : <Trash2 className="w-3 h-3" />}
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -363,13 +423,25 @@ export function ProposalManager() {
                   {rejected.map((p) => (
                     <div
                       key={p.id}
-                      className="border rounded-lg p-3 bg-slate-50 border-slate-200"
+                      className="border rounded-lg p-3 bg-slate-50 border-slate-200 flex items-center justify-between gap-2"
                     >
-                      <div className="flex items-center gap-2">
-                        <X className="w-4 h-4 text-slate-400" />
-                        <span className="font-medium text-slate-600">{p.name}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <X className="w-4 h-4 text-slate-400 shrink-0" />
+                          <span className="font-medium text-slate-600">{p.name}</span>
+                        </div>
+                        <p className="text-slate-400 text-xs mt-1 truncate">{p.url}</p>
                       </div>
-                      <p className="text-slate-400 text-xs mt-1 truncate">{p.url}</p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-slate-500 hover:text-red-600 shrink-0"
+                        disabled={deletingId === p.id}
+                        onClick={() => handleDelete(p.id)}
+                        title="Supprimer définitivement"
+                      >
+                        {deletingId === p.id ? '...' : <Trash2 className="w-3 h-3" />}
+                      </Button>
                     </div>
                   ))}
                 </div>

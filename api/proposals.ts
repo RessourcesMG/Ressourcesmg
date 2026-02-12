@@ -111,7 +111,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
     const body = req.body as {
       id?: string;
-      action?: 'accept' | 'reject' | 'edit';
+      action?: 'accept' | 'reject' | 'edit' | 'delete';
       categoryId?: string;
       name?: string;
       url?: string;
@@ -183,6 +183,16 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       const { error } = await supabase
         .from('resource_proposals')
         .update(up)
+        .eq('id', id);
+
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
+    }
+
+    if (action === 'delete') {
+      const { error } = await supabase
+        .from('resource_proposals')
+        .delete()
         .eq('id', id);
 
       if (error) return res.status(500).json({ error: error.message });
