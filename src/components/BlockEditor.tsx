@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus } from 'lucide-react';
+import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus, GripVertical, Globe, Stethoscope } from 'lucide-react';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import type { Category } from '@/types/resources';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ export function BlockEditor() {
     loading,
     seedBlocks,
     addCategory,
+    reorderCategories,
     updateResource,
     updateCategory,
     deleteResource,
@@ -51,8 +52,10 @@ export function BlockEditor() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('Circle');
-
-  const allCategories = [...generalCategories, ...medicalSpecialties];
+  const [newCatIsSpecialty, setNewCatIsSpecialty] = useState(true);
+  const [dragCategoryId, setDragCategoryId] = useState<string | null>(null);
+  const [dragSection, setDragSection] = useState<'general' | 'specialty' | null>(null);
+  const [reorderLoading, setReorderLoading] = useState(false);
 
   const handleSeed = async () => {
     setSeedError('');
@@ -81,10 +84,11 @@ export function BlockEditor() {
     setEditItem({ id: cat.id, name: cat.name, icon: cat.icon });
   };
 
-  const openAddCategory = () => {
+  const openAddCategory = (isSpecialty: boolean) => {
     setEditType('newCategory');
     setNewCatName('');
     setNewCatIcon('Circle');
+    setNewCatIsSpecialty(isSpecialty);
   };
 
   const handleSave = async () => {
@@ -114,13 +118,68 @@ export function BlockEditor() {
     if (!newCatName.trim()) return;
     setSaveError('');
     setSaving(true);
-    const result = await addCategory(newCatName.trim(), newCatIcon);
+    const result = await addCategory(newCatName.trim(), newCatIcon, newCatIsSpecialty);
     setSaving(false);
     if (result.success) {
       setEditType(null);
     } else {
       setSaveError(result.error || 'Erreur');
     }
+  };
+
+  const moveInArray = <T,>(arr: T[], fromId: string, toId: string, idKey: keyof T): T[] => {
+    const fromIdx = arr.findIndex((x) => (x as Record<string, string>)[idKey as string] === fromId);
+    const toIdx = arr.findIndex((x) => (x as Record<string, string>)[idKey as string] === toId);
+    if (fromIdx === -1 || toIdx === -1) return arr;
+    const out = arr.slice();
+    const [item] = out.splice(fromIdx, 1);
+    out.splice(toIdx, 0, item);
+    return out;
+  };
+
+  const handleDragStart = (e: React.DragEvent, categoryId: string, section: 'general' | 'specialty') => {
+    setDragCategoryId(categoryId);
+    setDragSection(section);
+    e.dataTransfer.setData('text/plain', categoryId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDragCategoryId(null);
+    setDragSection(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetId: string, section: 'general' | 'specialty') => {
+    e.preventDefault();
+    if (!dragCategoryId || dragSection !== section) {
+      setDragCategoryId(null);
+      setDragSection(null);
+      return;
+    }
+    if (dragCategoryId === targetId) {
+      setDragCategoryId(null);
+      setDragSection(null);
+      return;
+    }
+    setReorderLoading(true);
+    setSaveError('');
+    if (section === 'general') {
+      const newOrder = moveInArray(generalCategories, dragCategoryId, targetId, 'id').map((c) => c.id);
+      const result = await reorderCategories(newOrder, undefined);
+      if (!result.success) setSaveError(result.error || 'Erreur réordonnancement');
+    } else {
+      const newOrder = moveInArray(medicalSpecialties, dragCategoryId, targetId, 'id').map((c) => c.id);
+      const result = await reorderCategories(undefined, newOrder);
+      if (!result.success) setSaveError(result.error || 'Erreur réordonnancement');
+    }
+    setReorderLoading(false);
+    setDragCategoryId(null);
+    setDragSection(null);
   };
 
   const handleDelete = async () => {
@@ -173,100 +232,242 @@ export function BlockEditor() {
             </div>
           )}
           {fromDb && (
-            <div className="space-y-2">
-              <Button variant="outline" size="sm" onClick={openAddCategory}>
-                <Plus className="w-4 h-4 mr-1" />
-                Ajouter une catégorie
-              </Button>
-              <div className="max-h-[400px] overflow-y-auto space-y-2">
-                {allCategories.map((cat) => (
-                  <Collapsible
-                    key={cat.id}
-                    open={openCategories[cat.id] ?? true}
-                    onOpenChange={() => toggleCategory(cat.id)}
-                  >
-                    <div className="border border-slate-200 rounded-lg">
-                      <CollapsibleTrigger asChild>
-                        <div className="flex items-center gap-2 p-3 cursor-pointer hover:bg-slate-50">
-                          {openCategories[cat.id] !== false ? (
-                            <ChevronDown className="w-4 h-4 text-slate-400" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-slate-400" />
-                          )}
-                          <span className="font-medium text-slate-900">{cat.name}</span>
-                          <span className="text-sm text-slate-500">
-                            ({cat.resources.length} ressources)
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="ml-auto h-8 w-8"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditCategory(cat);
-                            }}
-                            title="Modifier la catégorie"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteTarget({ type: 'category', id: cat.id, name: cat.name });
-                            }}
-                            title="Supprimer la catégorie"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="border-t border-slate-200 p-2 space-y-1">
-                          {cat.resources.map((res) => (
-                            <div
-                              key={res.id}
-                              className="flex items-center justify-between gap-2 py-2 px-3 rounded hover:bg-slate-50"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium text-slate-800 truncate">{res.name}</p>
-                                <p className="text-xs text-slate-500 truncate">{res.description}</p>
-                              </div>
-                              <div className="flex gap-1 shrink-0">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => openEditResource(cat, res)}
-                                  title="Modifier la ressource"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() =>
-                                    setDeleteTarget({
-                                      type: 'resource',
-                                      id: res.id,
-                                      name: res.name,
-                                    })
-                                  }
-                                  title="Supprimer la ressource"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
+            <div className="space-y-6">
+              {reorderLoading && (
+                <p className="text-sm text-slate-500">Réorganisation en cours...</p>
+              )}
+              {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+
+              {/* Ressources globales */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-2 bg-teal-100 rounded-lg">
+                    <Globe className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900">Ressources globales</h3>
+                  <Button variant="outline" size="sm" onClick={() => openAddCategory(false)} className="ml-auto">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Ajouter une catégorie
+                  </Button>
+                </div>
+                <div className="max-h-[280px] overflow-y-auto space-y-2">
+                  {generalCategories.map((cat) => (
+                    <Collapsible
+                      key={cat.id}
+                      open={openCategories[cat.id] ?? true}
+                      onOpenChange={() => toggleCategory(cat.id)}
+                    >
+                      <div
+                        className={`transition-opacity ${dragCategoryId === cat.id ? 'opacity-50' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, cat.id, 'general')}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, cat.id, 'general')}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <div className="border border-slate-200 rounded-lg bg-white">
+                          <CollapsibleTrigger asChild>
+                            <div className="flex items-center gap-2 p-3 cursor-pointer hover:bg-slate-50">
+                              <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600" title="Glisser pour réordonner" onPointerDown={(e) => e.stopPropagation()}>
+                                <GripVertical className="w-4 h-4" />
+                              </span>
+                              {openCategories[cat.id] !== false ? (
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-slate-400" />
+                              )}
+                              <span className="font-medium text-slate-900">{cat.name}</span>
+                              <span className="text-sm text-slate-500">
+                                ({cat.resources.length} ressources)
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="ml-auto h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditCategory(cat);
+                                }}
+                                title="Modifier la catégorie"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget({ type: 'category', id: cat.id, name: cat.name });
+                                }}
+                                title="Supprimer la catégorie"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
-                          ))}
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="border-t border-slate-200 p-2 space-y-1">
+                              {cat.resources.map((res) => (
+                                <div
+                                  key={res.id}
+                                  className="flex items-center justify-between gap-2 py-2 px-3 rounded hover:bg-slate-50"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                    <p className="text-xs text-slate-500 truncate">{res.description}</p>
+                                  </div>
+                                  <div className="flex gap-1 shrink-0">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => openEditResource(cat, res)}
+                                      title="Modifier la ressource"
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      onClick={() =>
+                                        setDeleteTarget({
+                                          type: 'resource',
+                                          id: res.id,
+                                          name: res.name,
+                                        })
+                                      }
+                                      title="Supprimer la ressource"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
                         </div>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                ))}
+                      </div>
+                    </Collapsible>
+                  ))}
+                </div>
+              </div>
+
+              {/* Ressources par spécialités */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-2 bg-teal-100 rounded-lg">
+                    <Stethoscope className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <h3 className="font-semibold text-slate-900">Ressources par spécialités</h3>
+                  <Button variant="outline" size="sm" onClick={() => openAddCategory(true)} className="ml-auto">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Ajouter une catégorie
+                  </Button>
+                </div>
+                <div className="max-h-[280px] overflow-y-auto space-y-2">
+                  {medicalSpecialties.map((cat) => (
+                    <Collapsible
+                      key={cat.id}
+                      open={openCategories[cat.id] ?? true}
+                      onOpenChange={() => toggleCategory(cat.id)}
+                    >
+                      <div
+                        className={`transition-opacity ${dragCategoryId === cat.id ? 'opacity-50' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, cat.id, 'specialty')}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, cat.id, 'specialty')}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <div className="border border-slate-200 rounded-lg bg-white">
+                          <CollapsibleTrigger asChild>
+                            <div className="flex items-center gap-2 p-3 cursor-pointer hover:bg-slate-50">
+                              <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600" title="Glisser pour réordonner" onPointerDown={(e) => e.stopPropagation()}>
+                                <GripVertical className="w-4 h-4" />
+                              </span>
+                              {openCategories[cat.id] !== false ? (
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-slate-400" />
+                              )}
+                              <span className="font-medium text-slate-900">{cat.name}</span>
+                              <span className="text-sm text-slate-500">
+                                ({cat.resources.length} ressources)
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="ml-auto h-8 w-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditCategory(cat);
+                                }}
+                                title="Modifier la catégorie"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget({ type: 'category', id: cat.id, name: cat.name });
+                                }}
+                                title="Supprimer la catégorie"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="border-t border-slate-200 p-2 space-y-1">
+                              {cat.resources.map((res) => (
+                                <div
+                                  key={res.id}
+                                  className="flex items-center justify-between gap-2 py-2 px-3 rounded hover:bg-slate-50"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                    <p className="text-xs text-slate-500 truncate">{res.description}</p>
+                                  </div>
+                                  <div className="flex gap-1 shrink-0">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => openEditResource(cat, res)}
+                                      title="Modifier la ressource"
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      onClick={() =>
+                                        setDeleteTarget({
+                                          type: 'resource',
+                                          id: res.id,
+                                          name: res.name,
+                                        })
+                                      }
+                                      title="Supprimer la ressource"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        </div>
+                      </div>
+                    </Collapsible>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -364,6 +565,9 @@ export function BlockEditor() {
             <DialogTitle>Nouvelle catégorie</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
+            <p className="text-sm text-slate-600">
+              Section : <strong>{newCatIsSpecialty ? 'Ressources par spécialités' : 'Ressources globales'}</strong>
+            </p>
             <div>
               <Label>Nom (ex: Néphrologie)</Label>
               <Input
