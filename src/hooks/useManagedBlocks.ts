@@ -142,7 +142,7 @@ export function useManagedBlocks() {
   );
 
   const addCategory = useCallback(
-    async (name: string, icon?: string): Promise<{ success: boolean; error?: string; id?: string }> => {
+    async (name: string, icon?: string, isSpecialty?: boolean): Promise<{ success: boolean; error?: string; id?: string }> => {
       const token = getToken();
       if (!token) return { success: false, error: 'Session expirée' };
       try {
@@ -152,12 +152,50 @@ export function useManagedBlocks() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ action: 'addCategory', name: name.trim(), icon: icon || 'Circle' }),
+          body: JSON.stringify({
+            action: 'addCategory',
+            name: name.trim(),
+            icon: icon || 'Circle',
+            isSpecialty: isSpecialty ?? true,
+          }),
         });
         const out = await res.json().catch(() => ({}));
         if (res.ok && out.success) {
           await fetchBlocks();
           return { success: true, id: out.id };
+        }
+        return { success: false, error: out?.error || `Erreur ${res.status}` };
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Erreur réseau' };
+      }
+    },
+    [fetchBlocks]
+  );
+
+  const reorderCategories = useCallback(
+    async (generalOrder?: string[], specialtyOrder?: string[]): Promise<{ success: boolean; error?: string }> => {
+      const token = getToken();
+      if (!token) return { success: false, error: 'Session expirée' };
+      if (!Array.isArray(generalOrder) && !Array.isArray(specialtyOrder)) {
+        return { success: false, error: 'generalOrder ou specialtyOrder requis' };
+      }
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            action: 'reorderCategories',
+            generalOrder: generalOrder ?? [],
+            specialtyOrder: specialtyOrder ?? [],
+          }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.success) {
+          await fetchBlocks();
+          return { success: true };
         }
         return { success: false, error: out?.error || `Erreur ${res.status}` };
       } catch (e) {
@@ -254,6 +292,7 @@ export function useManagedBlocks() {
     seedBlocks,
     addResource,
     addCategory,
+    reorderCategories,
     updateResource,
     updateCategory,
     deleteResource,

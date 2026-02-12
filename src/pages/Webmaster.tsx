@@ -12,7 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -27,10 +29,6 @@ export function Webmaster() {
   const [loading, setLoading] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
   const { generalCategories, medicalSpecialties, fromDb, addResource } = useManagedBlocks();
-  const categoriesForSelect = useMemo(
-    () => [...generalCategories, ...medicalSpecialties],
-    [generalCategories, medicalSpecialties]
-  );
   const [form, setForm] = useState({
     categoryId: '',
     name: '',
@@ -199,11 +197,22 @@ export function Webmaster() {
                     <SelectValue placeholder="Choisir une section" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categoriesForSelect.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      <SelectLabel>Ressources globales</SelectLabel>
+                      {generalCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                    <SelectGroup>
+                      <SelectLabel>Ressources par spécialités</SelectLabel>
+                      {medicalSpecialties.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>

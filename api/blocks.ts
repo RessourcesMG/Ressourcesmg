@@ -60,6 +60,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     const { data: cats } = await supabase
       .from('managed_categories')
       .select('*')
+      .order('is_specialty', { ascending: true })
       .order('sort_order', { ascending: true });
     const { data: ress } = await supabase
       .from('managed_resources')
@@ -127,17 +128,24 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       return res.status(201).json({ success: true, id: data.id });
     }
     if (body?.action === 'addCategory') {
-      const { name, icon } = body as { name?: string; icon?: string };
+      const { name, icon, isSpecialty } = body as { name?: string; icon?: string; isSpecialty?: boolean };
       if (!name?.trim()) return res.status(400).json({ error: 'name requis' });
       const id = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || `cat-${Date.now()}`;
-      const { count } = await supabase.from('managed_categories').select('id', { count: 'exact', head: true });
-      const sortOrder = count ?? 0;
+      const isSpec = isSpecialty ?? true;
+      const { data: lastInSection } = await supabase
+        .from('managed_categories')
+        .select('sort_order')
+        .eq('is_specialty', isSpec)
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const sortOrder = lastInSection != null ? lastInSection.sort_order + 1 : 0;
       const { error: err } = await supabase.from('managed_categories').insert({
         id,
         name: name.trim(),
         icon: icon || 'Circle',
         sort_order: sortOrder,
-        is_specialty: true,
+        is_specialty: isSpec,
       });
       if (err) return res.status(500).json({ error: err.message });
       return res.status(201).json({ success: true, id });
@@ -155,6 +163,25 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       await supabase.from('managed_resources').delete().eq('category_id', id);
       const { error } = await supabase.from('managed_categories').delete().eq('id', id);
       if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
+    }
+    if (body?.action === 'reorderCategories') {
+      const { generalOrder, specialtyOrder } = body as { generalOrder?: string[]; specialtyOrder?: string[] };
+      if (!Array.isArray(generalOrder) && !Array.isArray(specialtyOrder)) {
+        return res.status(400).json({ error: 'generalOrder ou specialtyOrder requis' });
+      }
+      for (let i = 0; i < (generalOrder?.length ?? 0); i++) {
+        const id = generalOrder[i];
+        if (!id) continue;
+        const { error } = await supabase.from('managed_categories').update({ sort_order: i }).eq('id', id).eq('is_specialty', false);
+        if (error) return res.status(500).json({ error: error.message });
+      }
+      for (let i = 0; i < (specialtyOrder?.length ?? 0); i++) {
+        const id = specialtyOrder[i];
+        if (!id) continue;
+        const { error } = await supabase.from('managed_categories').update({ sort_order: i }).eq('id', id).eq('is_specialty', true);
+        if (error) return res.status(500).json({ error: error.message });
+      }
       return res.status(200).json({ success: true });
     }
     if (body?.action !== 'seed' || !Array.isArray(body.categories)) {
