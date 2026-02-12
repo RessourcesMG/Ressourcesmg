@@ -42,3 +42,17 @@ ALTER TABLE managed_resources ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Lecture publique managed_categories" ON managed_categories FOR SELECT USING (true);
 CREATE POLICY "Lecture publique managed_resources" ON managed_resources FOR SELECT USING (true);
+
+-- Propositions de ressources (formulaire public)
+CREATE TABLE IF NOT EXISTS resource_proposals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+  category_id TEXT REFERENCES managed_categories(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE resource_proposals ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Insertion publique" ON resource_proposals FOR INSERT WITH CHECK (true);

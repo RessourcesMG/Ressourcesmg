@@ -4,6 +4,7 @@ import { Lock, Plus, LogOut, Shield } from 'lucide-react';
 import { isWebmasterLoggedIn, login, logout, getToken } from '@/lib/webmasterAuth';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import { BlockEditor } from '@/components/BlockEditor';
+import { ProposalManager } from '@/components/ProposalManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -275,6 +276,9 @@ export function Webmaster() {
             )}
           </CardContent>
         </Card>
+
+        {/* Propositions des utilisateurs */}
+        <ProposalManager />
 
         {/* Éditer les blocs */}
         <BlockEditor />
