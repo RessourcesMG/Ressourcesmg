@@ -1,44 +1,40 @@
-import { useState } from 'react';
-import { ExternalLink, Lock, Info, Globe } from 'lucide-react';
+import { ExternalLink, Lock, Info } from 'lucide-react';
 import type { Resource } from '@/types/resources';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-function getFaviconUrl(url: string): string {
-  try {
-    const domain = new URL(url).hostname.replace(/^www\./, '');
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-  } catch {
-    return '';
-  }
-}
 
 interface ResourceCardProps {
   resource: Resource;
 }
 
+function getFaviconUrl(url: string, size = 32): string {
+  try {
+    const domain = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=${size}`;
+  } catch {
+    return '';
+  }
+}
+
 export function ResourceCard({ resource }: ResourceCardProps) {
-  const [faviconError, setFaviconError] = useState(false);
   const faviconUrl = getFaviconUrl(resource.url);
 
   return (
     <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="shrink-0 w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden">
-              {faviconUrl && !faviconError ? (
-                <img
-                  src={faviconUrl}
-                  alt=""
-                  className="w-5 h-5 object-contain"
-                  onError={() => setFaviconError(true)}
-                />
-              ) : (
-                <Globe className="w-4 h-4 text-slate-500" />
-              )}
-            </div>
-            <h3 className="font-semibold text-slate-900 text-base leading-tight group-hover:text-teal-600 transition-colors pt-0.5">
+          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+            {faviconUrl && (
+              <img
+                src={faviconUrl}
+                alt=""
+                className="w-8 h-8 shrink-0 rounded object-contain bg-slate-50 mt-0.5"
+                width={32}
+                height={32}
+                loading="lazy"
+              />
+            )}
+            <h3 className="font-semibold text-slate-900 text-base leading-tight group-hover:text-teal-600 transition-colors">
               {resource.name}
             </h3>
           </div>
