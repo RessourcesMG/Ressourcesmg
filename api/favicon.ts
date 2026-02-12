@@ -39,26 +39,24 @@ async function findFavicon(pageUrl: URL): Promise<string | null> {
     const html = await response.text();
     const finalUrl = new URL(response.url);
 
-    // Chercher les balises link rel="icon" dans le HTML
-    const iconRegex = /<link[^>]+rel=["']([^"']*icon[^"']*)["'][^>]+href=["']([^"']+)["'][^>]*>/gi;
-    const appleRegex = /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']([^"']*apple-touch-icon[^"']*)["'][^>]*>/gi;
-
+    // Chercher les balises <link> avec rel icon
+    const linkRegex = /<link\s[^>]*>/gi;
     const candidates: { href: string; priority: number }[] = [];
-
     let m: RegExpExecArray | null;
-    while ((m = iconRegex.exec(html)) !== null) {
-      const rel = (m[1] || '').toLowerCase();
-      const href = m[2];
-      // Priorité : apple-touch-icon (souvent haute résolution) > icon 32x32 > icon standard
+
+    while ((m = linkRegex.exec(html)) !== null) {
+      const tag = m[0];
+      const relMatch = tag.match(/rel\s*=\s*["']([^"']*)["']/i);
+      const hrefMatch = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+      if (!relMatch || !hrefMatch) continue;
+
+      const rel = relMatch[1].toLowerCase();
+      const href = hrefMatch[1];
       let priority = 0;
-      if (rel.includes('apple-touch')) priority = 3;
-      else if (rel.includes('icon') && /32|64|128|192|512/i.test(rel)) priority = 2;
+      if (rel.includes('apple-touch-icon')) priority = 3;
+      else if ((rel.includes('icon') || rel.includes('shortcut')) && /32|64|128|192|512/.test(rel)) priority = 2;
       else if (rel.includes('icon') || rel.includes('shortcut')) priority = 1;
       if (priority > 0) candidates.push({ href, priority });
-    }
-    while ((m = appleRegex.exec(html)) !== null) {
-      const href = m[1];
-      candidates.push({ href, priority: 3 });
     }
 
     // Trier par priorité (le plus haut en premier)
