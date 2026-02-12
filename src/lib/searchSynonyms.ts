@@ -102,6 +102,16 @@ function normalizeTerm(term: string): string {
 }
 
 /**
+ * Normalise un texte complet pour la recherche (minuscules, sans accents)
+ */
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
  * Trouve les synonymes d'un terme dans le dictionnaire (recherche insensible aux accents)
  */
 function findSynonyms(term: string): string[] {
@@ -146,12 +156,13 @@ export function getSearchTermGroups(query: string): string[][] {
 export function matchesSearch(text: string, termGroups: string[][]): boolean {
   if (termGroups.length === 0) return true;
 
-  const textLower = text.toLowerCase();
+  const normalizedText = normalizeText(text);
 
   return termGroups.every(group =>
     group.some(term => {
-      if (term.length < 2) return false;
-      return textLower.includes(term);
+      const normalizedTerm = normalizeTerm(term);
+      if (normalizedTerm.length < 2) return false;
+      return normalizedText.includes(normalizedTerm);
     })
   );
 }

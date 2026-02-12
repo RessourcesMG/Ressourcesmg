@@ -33,14 +33,14 @@ function App() {
 
     // Filter by search query (with synonym support)
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
       const termGroups = getSearchTermGroups(searchQuery);
+      const simpleGroup = [[searchQuery]];
       result = result.map(category => ({
         ...category,
         resources: category.resources.filter(resource => {
-          const searchableText = `${resource.name} ${resource.description}`.toLowerCase();
-          // Match if: original query is substring OR synonym-expanded search matches
-          const matchesSimple = searchableText.includes(query);
+          const searchableText = `${resource.name} ${resource.description}`;
+          // Match if: original query (complet) OU via synonymes
+          const matchesSimple = matchesSearch(searchableText, simpleGroup);
           const matchesSynonyms = matchesSearch(searchableText, termGroups);
           return matchesSimple || matchesSynonyms;
         })
@@ -60,14 +60,14 @@ function App() {
 
     // Filter by search query (with synonym support)
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
       const termGroups = getSearchTermGroups(searchQuery);
+      const simpleGroup = [[searchQuery]];
       result = result.map(category => ({
         ...category,
         resources: category.resources.filter(resource => {
-          const searchableText = `${resource.name} ${resource.description}`.toLowerCase();
-          // Match if: original query is substring OR synonym-expanded search matches
-          const matchesSimple = searchableText.includes(query);
+          const searchableText = `${resource.name} ${resource.description}`;
+          // Match if: original query (complet) OU via synonymes
+          const matchesSimple = matchesSearch(searchableText, simpleGroup);
           const matchesSynonyms = matchesSearch(searchableText, termGroups);
           return matchesSimple || matchesSynonyms;
         })
