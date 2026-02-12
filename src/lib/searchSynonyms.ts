@@ -1,4 +1,25 @@
 /**
+ * Mots vides à ignorer lors de la recherche (articles, prépositions, conjonctions, etc.)
+ * Seuls les mots clés significatifs sont pris en compte.
+ */
+const STOP_WORDS = new Set([
+  // Articles
+  'le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', "d'", 'ce', 'cet', 'cette', 'ces',
+  // Prépositions
+  'à', 'au', 'aux', 'en', 'dans', 'sur', 'pour', 'avec', 'sans', 'sous', 'par', 'entre', 'vers', 'chez', 'avant', 'après', 'pendant', 'depuis',
+  // Conjonctions
+  'et', 'ou', 'mais', 'donc', 'ni', 'que', 'qui', 'quoi', 'si', 'comme', 'car', 'lorsque', 'quand', 'alors',
+  // Pronoms et déterminants courants
+  'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos', 'leur', 'leurs', 'cela', 'ça',
+  // Verbes auxiliaires et modaux
+  'est', 'sont', 'être', 'avoir', 'fait', 'faire', 'a', 'ont', 'sera', 'seraient', 'été',
+  // Adverbes et mots courants
+  'ne', 'pas', 'plus', 'très', 'trop', 'aussi', 'bien', 'mal', 'peu', 'beaucoup', 'tout', 'tous', 'toute', 'toutes', 'autre', 'autres', 'même', 'mêmes', 'seulement', 'encore', 'déjà', 'toujours', 'souvent', 'jamais',
+  // Mots grammaticaux
+  'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles', 'y', 'lui', 'eux',
+]);
+
+/**
  * Dictionnaire de synonymes pour la recherche de ressources médicales.
  * Les termes sont en minuscules pour une recherche insensible à la casse.
  * Chaque clé possède un tableau de termes équivalents (incluant la clé).
@@ -132,16 +153,34 @@ function findSynonyms(term: string): string[] {
 }
 
 /**
- * Décompose une requête en groupes de synonymes (un groupe par mot).
- * Ex: "aide antibiotique" -> [["aide"], ["antibiotique", "antibio", "atb", ...]]
+ * Extrait le mot significatif (retire d', l', qu', etc. en début de mot).
+ */
+function extractKeyword(word: string): string {
+  const lower = word.toLowerCase().replace(/^['']|['']$/g, '');
+  const withoutElision = lower.replace(/^(d|j|l|n|qu|s|m|c)['']/, '');
+  return withoutElision;
+}
+
+/**
+ * Vérifie si un mot est un mot vide (à ignorer).
+ */
+function isStopWord(word: string): boolean {
+  const cleaned = extractKeyword(word);
+  return STOP_WORDS.has(cleaned) || STOP_WORDS.has(word.toLowerCase()) || cleaned.length < 2;
+}
+
+/**
+ * Décompose une requête en groupes de synonymes (un groupe par mot clé).
+ * Ignore les mots vides (articles, prépositions, etc.).
+ * Ex: "aide à la prescription d'antibiotiques" -> [["aide"], ["prescription", ...], ["antibiotique", "antibio", ...]]
  */
 export function getSearchTermGroups(query: string): string[][] {
-  const words = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(w => w.length >= 2);
+  const rawWords = query.toLowerCase().split(/[\s,;.!?]+/);
+  const words = rawWords
+    .map((w) => extractKeyword(w.replace(/^['']|['']$/g, '')))
+    .filter((w) => w.length >= 2 && !isStopWord(w));
 
-  return words.map(word => {
+  return words.map((word) => {
     const synonyms = findSynonyms(word);
     const group = new Set<string>([word, ...synonyms.map(s => s.toLowerCase())]);
     return Array.from(group);
