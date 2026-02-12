@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { iconComponents, AVAILABLE_ICONS } from '@/lib/categoryIcons';
+import { iconComponents, AVAILABLE_ICONS, MEDICAL_ICONS } from '@/lib/categoryIcons';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface IconPickerProps {
   value: string;
@@ -10,21 +11,36 @@ interface IconPickerProps {
 
 export function IconPicker({ value, onChange, className }: IconPickerProps) {
   const [search, setSearch] = useState('');
+  const [medicalOnly, setMedicalOnly] = useState(false);
 
+  const baseList = medicalOnly
+    ? MEDICAL_ICONS
+    : [...MEDICAL_ICONS, ...AVAILABLE_ICONS.filter((n) => !MEDICAL_ICONS.includes(n))];
   const filtered = search.trim()
-    ? AVAILABLE_ICONS.filter((name) =>
+    ? baseList.filter((name) =>
         name.toLowerCase().includes(search.toLowerCase())
       )
-    : AVAILABLE_ICONS;
+    : baseList;
 
   return (
     <div className={className}>
-      <Input
-        placeholder="Rechercher une icône..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-2"
-      />
+      <div className="flex gap-2 mb-2">
+        <Input
+          placeholder="Rechercher (ex: heart, pill, medical...)"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          variant={medicalOnly ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMedicalOnly(!medicalOnly)}
+          title="Afficher uniquement les icônes médicales"
+        >
+          Médical
+        </Button>
+      </div>
       <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto p-2 border rounded-md bg-slate-50">
         {filtered.map((name) => {
           const Icon = iconComponents[name];
