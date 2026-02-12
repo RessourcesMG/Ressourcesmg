@@ -1,4 +1,5 @@
-import { ExternalLink, Lock, Info } from 'lucide-react';
+import { useState } from 'react';
+import { ExternalLink, Lock, Info, Globe } from 'lucide-react';
 import type { Resource } from '@/types/resources';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,22 +19,29 @@ function getFaviconUrl(url: string, size = 128): string {
 
 export function ResourceCard({ resource }: ResourceCardProps) {
   const faviconUrl = getFaviconUrl(resource.url);
+  const [faviconError, setFaviconError] = useState(false);
+  const showFallbackIcon = !faviconUrl || faviconError;
 
   return (
     <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2.5 min-w-0 flex-1">
-            {faviconUrl && (
-              <img
-                src={faviconUrl}
-                alt=""
-                className="w-8 h-8 shrink-0 rounded object-contain bg-slate-50 mt-0.5"
-                width={32}
-                height={32}
-                loading="lazy"
-              />
-            )}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-50 overflow-hidden">
+              {showFallbackIcon ? (
+                <Globe className="w-5 h-5 text-slate-400" />
+              ) : (
+                <img
+                  src={faviconUrl}
+                  alt=""
+                  className="w-full h-full object-contain"
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  onError={() => setFaviconError(true)}
+                />
+              )}
+            </div>
             <h3 className="font-semibold text-slate-900 text-base leading-tight group-hover:text-teal-600 transition-colors">
               {resource.name}
             </h3>
