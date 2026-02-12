@@ -3,23 +3,21 @@ import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
-import { categories, medicalSpecialties } from '@/types/resources';
+import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import { getSearchTermGroups, matchesSearch } from '@/lib/searchSynonyms';
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
 import { SearchX, Stethoscope, Globe } from 'lucide-react';
 
-// General categories (first 3: diagnostic, IA, other)
-const baseGeneralCategories = categories.slice(0, 3);
-
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties } = useManagedBlocks();
   const { resources: customResources } = useCustomResources();
   const { generalCategories, medicalSpecialties: mergedSpecialties } = useCategoriesWithCustom(
     baseGeneralCategories,
-    medicalSpecialties,
+    baseSpecialties,
     customResources
   );
 
@@ -35,11 +33,13 @@ function App() {
 
   // Calculate totals
   const totalResources = useMemo(() => {
-    return categories.reduce((acc, cat) => acc + cat.resources.length, 0);
-  }, []);
+    return [...baseGeneralCategories, ...baseSpecialties].reduce(
+      (acc, cat) => acc + cat.resources.length,
+      0
+    );
+  }, [baseGeneralCategories, baseSpecialties]);
 
-  // Number of medical specialties (25)
-  const specialtyCount = medicalSpecialties.length;
+  const specialtyCount = baseSpecialties.length;
 
   // Filter categories based on search and selection
   const filteredGeneralCategories = useMemo(() => {

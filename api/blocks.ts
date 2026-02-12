@@ -1,0 +1,158 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+
+let _supabase: ReturnType<typeof createClient> | null = null;
+function getSupabase() {
+  if (_supabase) return _supabase;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  try {
+    _supabase = createClient(url, key, { auth: { persistSession: false } });
+    return _supabase;
+  } catch {
+    return null;
+  }
+}
+
+const SECRET = process.env.WEBMASTER_SECRET || 'ressourcesmg-default-secret-change-me';
+const TOKEN_MS = 8 * 60 * 60 * 1000;
+function verifyToken(token: string | null | undefined): boolean {
+  if (!token) return false;
+  try {
+    const [payloadB64, sig] = token.split('.');
+    if (!payloadB64 || !sig) return false;
+    const payload = Buffer.from(payloadB64, 'base64url').toString();
+    const expected = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+    if (sig !== expected) return false;
+    const data = JSON.parse(payload);
+    return Date.now() - data.t < TOKEN_MS;
+  } catch {
+    return false;
+  }
+}
+
+function getToken(req: VercelRequest): string | null {
+  const auth = req.headers.authorization;
+  return auth?.startsWith('Bearer ') ? auth.slice(7) : null;
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  try {
+    return await handleRequest(req, res);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erreur serveur';
+    return res.status(500).json({ error: msg });
+  }
+}
+
+async function handleRequest(req: VercelRequest, res: VercelResponse) {
+  const supabase = getSupabase();
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (!supabase) return res.status(503).json({ error: 'Base de données non configurée' });
+
+  if (req.method === 'GET') {
+    const { data: cats } = await supabase
+      .from('managed_categories')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    const { data: ress } = await supabase
+      .from('managed_resources')
+      .select('*')
+      .order('sort_order', { ascending: true });
+
+    if (!cats?.length && !ress?.length) {
+      return res.status(200).json({ categories: [], fromDb: false });
+    }
+
+    const categories = (cats || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      icon: c.icon,
+      isSpecialty: c.is_specialty ?? false,
+      resources: (ress || [])
+        .filter((r) => r.category_id === c.id)
+        .map((r) => ({
+          id: r.id,
+          name: r.name,
+          description: r.description ?? '',
+          url: r.url,
+          requiresAuth: r.requires_auth ?? false,
+          note: r.note ?? undefined,
+        })),
+    }));
+    return res.status(200).json({ categories, fromDb: true });
+  }
+
+  if (req.method === 'POST') {
+    if (!verifyToken(getToken(req))) return res.status(401).json({ error: 'Non autorisé' });
+    const body = req.body as { action?: string; categories?: Array<{ id: string; name: string; icon: string; isSpecialty?: boolean; resources: Array<{ id: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string }> }> };
+    if (body?.action !== 'seed' || !Array.isArray(body.categories)) {
+      return res.status(400).json({ error: 'Action seed et categories requis' });
+    }
+    const { count } = await supabase.from('managed_categories').select('id', { count: 'exact', head: true });
+    if ((count ?? 0) > 0) {
+      return res.status(400).json({ error: 'Données déjà initialisées' });
+    }
+    let sortCat = 0;
+    for (const cat of body.categories) {
+      await supabase.from('managed_categories').insert({
+        id: cat.id,
+        name: cat.name,
+        icon: cat.icon,
+        sort_order: sortCat++,
+        is_specialty: cat.isSpecialty ?? false,
+      });
+      let sortRes = 0;
+      for (const res of cat.resources || []) {
+        await supabase.from('managed_resources').insert({
+          id: res.id,
+          category_id: cat.id,
+          name: res.name,
+          description: res.description ?? '',
+          url: res.url,
+          requires_auth: res.requiresAuth ?? false,
+          note: res.note ?? null,
+          sort_order: sortRes++,
+        });
+      }
+    }
+    return res.status(200).json({ success: true });
+  }
+
+  if (req.method === 'PATCH') {
+    if (!verifyToken(getToken(req))) return res.status(401).json({ error: 'Non autorisé' });
+    const body = req.body as { type?: string; id?: string; name?: string; description?: string; url?: string; requiresAuth?: boolean; note?: string; icon?: string };
+    const { type, id } = body;
+    if (!type || !id) return res.status(400).json({ error: 'type et id requis' });
+    if (type === 'resource') {
+      const up: Record<string, unknown> = {};
+      if (body.name !== undefined) up.name = body.name;
+      if (body.description !== undefined) up.description = body.description;
+      if (body.url !== undefined) up.url = body.url;
+      if (body.requiresAuth !== undefined) up.requires_auth = body.requiresAuth;
+      if (body.note !== undefined) up.note = body.note;
+      if (Object.keys(up).length === 0) return res.status(400).json({ error: 'Aucun champ à modifier' });
+      const { error } = await supabase.from('managed_resources').update(up).eq('id', id);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
+    }
+    if (type === 'category') {
+      const up: Record<string, unknown> = {};
+      if (body.name !== undefined) up.name = body.name;
+      if (body.icon !== undefined) up.icon = body.icon;
+      if (Object.keys(up).length === 0) return res.status(400).json({ error: 'Aucun champ à modifier' });
+      const { error } = await supabase.from('managed_categories').update(up).eq('id', id);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(200).json({ success: true });
+    }
+    return res.status(400).json({ error: 'type invalide' });
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
+}

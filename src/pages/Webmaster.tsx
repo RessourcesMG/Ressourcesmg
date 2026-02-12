@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Plus, Trash2, ExternalLink, LogOut, Shield } from 'lucide-react';
 import { isWebmasterLoggedIn, login, logout, getToken } from '@/lib/webmasterAuth';
 import { useCustomResources, type CustomResourceInput } from '@/hooks/useCustomResources';
-import { categories } from '@/types/resources';
+import { useManagedBlocks } from '@/hooks/useManagedBlocks';
+import { BlockEditor } from '@/components/BlockEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +26,11 @@ export function Webmaster() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
+  const { generalCategories, medicalSpecialties } = useManagedBlocks();
+  const categoriesForSelect = useMemo(
+    () => [...generalCategories, ...medicalSpecialties],
+    [generalCategories, medicalSpecialties]
+  );
   const { resources: customResources, addResource, removeResource } = useCustomResources();
   const [form, setForm] = useState<CustomResourceInput>({
     categoryId: '',
@@ -94,7 +100,7 @@ export function Webmaster() {
     await removeResource(id, token);
   };
 
-  const getCategoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? id;
+  const getCategoryName = (id: string) => categoriesForSelect.find((c) => c.id === id)?.name ?? id;
 
   if (isLoggedIn === null) {
     return (
@@ -199,7 +205,7 @@ export function Webmaster() {
                     <SelectValue placeholder="Choisir une section" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((cat) => (
+                    {categoriesForSelect.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}
                       </SelectItem>
@@ -275,6 +281,9 @@ export function Webmaster() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Éditer les blocs */}
+        <BlockEditor />
 
         {/* Liste des ressources ajoutées */}
         <Card>
