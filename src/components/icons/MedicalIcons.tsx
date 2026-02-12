@@ -8,7 +8,11 @@ export function ThyroidIcon(props: SVGProps<SVGSVGElement>) {
       width="24"
       height="24"
       viewBox="0 0 512 512"
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={32}
+      strokeLinecap="round"
+      strokeLinejoin="round"
       {...props}
     >
       <g>
@@ -95,7 +99,7 @@ export function ToothIcon(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2.2"
       strokeLinecap="round"
       strokeLinejoin="round"
       {...props}
