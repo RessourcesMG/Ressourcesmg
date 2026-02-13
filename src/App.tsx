@@ -148,7 +148,7 @@ function AppContent() {
           />
         )}
 
-        <section id="resources-section" className={isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}>
+        <section id="resources-section" className={`scroll-mt-[7.5rem] ${isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}`}>
           <div className="max-w-7xl mx-auto">
             {/* Results info */}
             {(searchQuery || selectedCategory) && (
