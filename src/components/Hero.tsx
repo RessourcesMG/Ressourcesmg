@@ -27,7 +27,7 @@ export function Hero({ totalResources, totalCategories }: HeroProps) {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-teal-100 rounded-full text-teal-700 text-sm font-medium mb-6">
             <Stethoscope className="w-4 h-4" />
-            <span>Ressources pour médecins généralistes en France</span>
+            <span>Encyclopédie des ressources web pour les médecins généralistes</span>
           </div>
 
           {/* Title */}
@@ -38,8 +38,7 @@ export function Hero({ totalResources, totalCategories }: HeroProps) {
 
           {/* Description */}
           <p className="text-lg sm:text-xl text-slate-600 mb-8 leading-relaxed">
-            Un référencement complet des outils web indispensables pour la pratique 
-            quotidienne en médecine générale en France. Organisé par spécialité pour une consultation rapide.
+            Un référencement complet des outils web utiles pour la pratique quotidienne en médecine générale en France. Organisé par spécialité pour une consultation rapide.
           </p>
 
           {/* Stats */}
