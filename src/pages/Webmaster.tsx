@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Plus, LogOut, Shield } from 'lucide-react';
-import { isWebmasterLoggedIn, login, logout, getToken } from '@/lib/webmasterAuth';
+import { Lock, Plus, LogOut, Shield, Eye, EyeOff } from 'lucide-react';
+import { isWebmasterLoggedIn, login, logout, getToken, getRateLimitStatus } from '@/lib/webmasterAuth';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import { BlockEditor } from '@/components/BlockEditor';
 import { ProposalManager } from '@/components/ProposalManager';
@@ -25,8 +25,10 @@ export function Webmaster() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rateLimitStatus, setRateLimitStatus] = useState(getRateLimitStatus);
   const [addLoading, setAddLoading] = useState(false);
   const { generalCategories, medicalSpecialties, fromDb, addResource } = useManagedBlocks();
   const [form, setForm] = useState({
@@ -47,6 +49,7 @@ export function Webmaster() {
     setError('');
     setLoading(true);
     const result = await login(password);
+    setRateLimitStatus(getRateLimitStatus());
     setLoading(false);
     if (result.success) {
       setIsLoggedIn(true);
@@ -54,6 +57,16 @@ export function Webmaster() {
       setError(result.error || 'Mot de passe incorrect.');
     }
   };
+
+  useEffect(() => {
+    if (!rateLimitStatus.locked) return;
+    const interval = setInterval(() => {
+      const next = getRateLimitStatus();
+      setRateLimitStatus(next);
+      if (!next.locked) clearInterval(interval);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [rateLimitStatus.locked]);
 
   const handleLogout = () => {
     logout();
@@ -120,19 +133,39 @@ export function Webmaster() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Mot de passe webmaster"
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     autoFocus
+                    disabled={rateLimitStatus.locked}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded p-0.5"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
+                {rateLimitStatus.locked && (
+                  <p className="text-sm text-amber-600 mt-1">
+                    Trop de tentatives incorrectes. Réessayez dans quelques minutes.
+                  </p>
+                )}
+                {!rateLimitStatus.locked && rateLimitStatus.remainingAttempts < 5 && rateLimitStatus.remainingAttempts > 0 && (
+                  <p className="text-sm text-slate-500 mt-1">
+                    {rateLimitStatus.remainingAttempts} tentative(s) restante(s).
+                  </p>
+                )}
               </div>
               {error && (
                 <p className="text-sm text-red-600">{error}</p>
               )}
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading || rateLimitStatus.locked}>
                 {loading ? 'Connexion...' : 'Se connecter'}
               </Button>
               <Button
