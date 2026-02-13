@@ -200,31 +200,29 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
             </div>
           </div>
 
-          {/* Toggle vue compacte - Mobile : bouton icône visible dans la barre (liste = compact) */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`lg:hidden shrink-0 min-w-[44px] min-h-[44px] touch-manipulation ${
-                    isCompact ? 'bg-teal-100 text-teal-700 hover:bg-teal-200' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                  onClick={() => setCompact(!isCompact)}
-                  aria-label={isCompact ? 'Désactiver la vue compacte' : 'Vue compacte : afficher en liste'}
-                >
-                  {isCompact ? (
-                    <LayoutGrid className="w-5 h-5" aria-hidden />
-                  ) : (
-                    <List className="w-5 h-5" aria-hidden />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                {isCompact ? 'Revenir aux cartes' : 'Vue compacte (liste)'}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/* Toggle vue compacte - Mobile : pill "Liste" / "Cartes" pour bien distinguer du menu */}
+          <button
+            type="button"
+            onClick={() => setCompact(!isCompact)}
+            className={`lg:hidden shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-full border-2 touch-manipulation transition-colors ${
+              isCompact
+                ? 'bg-teal-50 border-teal-300 text-teal-800'
+                : 'bg-slate-50 border-slate-200 text-slate-700'
+            }`}
+            aria-label={isCompact ? 'Revenir à la vue cartes' : 'Passer en vue liste'}
+          >
+            {isCompact ? (
+              <>
+                <LayoutGrid className="w-4 h-4 shrink-0" aria-hidden />
+                <span className="text-xs font-semibold">Cartes</span>
+              </>
+            ) : (
+              <>
+                <List className="w-4 h-4 shrink-0" aria-hidden />
+                <span className="text-xs font-semibold">Liste</span>
+              </>
+            )}
+          </button>
 
           {/* Toggle vue compacte - Desktop : bien visible (pill avec bordure / fond) */}
           <TooltipProvider>
