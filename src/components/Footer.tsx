@@ -101,6 +101,9 @@ export function Footer({ categories = [] }: FooterProps) {
             </a>
           </div>
 
+          {/* Espace vide pour décaler le formulaire à droite */}
+          <div className="hidden lg:block lg:col-span-2 order-1 lg:order-2" aria-hidden="true" />
+
           {/* Formulaire à droite, largeur raisonnable */}
           <div id="add-resource-form" className="lg:col-span-6 order-1 lg:order-2">
             <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
