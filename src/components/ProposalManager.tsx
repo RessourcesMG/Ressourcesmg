@@ -74,20 +74,23 @@ export function ProposalManager() {
     fetchProposals();
   }, [fetchProposals]);
 
-  // Pré-sélectionner la première catégorie pour les propositions en attente
-  const pendingIds = proposals.filter((p) => p.status === 'pending').map((p) => p.id);
+  // Pré-sélectionner la catégorie : celle choisie par le visiteur si présente, sinon la première
+  const pendingProposals = proposals.filter((p) => p.status === 'pending');
   const firstCatId = categoriesForSelect[0]?.id;
+  const catIds = categoriesForSelect.map((c) => c.id);
   useEffect(() => {
-    if (firstCatId && pendingIds.length > 0) {
+    if (firstCatId && pendingProposals.length > 0) {
       setAcceptCategoryId((prev) => {
         const next = { ...prev };
-        pendingIds.forEach((id) => {
-          if (!next[id]) next[id] = firstCatId;
+        pendingProposals.forEach((p) => {
+          if (next[p.id]) return;
+          const preferred = p.categoryId && catIds.includes(p.categoryId) ? p.categoryId : firstCatId;
+          next[p.id] = preferred;
         });
         return next;
       });
     }
-  }, [firstCatId, pendingIds.join(',')]);
+  }, [firstCatId, pendingProposals.map((p) => p.id).join(','), pendingProposals.map((p) => p.categoryId).join(',')]);
 
   const handleAccept = async (id: string) => {
     const categoryId = acceptCategoryId[id] || categoriesForSelect[0]?.id;

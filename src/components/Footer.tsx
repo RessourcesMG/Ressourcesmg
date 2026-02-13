@@ -1,16 +1,42 @@
 import { Link } from 'react-router-dom';
-import { Stethoscope, Heart, ExternalLink, Send, Mail, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { Stethoscope, Heart, Send, Mail, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-export function Footer() {
+export type FooterCategory = { id: string; name: string };
+
+type FooterProps = {
+  categories?: FooterCategory[];
+};
+
+export function Footer({ categories = [] }: FooterProps) {
   const currentYear = new Date().getFullYear();
-  const [formData, setFormData] = useState({ name: '', url: '', description: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    url: '',
+    description: '',
+    categoryId: categories[0]?.id ?? '',
+  });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const effectiveCategoryId = formData.categoryId || categories[0]?.id ?? '';
+
+  useEffect(() => {
+    if (categories.length > 0 && !formData.categoryId) {
+      setFormData((f) => ({ ...f, categoryId: categories[0].id }));
+    }
+  }, [categories]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +50,18 @@ export function Footer() {
           name: formData.name.trim(),
           url: formData.url.trim(),
           description: formData.description.trim(),
+          ...(effectiveCategoryId ? { categoryId: effectiveCategoryId } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
         setSubmitted(true);
-        setFormData({ name: '', url: '', description: '' });
+        setFormData({
+          name: '',
+          url: '',
+          description: '',
+          categoryId: categories[0]?.id ?? '',
+        });
         setTimeout(() => setSubmitted(false), 4000);
       } else {
         setError(data?.error || 'Une erreur est survenue. Réessayez.');
@@ -44,9 +76,9 @@ export function Footer() {
   return (
     <footer className="bg-slate-900 text-slate-300 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
           {/* Brand */}
-          <div>
+          <div className="lg:col-span-4">
             <div className="flex items-center gap-2 mb-4">
               <div className="p-2 bg-teal-600 rounded-lg">
                 <Stethoscope className="w-5 h-5 text-white" />
@@ -61,110 +93,113 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Contact Form */}
-          <div id="add-resource-form">
-            <h3 className="font-semibold text-white mb-4">Proposer une ressource</h3>
-            {submitted ? (
-              <div className="bg-teal-900/50 border border-teal-700 rounded-lg p-4 text-center">
-                <p className="text-teal-300 text-sm">Merci pour votre proposition !</p>
-                <p className="text-teal-400 text-xs mt-1">Elle sera examinée par l&apos;équipe.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <Input
-                  type="text"
-                  placeholder="Nom du site"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-sm"
-                  required
-                />
-                <Input
-                  type="url"
-                  placeholder="Lien du site (https://...)"
-                  value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-sm"
-                  required
-                />
-                <Textarea
-                  placeholder="Description brève..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 text-sm min-h-[80px]"
-                />
-                {error && (
-                  <p className="text-red-400 text-xs">{error}</p>
-                )}
-                <Button 
-                  type="submit"
-                  size="sm"
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white"
-                  disabled={loading}
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  {loading ? 'Envoi...' : 'Proposer'}
-                </Button>
-              </form>
-            )}
+          {/* Formulaire : plus large, plus accueillant */}
+          <div id="add-resource-form" className="lg:col-span-6">
+            <div className="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/80">
+              <h3 className="font-semibold text-white mb-1">Proposer une ressource</h3>
+              <p className="text-slate-400 text-sm mb-4">
+                Un site qui vous aide au quotidien ? Proposez-le en quelques secondes.
+              </p>
+              {submitted ? (
+                <div className="bg-teal-900/50 border border-teal-700 rounded-xl p-5 text-center">
+                  <p className="text-teal-300 text-sm">Merci pour votre proposition !</p>
+                  <p className="text-teal-400 text-xs mt-1">Elle sera examinée par l&apos;équipe.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {categories.length > 0 && (
+                    <div>
+                      <label className="block text-slate-400 text-xs font-medium mb-1.5">
+                        Catégorie
+                      </label>
+                      <Select
+                        value={effectiveCategoryId}
+                        onValueChange={(v) => setFormData((f) => ({ ...f, categoryId: v }))}
+                        required
+                      >
+                        <SelectTrigger className="w-full bg-slate-800 border-slate-600 text-white h-10 rounded-xl">
+                          <SelectValue placeholder="Choisir une catégorie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id} className="text-slate-900">
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-slate-400 text-xs font-medium mb-1.5">
+                      Nom du site
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Ex. Recomed, Ordotype…"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-10 rounded-xl"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-xs font-medium mb-1.5">
+                      Lien du site
+                    </label>
+                    <Input
+                      type="url"
+                      placeholder="https://…"
+                      value={formData.url}
+                      onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-10 rounded-xl"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-xs font-medium mb-1.5">
+                      Description (optionnel)
+                    </label>
+                    <Textarea
+                      placeholder="En quelques mots, à quoi sert ce site ?"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-[88px] rounded-xl resize-none"
+                    />
+                  </div>
+                  {error && (
+                    <p className="text-red-400 text-xs">{error}</p>
+                  )}
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="w-full bg-teal-600 hover:bg-teal-500 text-white h-10 rounded-xl font-medium"
+                    disabled={loading}
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    {loading ? 'Envoi...' : 'Proposer'}
+                  </Button>
+                </form>
+              )}
+            </div>
           </div>
 
-          {/* Links */}
-          <div>
-            <h3 className="font-semibold text-white mb-4">Liens utiles</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a 
-                  href="https://www.cmg.fr/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:text-teal-400 transition-colors inline-flex items-center gap-1"
-                >
-                  Collège de Médecine Générale
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
-              <li>
-                <a 
-                  href="https://www.has-sante.fr/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:text-teal-400 transition-colors inline-flex items-center gap-1"
-                >
-                  HAS
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
-              <li>
-                <a 
-                  href="https://recomedicales.fr/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="hover:text-teal-400 transition-colors inline-flex items-center gap-1"
-                >
-                  Recomedicales
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </li>
-              <li className="pt-2 border-t border-slate-700 mt-2">
-                <a 
-                  href="mailto:ressourcesmedge@gmail.com"
-                  className="hover:text-teal-400 transition-colors inline-flex items-center gap-1 text-slate-400"
-                >
-                  <Mail className="w-3 h-3" />
-                  ressourcesmedge@gmail.com
-                </a>
-              </li>
-              <li>
-                <Link 
-                  to="/webmaster"
-                  className="hover:text-teal-400 transition-colors inline-flex items-center gap-1 text-slate-500 text-xs"
-                >
-                  <Shield className="w-3 h-3" />
-                  Webmaster
-                </Link>
-              </li>
-            </ul>
+          {/* Contact : mail + webmaster à droite */}
+          <div className="lg:col-span-2 flex flex-col justify-center gap-4">
+            <a
+              href="mailto:ressourcesmedge@gmail.com"
+              className="inline-flex items-center gap-2 text-slate-400 hover:text-teal-400 transition-colors"
+            >
+              <Mail className="w-4 h-4 shrink-0" />
+              <span className="text-sm">ressourcesmedge@gmail.com</span>
+            </a>
+            <Link
+              to="/webmaster"
+              className="inline-flex items-center gap-2 text-slate-500 hover:text-teal-400 transition-colors text-sm"
+            >
+              <Shield className="w-4 h-4 shrink-0" />
+              Espace webmaster
+            </Link>
           </div>
         </div>
 

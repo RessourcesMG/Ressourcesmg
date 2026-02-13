@@ -58,10 +58,11 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
   // POST : soumission publique (sans auth)
   if (req.method === 'POST') {
-    const body = req.body as { name?: string; url?: string; description?: string };
+    const body = req.body as { name?: string; url?: string; description?: string; categoryId?: string };
     const name = typeof body?.name === 'string' ? body.name.trim() : '';
     const url = typeof body?.url === 'string' ? body.url.trim() : '';
     const description = typeof body?.description === 'string' ? body.description.trim() : '';
+    const categoryId = typeof body?.categoryId === 'string' ? body.categoryId.trim() || null : null;
 
     if (!name || !url) {
       return res.status(400).json({ error: 'Nom et lien du site requis' });
@@ -72,6 +73,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       url,
       description: description || '',
       status: 'pending',
+      category_id: categoryId,
     });
 
     if (error) return res.status(500).json({ error: error.message });

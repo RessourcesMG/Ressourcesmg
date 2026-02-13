@@ -313,7 +313,12 @@ function App() {
         )}
       </main>
 
-      <Footer />
+      <Footer
+        categories={[...baseGeneralCategories, ...baseSpecialties].map((c) => ({
+          id: c.id,
+          name: c.name,
+        }))}
+      />
     </div>
   );
 }
