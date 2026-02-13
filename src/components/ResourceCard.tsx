@@ -43,27 +43,52 @@ export function ResourceCard({ resource }: ResourceCardProps) {
     }
   };
 
+  // Mode compact : une ligne par ressource, pas de logo, format liste
+  if (isCompact) {
+    return (
+      <div className="flex items-center gap-2 sm:gap-3 px-3 py-2 hover:bg-slate-50 transition-colors min-h-[44px]">
+        <div className="min-w-0 flex-1 flex items-center gap-2 overflow-hidden">
+          <span className="font-semibold text-slate-900 text-sm truncate flex-shrink-0 max-w-[40%] sm:max-w-none">{resource.name}</span>
+          {resource.requiresAuth && (
+            <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" title="Connexion requise" />
+          )}
+          <span className="text-slate-500 text-xs truncate min-w-0">— {resource.description}</span>
+        </div>
+        <a
+          href={resource.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium text-xs py-1 px-2 rounded hover:bg-teal-50 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Ouvrir
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      </div>
+    );
+  }
+
   return (
-    <Card className={`group h-full transition-all duration-300 border border-slate-200 bg-white ${isCompact ? 'hover:shadow-md hover:-translate-y-0.5' : 'hover:shadow-lg hover:-translate-y-1'}`}>
-      <CardHeader className={isCompact ? 'pb-1.5 px-3 pt-3' : 'pb-3'}>
+    <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className={`shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden ${isCompact ? 'w-6 h-6' : 'w-8 h-8'}`}>
+            <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
               {showFallbackIcon ? (
-                <Globe className={isCompact ? 'w-4 h-4 text-slate-400' : 'w-5 h-5 text-slate-400'} />
+                <Globe className="w-5 h-5 text-slate-400" />
               ) : (
                 <img
                   src={faviconUrl}
                   alt=""
                   className="w-full h-full object-contain"
-                  width={isCompact ? 24 : 32}
-                  height={isCompact ? 24 : 32}
+                  width={32}
+                  height={32}
                   loading="lazy"
                   onError={handleFaviconError}
                 />
               )}
             </div>
-            <h3 className={`font-semibold text-slate-900 leading-tight group-hover:text-teal-600 transition-colors ${isCompact ? 'text-sm' : 'text-base'}`}>
+            <h3 className="font-semibold text-slate-900 text-base leading-tight group-hover:text-teal-600 transition-colors">
               {resource.name}
             </h3>
           </div>
@@ -77,21 +102,21 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className={isCompact ? 'pt-0 px-3 pb-3' : 'pt-0'}>
-        <p className={`text-slate-600 leading-relaxed ${isCompact ? 'text-xs mb-1.5 line-clamp-2' : 'text-sm mb-3'}`}>
+      <CardContent className="pt-0">
+        <p className="text-slate-600 text-sm leading-relaxed mb-3">
           {resource.description}
         </p>
         {resource.note && (
-          <div className={`flex items-start gap-1.5 text-xs text-slate-500 bg-slate-50 rounded ${isCompact ? 'mb-1.5 p-1.5' : 'mb-3 p-2'}`}>
+          <div className="flex items-start gap-1.5 text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded">
             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />
-            <span className={isCompact ? 'line-clamp-2' : ''}>{resource.note}</span>
+            <span>{resource.note}</span>
           </div>
         )}
         <a
           href={resource.url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`inline-flex items-center gap-1.5 font-medium text-teal-600 hover:text-teal-700 transition-colors ${isCompact ? 'text-xs' : 'text-sm'}`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
         >
           Accéder au site
           <ExternalLink className="w-3.5 h-3.5" />

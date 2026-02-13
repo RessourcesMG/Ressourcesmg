@@ -32,7 +32,8 @@ import {
   BriefcaseMedical,
   ChevronLeft,
   ChevronRight,
-  LayoutGrid
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -199,18 +200,56 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
             </div>
           </div>
 
-          {/* Toggle vue compacte - Desktop : icône + switch avec tooltip */}
+          {/* Toggle vue compacte - Mobile : bouton icône visible dans la barre (liste = compact) */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="hidden lg:flex items-center gap-2 shrink-0">
-                  <LayoutGrid className="w-4 h-4 text-slate-500" aria-hidden />
-                  <span className="text-sm text-slate-600 whitespace-nowrap">Compact</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`lg:hidden shrink-0 min-w-[44px] min-h-[44px] touch-manipulation ${
+                    isCompact ? 'bg-teal-100 text-teal-700 hover:bg-teal-200' : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                  onClick={() => setCompact(!isCompact)}
+                  aria-label={isCompact ? 'Désactiver la vue compacte' : 'Vue compacte : afficher en liste'}
+                >
+                  {isCompact ? (
+                    <LayoutGrid className="w-5 h-5" aria-hidden />
+                  ) : (
+                    <List className="w-5 h-5" aria-hidden />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {isCompact ? 'Revenir aux cartes' : 'Vue compacte (liste)'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Toggle vue compacte - Desktop : bien visible (pill avec bordure / fond) */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`hidden lg:flex items-center gap-3 shrink-0 px-4 py-2 rounded-full border-2 transition-colors cursor-pointer min-h-[44px] ${
+                    isCompact
+                      ? 'bg-teal-50 border-teal-300 text-teal-800'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
+                  }`}
+                  onClick={() => setCompact(!isCompact)}
+                  onKeyDown={(e) => e.key === 'Enter' && setCompact(!isCompact)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Vue compacte : réduire la taille des blocs"
+                >
+                  <LayoutGrid className="w-5 h-5 shrink-0" aria-hidden />
+                  <span className="text-sm font-medium whitespace-nowrap">Vue compacte</span>
                   <Switch
                     checked={isCompact}
                     onCheckedChange={setCompact}
                     aria-label="Passer en vue compacte"
                     className="data-[state=checked]:bg-teal-600"
+                    onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </TooltipTrigger>
@@ -234,9 +273,13 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                 </div>
                 <span className="font-bold text-slate-900">Ressources MG</span>
               </Link>
-              {/* Vue compacte - mobile : zone tactile large */}
-              <div className="flex items-center justify-between gap-3 py-3 px-3 rounded-lg bg-slate-50 border border-slate-200 mb-6 min-h-[44px]">
-                <span className="text-sm font-medium text-slate-700">Vue compacte</span>
+              {/* Vue compacte - mobile : bien visible (fond teal quand actif) */}
+              <div
+                className={`flex items-center justify-between gap-3 py-3 px-4 rounded-xl border-2 mb-6 min-h-[48px] transition-colors ${
+                  isCompact ? 'bg-teal-50 border-teal-300' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <span className="text-sm font-semibold text-slate-800">Vue compacte</span>
                 <Switch
                   checked={isCompact}
                   onCheckedChange={setCompact}
