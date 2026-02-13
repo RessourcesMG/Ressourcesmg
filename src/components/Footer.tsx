@@ -76,36 +76,33 @@ export function Footer({ categories = [] }: FooterProps) {
   return (
     <footer className="bg-slate-900 text-slate-300 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-          {/* Info + contact compact à gauche */}
-          <div className="lg:col-span-4 order-2 lg:order-1">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 bg-teal-600 rounded-lg">
-                <Stethoscope className="w-4 h-4 text-white" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-8">
+          {/* Infos site + contact : même poids visuel que le formulaire */}
+          <div className="lg:col-span-5 order-2 lg:order-1 flex flex-col justify-center">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-teal-600 rounded-lg">
+                <Stethoscope className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-white text-base">Ressources MG</span>
+              <span className="font-bold text-white text-lg">Ressources MG</span>
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed mb-2">
+            <p className="text-slate-300 text-sm leading-relaxed mb-3 max-w-md">
               Outils web utiles pour la pratique en médecine générale, organisés par spécialité.
             </p>
-            <p className="text-slate-500 text-xs italic mb-3">
+            <p className="text-slate-500 text-sm italic mb-4 max-w-md">
               Fait de manière indépendante par une médecin généraliste. Pas de conflits d&apos;intérêt à déclarer.
             </p>
-            <p className="text-slate-500 text-xs font-medium mb-1">Me contacter</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Me contacter</p>
             <a
               href="mailto:ressourcesmedge@gmail.com"
-              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-teal-400 transition-colors text-xs"
+              className="inline-flex items-center gap-2 text-slate-300 hover:text-teal-400 transition-colors text-sm"
             >
-              <Mail className="w-3.5 h-3.5 shrink-0" />
+              <Mail className="w-4 h-4 shrink-0" />
               ressourcesmedge@gmail.com
             </a>
           </div>
 
-          {/* Espace vide pour décaler le formulaire à droite */}
-          <div className="hidden lg:block lg:col-span-2 order-1 lg:order-2" aria-hidden="true" />
-
-          {/* Formulaire à droite, largeur raisonnable */}
-          <div id="add-resource-form" className="lg:col-span-6 order-1 lg:order-2">
+          {/* Formulaire : largeur équilibrée */}
+          <div id="add-resource-form" className="lg:col-span-7 order-1 lg:order-2">
             <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
               <h3 className="font-semibold text-white mb-1 text-sm">Proposer une ressource</h3>
               <p className="text-slate-400 text-xs mb-3">

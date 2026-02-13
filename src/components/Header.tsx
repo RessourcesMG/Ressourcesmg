@@ -224,15 +224,15 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
             )}
           </button>
 
-          {/* Toggle vue compacte - Desktop : bien visible (pill avec bordure / fond) */}
+          {/* Toggle vue compacte - Desktop : discret, proportionné à la barre de recherche */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className={`hidden lg:flex items-center gap-3 shrink-0 px-4 py-2 rounded-full border-2 transition-colors cursor-pointer min-h-[44px] ${
+                  className={`hidden lg:flex items-center gap-2 shrink-0 pl-2.5 pr-1.5 py-1 rounded-full border transition-colors cursor-pointer h-9 ${
                     isCompact
                       ? 'bg-teal-50 border-teal-300 text-teal-800'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
                   onClick={() => setCompact(!isCompact)}
                   onKeyDown={(e) => e.key === 'Enter' && setCompact(!isCompact)}
@@ -240,13 +240,13 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                   tabIndex={0}
                   aria-label="Vue compacte : réduire la taille des blocs"
                 >
-                  <LayoutGrid className="w-5 h-5 shrink-0" aria-hidden />
-                  <span className="text-sm font-medium whitespace-nowrap">Vue compacte</span>
+                  <LayoutGrid className="w-4 h-4 shrink-0" aria-hidden />
+                  <span className="text-xs font-medium whitespace-nowrap">Compact</span>
                   <Switch
                     checked={isCompact}
                     onCheckedChange={setCompact}
                     aria-label="Passer en vue compacte"
-                    className="data-[state=checked]:bg-teal-600"
+                    className="data-[state=checked]:bg-teal-600 scale-90 origin-center"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
