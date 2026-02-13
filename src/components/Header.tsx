@@ -231,25 +231,23 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
         </div>
 
         {/* Category Pills - Desktop */}
-        <div className="hidden lg:flex items-center pb-3 relative">
+        <div className="hidden lg:flex items-center pb-3 gap-1">
           {/* Flèche gauche : visible quand on peut scroller à gauche */}
           {canScrollLeft && (
-            <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-white via-white/80 to-transparent w-12 pointer-events-none">
-              <button
-                type="button"
-                onClick={() => {
-                  categoriesScrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
-                }}
-                className="pointer-events-auto p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm ml-0.5"
-                aria-label="Défiler les catégories vers la gauche"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                categoriesScrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
+              }}
+              className="shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm self-center"
+              aria-label="Défiler les catégories vers la gauche"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
           )}
           <div
             ref={categoriesScrollRef}
-            className={`flex items-center gap-2 overflow-x-auto scrollbar-hide w-full min-w-0 py-1 ${canScrollLeft ? 'pl-12' : ''} ${canScrollRight ? 'pr-12' : ''}`}
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide min-w-0 flex-1 py-1"
           >
             <button
               onClick={() => onCategorySelect(null)}
@@ -277,18 +275,16 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
           </div>
           {/* Flèche droite : indique qu'on peut faire défiler */}
           {canScrollRight && (
-            <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-end bg-gradient-to-l from-white via-white/80 to-transparent w-12 pointer-events-none">
-              <button
-                type="button"
-                onClick={() => {
-                  categoriesScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
-                }}
-                className="pointer-events-auto p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm mr-0.5"
-                aria-label="Défiler les catégories vers la droite"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                categoriesScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
+              }}
+              className="shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm self-center"
+              aria-label="Défiler les catégories vers la droite"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           )}
         </div>
       </div>
