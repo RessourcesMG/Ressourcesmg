@@ -50,7 +50,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
         <div className="min-w-0 flex-1 flex items-center gap-2 overflow-hidden">
           <span className="font-semibold text-slate-900 text-sm truncate flex-shrink-0 max-w-[40%] sm:max-w-none">{resource.name}</span>
           {resource.requiresAuth && (
-            <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" title="Connexion requise" />
+            <span title="Connexion requise"><Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" aria-hidden /></span>
           )}
           <span className="text-slate-500 text-xs truncate min-w-0">— {resource.description}</span>
         </div>
