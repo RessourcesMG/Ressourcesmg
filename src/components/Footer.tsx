@@ -93,20 +93,22 @@ export function Footer({ categories = [] }: FooterProps) {
             </p>
           </div>
 
-          {/* Formulaire : plus large, plus accueillant */}
-          <div id="add-resource-form" className="lg:col-span-6">
-            <div className="bg-slate-800/60 rounded-2xl p-6 border border-slate-700/80">
-              <h3 className="font-semibold text-white mb-1">Proposer une ressource</h3>
-              <p className="text-slate-400 text-sm mb-4">
-                Un site qui vous aide au quotidien ? Proposez-le en quelques secondes.
-              </p>
+          {/* Formulaire + Contact côte à côte */}
+          <div className="lg:col-span-8 grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Formulaire */}
+            <div id="add-resource-form" className="lg:col-span-3">
+              <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
+                <h3 className="font-semibold text-white mb-1 text-sm">Proposer une ressource</h3>
+                <p className="text-slate-400 text-xs mb-3">
+                  Un site utile ? Proposez-le rapidement.
+                </p>
               {submitted ? (
                 <div className="bg-teal-900/50 border border-teal-700 rounded-xl p-5 text-center">
                   <p className="text-teal-300 text-sm">Merci pour votre proposition !</p>
                   <p className="text-teal-400 text-xs mt-1">Elle sera examinée par l&apos;équipe.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-3">
                   {categories.length > 0 && (
                     <div>
                       <label className="block text-slate-400 text-xs font-medium mb-1.5">
@@ -117,7 +119,7 @@ export function Footer({ categories = [] }: FooterProps) {
                         onValueChange={(v) => setFormData((f) => ({ ...f, categoryId: v }))}
                         required
                       >
-                        <SelectTrigger className="w-full bg-slate-800 border-slate-600 text-white h-10 rounded-xl">
+                        <SelectTrigger className="w-full bg-slate-800 border-slate-600 text-white h-9 rounded-lg text-sm">
                           <SelectValue placeholder="Choisir une catégorie" />
                         </SelectTrigger>
                         <SelectContent>
@@ -139,7 +141,7 @@ export function Footer({ categories = [] }: FooterProps) {
                       placeholder="Ex. Recomed, Ordotype…"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-10 rounded-xl"
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-9 rounded-lg"
                       required
                     />
                   </div>
@@ -152,7 +154,7 @@ export function Footer({ categories = [] }: FooterProps) {
                       placeholder="https://…"
                       value={formData.url}
                       onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-10 rounded-xl"
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-9 rounded-lg"
                       required
                     />
                   </div>
@@ -164,7 +166,7 @@ export function Footer({ categories = [] }: FooterProps) {
                       placeholder="En quelques mots, à quoi sert ce site ?"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-[88px] rounded-xl resize-none"
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-[70px] rounded-lg resize-none"
                     />
                   </div>
                   {error && (
@@ -173,19 +175,19 @@ export function Footer({ categories = [] }: FooterProps) {
                   <Button
                     type="submit"
                     size="sm"
-                    className="w-full bg-teal-600 hover:bg-teal-500 text-white h-10 rounded-xl font-medium"
+                    className="w-full bg-teal-600 hover:bg-teal-500 text-white h-9 rounded-lg font-medium text-sm"
                     disabled={loading}
                   >
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-3.5 h-3.5 mr-1.5" />
                     {loading ? 'Envoi...' : 'Proposer'}
                   </Button>
                 </form>
               )}
+              </div>
             </div>
-          </div>
 
-          {/* Contact : mail + webmaster à droite */}
-          <div className="lg:col-span-2 flex flex-col justify-center gap-4">
+            {/* Contact : mail + webmaster à droite */}
+            <div className="lg:col-span-2 flex flex-col justify-start gap-4 pt-1">
             <a
               href="mailto:ressourcesmedge@gmail.com"
               className="inline-flex items-center gap-2 text-slate-400 hover:text-teal-400 transition-colors"
@@ -200,6 +202,7 @@ export function Footer({ categories = [] }: FooterProps) {
               <Shield className="w-4 h-4 shrink-0" />
               Espace webmaster
             </Link>
+          </div>
           </div>
         </div>
 
