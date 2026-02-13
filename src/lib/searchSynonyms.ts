@@ -75,7 +75,6 @@ const SYNONYMS: Record<string, string[]> = {
 
   // Spécialités - Dermatologie
   dermatologie: ['dermatologie', 'dermato', 'peau', 'cutané'],
-  peau: ['dermatologie', 'peau', 'cutané', 'dermatologique'],
 
   // Spécialités - Endocrinologie / Diabète
   diabète: ['diabète', 'diabétique', 'glycémie', 'endocrinologie'],
@@ -105,7 +104,7 @@ const SYNONYMS: Record<string, string[]> = {
   néphro: ['rein', 'rénal', 'néphrologie', 'néphro'],
 
   // Autres racines anatomiques / cliniques (précis, pas trop large)
-  foie: ['foie', 'hépatique', 'hépatologie', 'hépatite', 'hépatologie'],
+  foie: ['foie', 'hépatique', 'hépatologie', 'hépatite'],
   hépatique: ['foie', 'hépatique', 'hépatologie', 'hépatite'],
   poumon: ['poumon', 'poumons', 'pulmonaire', 'pneumologie', 'respiratoire'],
   pulmonaire: ['poumon', 'pulmonaire', 'pneumologie', 'respiratoire'],
