@@ -35,6 +35,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { categories } from '@/types/resources';
+import { getRelatedTermSuggestions } from '@/lib/searchSynonyms';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -146,7 +147,7 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
             <span className="font-bold text-slate-900 text-lg hidden sm:block">Ressources MG</span>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar + termes associés */}
           <div className="flex-1 max-w-xl">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -154,7 +155,7 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                 ref={searchInputRef}
                 type="search"
                 autoComplete="off"
-                placeholder="Rechercher (ex. antibiotique, pédiatrie, ordonnance…)"
+                placeholder="Rechercher (ex. rein, pédiatrie, ordonnance…)"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="pl-10 pr-20 w-full bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
@@ -164,6 +165,25 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                 <kbd className="px-1.5 py-0.5 rounded bg-slate-200/80 font-mono">/</kbd>
               </span>
             </div>
+            {searchQuery.trim().length >= 2 && (() => {
+              const related = getRelatedTermSuggestions(searchQuery, 5);
+              if (related.length === 0) return null;
+              return (
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs">
+                  <span className="text-slate-500">Rechercher aussi :</span>
+                  {related.map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => onSearch(term)}
+                      className="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 hover:bg-teal-100 font-medium transition-colors"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Mobile Menu */}
