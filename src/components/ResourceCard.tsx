@@ -43,10 +43,25 @@ export function ResourceCard({ resource }: ResourceCardProps) {
     }
   };
 
-  // Mode compact : une ligne par ressource, pas de logo, format liste
+  // Mode compact : une ligne par ressource, avec petit favicon, format liste
   if (isCompact) {
     return (
       <div className="flex items-center gap-2 sm:gap-3 px-3 py-2 hover:bg-slate-50 transition-colors min-h-[44px]">
+        <div className="w-5 h-5 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
+          {showFallbackIcon ? (
+            <Globe className="w-3.5 h-3.5 text-slate-400" />
+          ) : (
+            <img
+              src={faviconUrl}
+              alt=""
+              className="w-full h-full object-contain"
+              width={20}
+              height={20}
+              loading="lazy"
+              onError={handleFaviconError}
+            />
+          )}
+        </div>
         <div className="min-w-0 flex-1 flex items-center gap-2 overflow-hidden">
           <span className="font-semibold text-slate-900 text-sm truncate flex-shrink-0 max-w-[40%] sm:max-w-none">{resource.name}</span>
           {resource.requiresAuth && (
