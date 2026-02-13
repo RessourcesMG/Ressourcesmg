@@ -7,7 +7,6 @@ import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import {
   getSearchTermGroups,
   matchesSearch,
-  matchesSearchFuzzy,
   scoreSearchMatch,
   getDidYouMeanSuggestions,
 } from '@/lib/searchSynonyms';
@@ -79,8 +78,8 @@ function App() {
         const searchableText = `${category.name} ${resource.name} ${resource.description} ${resource.note ?? ''}`;
         const matchesSimple = matchesSearch(searchableText, simpleGroup);
         const matchesSynonyms = matchesSearch(searchableText, termGroups);
-        if (matchesSimple || matchesSynonyms) return true;
-        return matchesSearchFuzzy(searchableText, termGroups);
+        // Pas de fuzzy matching dans la recherche principale - seulement exact + synonymes pour rester précis
+        return matchesSimple || matchesSynonyms;
       });
 
       if (resources.length === 0) return null;
