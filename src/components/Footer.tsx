@@ -30,7 +30,7 @@ export function Footer({ categories = [] }: FooterProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveCategoryId = formData.categoryId || categories[0]?.id ?? '';
+  const effectiveCategoryId = formData.categoryId || (categories[0]?.id ?? '');
 
   useEffect(() => {
     if (categories.length > 0 && !formData.categoryId) {
