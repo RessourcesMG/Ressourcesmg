@@ -29,7 +29,9 @@ import {
   Sparkles,
   MoreHorizontal,
   Circle,
-  BriefcaseMedical
+  BriefcaseMedical,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -86,7 +88,30 @@ interface HeaderProps {
 
 export function Header({ searchQuery, onSearch, onCategorySelect, selectedCategory }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const categoriesScrollRef = useRef<HTMLDivElement>(null);
+
+  const updateScrollArrows = useCallback(() => {
+    const el = categoriesScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = categoriesScrollRef.current;
+    if (!el) return;
+    updateScrollArrows();
+    const ro = new ResizeObserver(updateScrollArrows);
+    ro.observe(el);
+    el.addEventListener('scroll', updateScrollArrows);
+    return () => {
+      ro.disconnect();
+      el.removeEventListener('scroll', updateScrollArrows);
+    };
+  }, [updateScrollArrows]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -206,30 +231,65 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
         </div>
 
         {/* Category Pills - Desktop */}
-        <div className="hidden lg:flex items-center gap-2 pb-3 overflow-x-auto scrollbar-hide">
-          <button
-            onClick={() => onCategorySelect(null)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              selectedCategory === null
-                ? 'bg-teal-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
+        <div className="hidden lg:flex items-center pb-3 relative">
+          {/* Flèche gauche : visible quand on peut scroller à gauche */}
+          {canScrollLeft && (
+            <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center bg-gradient-to-r from-white via-white/80 to-transparent w-12 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => {
+                  categoriesScrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
+                }}
+                className="pointer-events-auto p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm ml-0.5"
+                aria-label="Défiler les catégories vers la gauche"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          <div
+            ref={categoriesScrollRef}
+            className={`flex items-center gap-2 overflow-x-auto scrollbar-hide w-full min-w-0 py-1 ${canScrollLeft ? 'pl-12' : ''} ${canScrollRight ? 'pr-12' : ''}`}
           >
-            Toutes
-          </button>
-          {categories.map((category) => (
             <button
-              key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === category.id
+              onClick={() => onCategorySelect(null)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
+                selectedCategory === null
                   ? 'bg-teal-600 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              {category.name}
+              Toutes
             </button>
-          ))}
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
+                  selectedCategory === category.id
+                    ? 'bg-teal-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+          {/* Flèche droite : indique qu'on peut faire défiler */}
+          {canScrollRight && (
+            <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center justify-end bg-gradient-to-l from-white via-white/80 to-transparent w-12 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => {
+                  categoriesScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
+                }}
+                className="pointer-events-auto p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm mr-0.5"
+                aria-label="Défiler les catégories vers la droite"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

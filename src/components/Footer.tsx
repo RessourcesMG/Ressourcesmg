@@ -54,8 +54,7 @@ export function Footer() {
               <span className="font-bold text-white text-lg">Ressources MG</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed mb-4">
-              Un référencement complet des outils web indispensables pour la pratique 
-              quotidienne en médecine générale.
+              Un référencement complet des outils web utiles pour la pratique quotidienne en médecine générale en France. Organisé par spécialité pour une consultation rapide.
             </p>
             <p className="text-slate-500 text-xs leading-relaxed italic">
               Fait de manière indépendante par une médecin généraliste. Pas de conflits d'intérêt à déclarer.
@@ -172,7 +171,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-500">
-            {currentYear} Ressources MG. Pour les médecins généralistes.
+            {currentYear} Ressources MG.
           </p>
           <p className="text-sm text-slate-500 flex items-center gap-1">
             Fait avec <Heart className="w-4 h-4 text-red-500 fill-red-500" /> pour la médecine générale
