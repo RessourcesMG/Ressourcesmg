@@ -31,13 +31,22 @@ import {
   Circle,
   BriefcaseMedical,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LayoutGrid
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
 import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
+import { useCompactMode } from '@/contexts/CompactModeContext';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -87,6 +96,7 @@ interface HeaderProps {
 }
 
 export function Header({ searchQuery, onSearch, onCategorySelect, selectedCategory }: HeaderProps) {
+  const { isCompact, setCompact } = useCompactMode();
   const [isScrolled, setIsScrolled] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -189,6 +199,27 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
             </div>
           </div>
 
+          {/* Toggle vue compacte - Desktop : icône + switch avec tooltip */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="hidden lg:flex items-center gap-2 shrink-0">
+                  <LayoutGrid className="w-4 h-4 text-slate-500" aria-hidden />
+                  <span className="text-sm text-slate-600 whitespace-nowrap">Compact</span>
+                  <Switch
+                    checked={isCompact}
+                    onCheckedChange={setCompact}
+                    aria-label="Passer en vue compacte"
+                    className="data-[state=checked]:bg-teal-600"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Réduire la taille des blocs pour parcourir plus vite
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           {/* Mobile Menu */}
           <Sheet>
             <SheetTrigger asChild className="lg:hidden">
@@ -197,12 +228,22 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80 overflow-y-auto">
-              <Link to="/" className="flex items-center gap-2 mb-6 hover:opacity-90 transition-opacity">
+              <Link to="/" className="flex items-center gap-2 mb-4 hover:opacity-90 transition-opacity">
                 <div className="p-2 bg-teal-600 rounded-lg">
                   <Stethoscope className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-bold text-slate-900">Ressources MG</span>
               </Link>
+              {/* Vue compacte - mobile : zone tactile large */}
+              <div className="flex items-center justify-between gap-3 py-3 px-3 rounded-lg bg-slate-50 border border-slate-200 mb-6 min-h-[44px]">
+                <span className="text-sm font-medium text-slate-700">Vue compacte</span>
+                <Switch
+                  checked={isCompact}
+                  onCheckedChange={setCompact}
+                  aria-label="Passer en vue compacte"
+                  className="data-[state=checked]:bg-teal-600 scale-110 touch-manipulation"
+                />
+              </div>
               <nav className="space-y-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">
                   Spécialités

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { CompactModeProvider, useCompactMode } from '@/contexts/CompactModeContext';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
@@ -16,7 +17,8 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { SearchX, Stethoscope, Globe } from 'lucide-react';
 import type { Category } from '@/types/resources';
 
-function App() {
+function AppContent() {
+  const { isCompact } = useCompactMode();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -146,7 +148,7 @@ function App() {
           />
         )}
 
-        <section id="resources-section" className="py-12 px-4 sm:px-6 lg:px-8">
+        <section id="resources-section" className={isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}>
           <div className="max-w-7xl mx-auto">
             {/* Results info */}
             {(searchQuery || selectedCategory) && (
@@ -217,21 +219,21 @@ function App() {
 
             {/* General Categories - Ressources globales */}
             {isViewingGeneral && hasGeneralResults && (
-              <div className="mb-16">
+              <div className={isCompact ? 'mb-8' : 'mb-16'}>
                 {/* Big Section Header */}
                 {!selectedCategory && (
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="p-3 bg-teal-100 rounded-xl">
-                      <Globe className="w-6 h-6 text-teal-600" />
+                  <div className={`flex items-center gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
+                    <div className={isCompact ? 'p-2 bg-teal-100 rounded-lg' : 'p-3 bg-teal-100 rounded-xl'}>
+                      <Globe className={isCompact ? 'w-5 h-5 text-teal-600' : 'w-6 h-6 text-teal-600'} />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-slate-900">Ressources globales</h2>
-                      <p className="text-slate-600">{filteredGeneralCategories.length} catégories</p>
+                      <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources globales</h2>
+                      <p className="text-slate-600 text-sm">{filteredGeneralCategories.length} catégories</p>
                     </div>
                   </div>
                 )}
                 
-                <div className="space-y-12">
+                <div className={isCompact ? 'space-y-6' : 'space-y-12'}>
                   {filteredGeneralCategories.map((category) => (
                     <CategorySection 
                       key={category.id} 
@@ -245,21 +247,21 @@ function App() {
 
             {/* Medical Specialties Section */}
             {isViewingSpecialties && hasSpecialtyResults && (
-              <div className="border-t border-slate-200 pt-12">
+              <div className={`border-t border-slate-200 ${isCompact ? 'pt-6' : 'pt-12'}`}>
                 {/* Big Section Header */}
                 {!selectedCategory && (
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="p-3 bg-teal-100 rounded-xl">
-                      <Stethoscope className="w-6 h-6 text-teal-600" />
+                  <div className={`flex items-center gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
+                    <div className={isCompact ? 'p-2 bg-teal-100 rounded-lg' : 'p-3 bg-teal-100 rounded-xl'}>
+                      <Stethoscope className={isCompact ? 'w-5 h-5 text-teal-600' : 'w-6 h-6 text-teal-600'} />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-slate-900">Ressources par spécialités médicales</h2>
-                      <p className="text-slate-600">{filteredSpecialties.length} spécialités</p>
+                      <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources par spécialités médicales</h2>
+                      <p className="text-slate-600 text-sm">{filteredSpecialties.length} spécialités</p>
                     </div>
                   </div>
                 )}
                 
-                <div className="space-y-12">
+                <div className={isCompact ? 'space-y-6' : 'space-y-12'}>
                   {filteredSpecialties.map((category) => (
                     <CategorySection 
                       key={category.id} 
@@ -275,21 +277,21 @@ function App() {
 
         {/* Quick access section */}
         {!searchQuery && !selectedCategory && (
-          <section className="py-12 bg-white border-t border-slate-200">
+          <section className={isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-teal-100 rounded-full mb-4">
-                  <Stethoscope className="w-6 h-6 text-teal-600" />
+              <div className={`text-center ${isCompact ? 'mb-4' : 'mb-8'}`}>
+                <div className={`inline-flex items-center justify-center bg-teal-100 rounded-full mb-4 ${isCompact ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                  <Stethoscope className={isCompact ? 'w-5 h-5 text-teal-600' : 'w-6 h-6 text-teal-600'} />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                <h2 className={isCompact ? 'text-xl font-bold text-slate-900 mb-1' : 'text-2xl font-bold text-slate-900 mb-2'}>
                   Ressources essentielles
                 </h2>
-                <p className="text-slate-600">
+                <p className="text-slate-600 text-sm">
                   Les outils les plus utilisés au quotidien
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className={`grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 ${isCompact ? 'gap-2' : 'gap-4'}`}>
                 {[
                   { name: 'Recomed', url: 'https://recomedicales.fr/', color: 'bg-blue-50 text-blue-700 hover:bg-blue-100' },
                   { name: 'Ordotype', url: 'https://www.ordotype.fr/', color: 'bg-green-50 text-green-700 hover:bg-green-100' },
@@ -303,7 +305,7 @@ function App() {
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`px-4 py-3 rounded-lg text-sm font-medium text-center transition-colors ${item.color}`}
+                    className={`rounded-lg text-sm font-medium text-center transition-colors ${item.color} ${isCompact ? 'px-3 py-2' : 'px-4 py-3'}`}
                   >
                     {item.name}
                   </a>
@@ -321,6 +323,14 @@ function App() {
         }))}
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <CompactModeProvider>
+      <AppContent />
+    </CompactModeProvider>
   );
 }
 
