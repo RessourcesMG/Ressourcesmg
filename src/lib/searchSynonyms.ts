@@ -265,15 +265,18 @@ function levenshtein(a: string, b: string): number {
   return matrix[an][bn];
 }
 
-/** Retourne true si le terme matche le texte (exact ou fuzzy avec 1-2 caractères d'écart). */
+/** Retourne true si le terme matche le texte (exact ou fuzzy très strict : seulement 1 caractère d'écart pour mots ≥ 5 caractères). */
 function termMatchesText(normalizedText: string, normalizedTerm: string, fuzzy: boolean): boolean {
   if (normalizedText.includes(normalizedTerm)) return true;
-  if (!fuzzy || normalizedTerm.length < 3) return false;
-  const maxDist = normalizedTerm.length <= 5 ? 1 : 2;
+  // Fuzzy matching très restrictif : seulement pour les mots de 5+ caractères, avec max 1 caractère d'écart
+  if (!fuzzy || normalizedTerm.length < 5) return false;
   const words = normalizedText.split(/[^a-z0-9]+/).filter(Boolean);
   for (const word of words) {
-    if (word.length < 2) continue;
-    if (levenshtein(normalizedTerm, word) <= maxDist) return true;
+    if (word.length < 4) continue; // Ignorer les mots trop courts
+    // Seulement si la différence de longueur est ≤ 1 et distance ≤ 1
+    if (Math.abs(word.length - normalizedTerm.length) <= 1 && levenshtein(normalizedTerm, word) <= 1) {
+      return true;
+    }
   }
   return false;
 }

@@ -158,12 +158,9 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                 placeholder="Rechercher (ex. rein, pédiatrie, ordonnance…)"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10 pr-20 w-full bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
                 aria-label="Rechercher une ressource médicale"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-1 text-xs text-slate-400">
-                <kbd className="px-1.5 py-0.5 rounded bg-slate-200/80 font-mono">/</kbd>
-              </span>
             </div>
             {searchQuery.trim().length >= 2 && (() => {
               const related = getRelatedTermSuggestions(searchQuery, 5);
