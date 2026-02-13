@@ -101,8 +101,8 @@ export function Footer({ categories = [] }: FooterProps) {
             </a>
           </div>
 
-          {/* Formulaire à droite, plus large */}
-          <div id="add-resource-form" className="lg:col-span-8 order-1 lg:order-2">
+          {/* Formulaire à droite, largeur raisonnable */}
+          <div id="add-resource-form" className="lg:col-span-6 order-1 lg:order-2">
             <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
               <h3 className="font-semibold text-white mb-1 text-sm">Proposer une ressource</h3>
               <p className="text-slate-400 text-xs mb-3">
