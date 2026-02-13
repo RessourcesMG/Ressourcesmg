@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 interface HeroProps {
   totalResources: number;
   totalCategories: number;
+  isLoading?: boolean;
 }
 
-export function Hero({ totalResources, totalCategories }: HeroProps) {
+export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) {
   const scrollToResources = () => {
     const element = document.getElementById('resources-section');
     if (element) {
@@ -51,12 +52,24 @@ export function Hero({ totalResources, totalCategories }: HeroProps) {
           {/* Stats */}
           <div className="flex items-center justify-center gap-8 mb-10">
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-teal-600">{totalResources}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-teal-600 min-w-[2.5rem]">
+                {isLoading ? (
+                  <span className="inline-block w-10 h-9 bg-teal-200/60 rounded animate-pulse" aria-hidden />
+                ) : (
+                  totalResources
+                )}
+              </div>
               <div className="text-sm text-slate-500">ressources</div>
             </div>
             <div className="w-px h-12 bg-slate-200" />
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-teal-600">{totalCategories}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-teal-600 min-w-[2.5rem]">
+                {isLoading ? (
+                  <span className="inline-block w-10 h-9 bg-teal-200/60 rounded animate-pulse" aria-hidden />
+                ) : (
+                  totalCategories
+                )}
+              </div>
               <div className="text-sm text-slate-500">spécialités</div>
             </div>
           </div>

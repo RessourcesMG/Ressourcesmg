@@ -22,7 +22,7 @@ function App() {
 
   const debouncedQuery = useDebouncedValue(searchQuery, 280);
 
-  const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties } = useManagedBlocks();
+  const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties, loading: blocksLoading } = useManagedBlocks();
   const { resources: customResources } = useCustomResources();
   const { generalCategories, medicalSpecialties: mergedSpecialties } = useCategoriesWithCustom(
     baseGeneralCategories,
@@ -141,7 +141,8 @@ function App() {
         {!searchQuery && !selectedCategory && (
           <Hero 
             totalResources={totalResources} 
-            totalCategories={specialtyCount} 
+            totalCategories={specialtyCount}
+            isLoading={blocksLoading}
           />
         )}
 
