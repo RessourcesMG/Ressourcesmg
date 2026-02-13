@@ -4,14 +4,24 @@ import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
-import { getSearchTermGroups, matchesSearch } from '@/lib/searchSynonyms';
+import {
+  getSearchTermGroups,
+  matchesSearch,
+  matchesSearchFuzzy,
+  scoreSearchMatch,
+  getDidYouMeanSuggestions,
+} from '@/lib/searchSynonyms';
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { SearchX, Stethoscope, Globe } from 'lucide-react';
+import type { Category } from '@/types/resources';
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const debouncedQuery = useDebouncedValue(searchQuery, 280);
 
   const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties } = useManagedBlocks();
   const { resources: customResources } = useCustomResources();
@@ -20,6 +30,13 @@ function App() {
     baseSpecialties,
     customResources
   );
+
+  // Vocabulaire pour les suggestions "Vous vouliez dire ?"
+  const searchVocabulary = useMemo(() => {
+    const cats = [...generalCategories, ...mergedSpecialties];
+    const names = cats.flatMap((c) => [c.name, ...c.resources.map((r) => r.name)]);
+    return [...new Set(names)];
+  }, [generalCategories, mergedSpecialties]);
 
   // Quand on commence à taper une recherche, scroller vers la section des ressources
   useEffect(() => {
@@ -41,60 +58,61 @@ function App() {
 
   const specialtyCount = baseSpecialties.length;
 
-  // Filter categories based on search and selection
-  const filteredGeneralCategories = useMemo(() => {
-    let result = generalCategories;
+  function filterAndSortCategories(
+    list: Category[],
+    query: string
+  ): Category[] {
+    let result = list;
 
-    // Filter by selected category
     if (selectedCategory) {
-      result = result.filter(cat => cat.id === selectedCategory);
+      result = result.filter((cat) => cat.id === selectedCategory);
     }
 
-    // Filter by search query (with synonym support)
-    if (searchQuery.trim()) {
-      const termGroups = getSearchTermGroups(searchQuery);
-      const simpleGroup = [[searchQuery]];
-      result = result.map(category => ({
-        ...category,
-        resources: category.resources.filter(resource => {
-          const searchableText = `${resource.name} ${resource.description}`;
-          // Match if: original query (complet) OU via synonymes
-          const matchesSimple = matchesSearch(searchableText, simpleGroup);
-          const matchesSynonyms = matchesSearch(searchableText, termGroups);
-          return matchesSimple || matchesSynonyms;
-        })
-      })).filter(category => category.resources.length > 0);
-    }
+    if (!query.trim()) return result;
 
-    return result;
-  }, [searchQuery, selectedCategory, generalCategories]);
+    const termGroups = getSearchTermGroups(query);
+    const simpleGroup = [[query.trim()]];
 
-  const filteredSpecialties = useMemo(() => {
-    let result = mergedSpecialties;
+    result = result.map((category) => {
+      const contextBase = { categoryName: category.name };
+      const resources = category.resources.filter((resource) => {
+        const searchableText = `${category.name} ${resource.name} ${resource.description} ${resource.note ?? ''}`;
+        const matchesSimple = matchesSearch(searchableText, simpleGroup);
+        const matchesSynonyms = matchesSearch(searchableText, termGroups);
+        if (matchesSimple || matchesSynonyms) return true;
+        return matchesSearchFuzzy(searchableText, termGroups);
+      });
 
-    // Filter by selected category
-    if (selectedCategory) {
-      result = result.filter(cat => cat.id === selectedCategory);
-    }
+      if (resources.length === 0) return null;
 
-    // Filter by search query (with synonym support)
-    if (searchQuery.trim()) {
-      const termGroups = getSearchTermGroups(searchQuery);
-      const simpleGroup = [[searchQuery]];
-      result = result.map(category => ({
-        ...category,
-        resources: category.resources.filter(resource => {
-          const searchableText = `${resource.name} ${resource.description}`;
-          // Match if: original query (complet) OU via synonymes
-          const matchesSimple = matchesSearch(searchableText, simpleGroup);
-          const matchesSynonyms = matchesSearch(searchableText, termGroups);
-          return matchesSimple || matchesSynonyms;
-        })
-      })).filter(category => category.resources.length > 0);
-    }
+      const withScore = resources.map((resource) => ({
+        resource,
+        score: scoreSearchMatch(
+          {
+            ...contextBase,
+            name: resource.name,
+            description: resource.description,
+            note: resource.note,
+          },
+          termGroups
+        ),
+      }));
+      withScore.sort((a, b) => b.score - a.score);
+      return { ...category, resources: withScore.map((r) => r.resource) };
+    }).filter((c): c is Category => c !== null);
 
-    return result;
-  }, [searchQuery, selectedCategory, mergedSpecialties]);
+    return result.filter((cat) => cat.resources.length > 0);
+  }
+
+  const filteredGeneralCategories = useMemo(
+    () => filterAndSortCategories(generalCategories, debouncedQuery),
+    [debouncedQuery, selectedCategory, generalCategories]
+  );
+
+  const filteredSpecialties = useMemo(
+    () => filterAndSortCategories(mergedSpecialties, debouncedQuery),
+    [debouncedQuery, selectedCategory, mergedSpecialties]
+  );
 
   // Check if any results found
   const hasGeneralResults = filteredGeneralCategories.length > 0;
@@ -166,6 +184,25 @@ function App() {
                 <p className="text-slate-600 mb-4">
                   Essayez avec d'autres termes de recherche
                 </p>
+                {debouncedQuery.trim() && (() => {
+                  const suggestions = getDidYouMeanSuggestions(debouncedQuery, searchVocabulary, 3);
+                  return suggestions.length > 0 ? (
+                    <div className="mb-4">
+                      <p className="text-sm text-slate-600 mb-2">Vous vouliez peut-être dire :</p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {suggestions.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => setSearchQuery(s)}
+                            className="px-3 py-1.5 rounded-full bg-teal-50 text-teal-700 text-sm font-medium hover:bg-teal-100 transition-colors"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
                 <button
                   onClick={() => {
                     setSearchQuery('');

@@ -194,12 +194,58 @@ function isStopWordTerm(term: string): boolean {
 }
 
 /**
+ * Distance de Levenshtein pour la tolérance aux fautes de frappe.
+ */
+function levenshtein(a: string, b: string): number {
+  const an = a.length;
+  const bn = b.length;
+  const matrix: number[][] = Array(an + 1).fill(null).map(() => Array(bn + 1).fill(0));
+  for (let i = 0; i <= an; i++) matrix[i][0] = i;
+  for (let j = 0; j <= bn; j++) matrix[0][j] = j;
+  for (let i = 1; i <= an; i++) {
+    for (let j = 1; j <= bn; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[an][bn];
+}
+
+/** Retourne true si le terme matche le texte (exact ou fuzzy avec 1-2 caractères d'écart). */
+function termMatchesText(normalizedText: string, normalizedTerm: string, fuzzy: boolean): boolean {
+  if (normalizedText.includes(normalizedTerm)) return true;
+  if (!fuzzy || normalizedTerm.length < 3) return false;
+  const maxDist = normalizedTerm.length <= 5 ? 1 : 2;
+  const words = normalizedText.split(/[^a-z0-9]+/).filter(Boolean);
+  for (const word of words) {
+    if (word.length < 2) continue;
+    if (levenshtein(normalizedTerm, word) <= maxDist) return true;
+  }
+  return false;
+}
+
+/**
  * Vérifie si un texte correspond à la requête de recherche.
  * Pour les mots de liaison (sur, à, etc.) : match en mot entier uniquement
  * (ex: "sur" ne matche pas "surveillance" → 0 résultat).
  * Pour les mots clés : match en sous-chaîne comme avant.
  */
 export function matchesSearch(text: string, termGroups: string[][]): boolean {
+  return matchesSearchInternal(text, termGroups, false);
+}
+
+/**
+ * Comme matchesSearch mais avec tolérance aux fautes de frappe (fuzzy).
+ */
+export function matchesSearchFuzzy(text: string, termGroups: string[][]): boolean {
+  return matchesSearchInternal(text, termGroups, true);
+}
+
+function matchesSearchInternal(text: string, termGroups: string[][], fuzzy: boolean): boolean {
   if (termGroups.length === 0) return true;
 
   const normalizedText = normalizeText(text);
@@ -210,13 +256,82 @@ export function matchesSearch(text: string, termGroups: string[][]): boolean {
       if (normalizedTerm.length < 2) return false;
 
       if (isStopWordTerm(term)) {
-        // Mot de liaison : match en mot entier uniquement (pas "sur" dans "surveillance")
         const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const wordBoundaryRegex = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i');
         return wordBoundaryRegex.test(normalizedText);
       }
 
-      return normalizedText.includes(normalizedTerm);
+      return termMatchesText(normalizedText, normalizedTerm, fuzzy);
     })
   );
+}
+
+/** Contexte pour scorer la pertinence (nom de catégorie, ressource, etc.) */
+export interface SearchableContext {
+  categoryName?: string;
+  name: string;
+  description: string;
+  note?: string;
+}
+
+/**
+ * Score de pertinence (plus c'est élevé, plus le résultat est pertinent).
+ * Priorité : nom de la ressource > catégorie > description > note.
+ */
+export function scoreSearchMatch(context: SearchableContext, termGroups: string[][]): number {
+  if (termGroups.length === 0) return 0;
+
+  let score = 0;
+  const norm = (s: string) => normalizeText(s || '');
+
+  for (const group of termGroups) {
+    let best = 0;
+    for (const term of group) {
+      const n = normalizeTerm(term);
+      if (n.length < 2 || isStopWordTerm(term)) continue;
+
+      if (context.categoryName && norm(context.categoryName).includes(n)) best = Math.max(best, 30);
+      if (norm(context.name).includes(n)) {
+        const nameNorm = norm(context.name);
+        const idx = nameNorm.indexOf(n);
+        const atWordStart = idx >= 0 && (idx === 0 || !/[\w]/.test(nameNorm[idx - 1]));
+        best = Math.max(best, atWordStart ? 100 : 70);
+      }
+      if (context.description && norm(context.description).includes(n)) best = Math.max(best, 20);
+      if (context.note && norm(context.note).includes(n)) best = Math.max(best, 15);
+    }
+    score += best;
+  }
+  return score;
+}
+
+/**
+ * Suggère des corrections "Vous vouliez dire ?" à partir d'un vocabulaire.
+ * Retourne au plus maxSuggestions termes les plus proches de la requête.
+ */
+export function getDidYouMeanSuggestions(
+  query: string,
+  vocabulary: string[],
+  maxSuggestions = 3
+): string[] {
+  const q = query.trim().toLowerCase();
+  if (!q || q.length < 2) return [];
+
+  const normalizedQuery = normalizeTerm(q);
+  const uniqueVocab = [...new Set(vocabulary)].map((v) => v.toLowerCase().trim()).filter((v) => v.length >= 2);
+
+  const withDistance: { term: string; dist: number }[] = uniqueVocab.map((term) => {
+    const norm = normalizeTerm(term);
+    const dist = Math.min(
+      levenshtein(normalizedQuery, norm),
+      ...normalizedQuery.split(/\s+/).filter((w) => w.length >= 2).map((w) => levenshtein(w, norm))
+    );
+    return { term, dist };
+  });
+
+  return withDistance
+    .filter(({ dist }) => dist > 0 && dist <= 3)
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, maxSuggestions)
+    .map(({ term }) => term);
 }
