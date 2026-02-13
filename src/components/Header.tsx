@@ -34,8 +34,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
-import { getRelatedTermSuggestions } from '@/lib/searchSynonyms';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -140,12 +140,12 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 shrink-0">
+          <Link to="/" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity">
             <div className="p-2 bg-teal-600 rounded-lg">
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-slate-900 text-lg hidden sm:block">Ressources MG</span>
-          </div>
+          </Link>
 
           {/* Search Bar + termes associés */}
           <div className="flex-1 max-w-xl">
@@ -162,25 +162,6 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                 aria-label="Rechercher une ressource médicale"
               />
             </div>
-            {searchQuery.trim().length >= 2 && (() => {
-              const related = getRelatedTermSuggestions(searchQuery, 5);
-              if (related.length === 0) return null;
-              return (
-                <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs">
-                  <span className="text-slate-500">Rechercher aussi :</span>
-                  {related.map((term) => (
-                    <button
-                      key={term}
-                      type="button"
-                      onClick={() => onSearch(term)}
-                      className="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 hover:bg-teal-100 font-medium transition-colors"
-                    >
-                      {term}
-                    </button>
-                  ))}
-                </div>
-              );
-            })()}
           </div>
 
           {/* Mobile Menu */}
@@ -191,12 +172,12 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80 overflow-y-auto">
-              <div className="flex items-center gap-2 mb-6">
+              <Link to="/" className="flex items-center gap-2 mb-6 hover:opacity-90 transition-opacity">
                 <div className="p-2 bg-teal-600 rounded-lg">
                   <Stethoscope className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-bold text-slate-900">Ressources MG</span>
-              </div>
+              </Link>
               <nav className="space-y-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">
                   Spécialités
