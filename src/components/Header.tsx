@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Search, 
   Menu, 
@@ -35,6 +35,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { categories } from '@/types/resources';
+import { getRelatedTermSuggestions } from '@/lib/searchSynonyms';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -85,6 +86,7 @@ interface HeaderProps {
 
 export function Header({ searchQuery, onSearch, onCategorySelect, selectedCategory }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -94,9 +96,26 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onSearch(e.target.value);
-  };
+  }, [onSearch]);
 
   const handleCategoryClick = (categoryId: string) => {
     if (selectedCategory === categoryId) {
@@ -128,18 +147,43 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
             <span className="font-bold text-slate-900 text-lg hidden sm:block">Ressources MG</span>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar + termes associés */}
           <div className="flex-1 max-w-xl">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <Input
-                type="text"
-                placeholder="Rechercher une ressource..."
+                ref={searchInputRef}
+                type="search"
+                autoComplete="off"
+                placeholder="Rechercher (ex. rein, pédiatrie, ordonnance…)"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white"
+                className="pl-10 pr-20 w-full bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+                aria-label="Rechercher une ressource médicale"
               />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-1 text-xs text-slate-400">
+                <kbd className="px-1.5 py-0.5 rounded bg-slate-200/80 font-mono">/</kbd>
+              </span>
             </div>
+            {searchQuery.trim().length >= 2 && (() => {
+              const related = getRelatedTermSuggestions(searchQuery, 5);
+              if (related.length === 0) return null;
+              return (
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs">
+                  <span className="text-slate-500">Rechercher aussi :</span>
+                  {related.map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => onSearch(term)}
+                      className="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 hover:bg-teal-100 font-medium transition-colors"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Mobile Menu */}
