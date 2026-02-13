@@ -77,31 +77,13 @@ export function Footer({ categories = [] }: FooterProps) {
     <footer className="bg-slate-900 text-slate-300 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-          {/* Brand */}
-          <div className="lg:col-span-4">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 bg-teal-600 rounded-lg">
-                <Stethoscope className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-white text-lg">Ressources MG</span>
-            </div>
-            <p className="text-slate-400 text-sm leading-relaxed mb-4">
-              Un référencement complet des outils web utiles pour la pratique quotidienne en médecine générale en France. Organisé par spécialité pour une consultation rapide.
-            </p>
-            <p className="text-slate-500 text-xs leading-relaxed italic">
-              Fait de manière indépendante par une médecin généraliste. Pas de conflits d'intérêt à déclarer.
-            </p>
-          </div>
-
-          {/* Formulaire + Contact côte à côte */}
-          <div className="lg:col-span-8 grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Formulaire */}
-            <div id="add-resource-form" className="lg:col-span-3">
-              <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
-                <h3 className="font-semibold text-white mb-1 text-sm">Proposer une ressource</h3>
-                <p className="text-slate-400 text-xs mb-3">
-                  Un site utile ? Proposez-le rapidement.
-                </p>
+          {/* Formulaire à gauche */}
+          <div id="add-resource-form" className="lg:col-span-5 order-2 lg:order-1">
+            <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
+              <h3 className="font-semibold text-white mb-1 text-sm">Proposer une ressource</h3>
+              <p className="text-slate-400 text-xs mb-3">
+                Un site utile ? Proposez-le rapidement.
+              </p>
               {submitted ? (
                 <div className="bg-teal-900/50 border border-teal-700 rounded-xl p-5 text-center">
                   <p className="text-teal-300 text-sm">Merci pour votre proposition !</p>
@@ -183,26 +165,41 @@ export function Footer({ categories = [] }: FooterProps) {
                   </Button>
                 </form>
               )}
-              </div>
             </div>
-
-            {/* Contact : mail + webmaster à droite */}
-            <div className="lg:col-span-2 flex flex-col justify-start gap-4 pt-1">
-            <a
-              href="mailto:ressourcesmedge@gmail.com"
-              className="inline-flex items-center gap-2 text-slate-400 hover:text-teal-400 transition-colors"
-            >
-              <Mail className="w-4 h-4 shrink-0" />
-              <span className="text-sm">ressourcesmedge@gmail.com</span>
-            </a>
-            <Link
-              to="/webmaster"
-              className="inline-flex items-center gap-2 text-slate-500 hover:text-teal-400 transition-colors text-sm"
-            >
-              <Shield className="w-4 h-4 shrink-0" />
-              Espace webmaster
-            </Link>
           </div>
+
+          {/* Brand + Me contacter à droite */}
+          <div className="lg:col-span-7 order-1 lg:order-2">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-teal-600 rounded-lg">
+                <Stethoscope className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-white text-lg">Ressources MG</span>
+            </div>
+            <p className="text-slate-400 text-sm leading-relaxed mb-4">
+              Un référencement complet des outils web utiles pour la pratique quotidienne en médecine générale en France. Organisé par spécialité pour une consultation rapide.
+            </p>
+            <p className="text-slate-500 text-xs leading-relaxed italic mb-6">
+              Fait de manière indépendante par une médecin généraliste. Pas de conflits d'intérêt à déclarer.
+            </p>
+            <div>
+              <h3 className="font-semibold text-white text-sm mb-2">Me contacter</h3>
+              <a
+                href="mailto:ressourcesmedge@gmail.com"
+                className="inline-flex items-center gap-2 text-slate-400 hover:text-teal-400 transition-colors text-sm"
+              >
+                <Mail className="w-4 h-4 shrink-0" />
+                ressourcesmedge@gmail.com
+              </a>
+              <span className="text-slate-600 mx-2">·</span>
+              <Link
+                to="/webmaster"
+                className="inline-flex items-center gap-2 text-slate-500 hover:text-teal-400 transition-colors text-sm"
+              >
+                <Shield className="w-4 h-4 shrink-0" />
+                Espace webmaster
+              </Link>
+            </div>
           </div>
         </div>
 
