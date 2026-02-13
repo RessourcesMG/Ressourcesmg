@@ -14,6 +14,13 @@ export function Hero({ totalResources, totalCategories }: HeroProps) {
     }
   };
 
+  const scrollToAddResource = () => {
+    const element = document.getElementById('add-resource-form');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative bg-gradient-to-br from-teal-50 via-white to-slate-50 pt-32 pb-16 overflow-hidden">
       {/* Background decoration */}
@@ -54,15 +61,23 @@ export function Hero({ totalResources, totalCategories }: HeroProps) {
             </div>
           </div>
 
-          {/* CTA Button */}
-          <div className="flex items-center justify-center">
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button 
               onClick={scrollToResources}
               size="lg"
-              className="bg-teal-600 hover:bg-teal-700 text-white px-8"
+              className="bg-teal-600 hover:bg-teal-700 text-white px-8 w-full sm:w-auto"
             >
               Découvrir les ressources
               <ArrowDown className="w-4 h-4 ml-2" />
+            </Button>
+            <Button 
+              onClick={scrollToAddResource}
+              size="lg"
+              variant="outline"
+              className="border-teal-600 text-teal-600 hover:bg-teal-50 px-8 w-full sm:w-auto"
+            >
+              Ajouter une ressource
             </Button>
           </div>
         </div>

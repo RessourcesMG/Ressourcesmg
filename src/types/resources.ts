@@ -83,7 +83,7 @@ const generalOtherResources: Resource[] = [
     id: "ameli-pro",
     name: "Ameli Professionnels",
     description: "Rechercher un professionnel de santé",
-    url: "https://annuairesante.ameli.fr/"
+    url: "https://authps-espacepro.ameli.fr/oauth2/authorize?response_type=code&scope=openid%20profile%20infosps%20email&client_id=csm-cen-prod_ameliprotransverse-connexionadmin_1_amtrx_i1_csm-cen-prod%2Fameliprotransverse-connexionadmin_1%2Famtrx_i1&state=0uLmiQtNwK3Oj_3bzE11SPlRnNY&redirect_uri=https%3A%2F%2Fespacepro.ameli.fr%2Fpage-accueil-ihm%2Fredirect_uri&nonce=BxK70DF6GATpBdoPi3MHhDQ1x9lFpxfTc6VEhIey1CI"
   },
   {
     id: "doocteur",
@@ -92,10 +92,10 @@ const generalOtherResources: Resource[] = [
     url: "https://doocteur.fr/"
   },
   {
-    id: "medicalcul",
-    name: "Medicalcul",
-    description: "Calculateur divers en médecine (échelles, paquet-année, SCORE 2…)",
-    url: "http://medicalcul.free.fr/"
+    id: "omnidoc",
+    name: "Omnidoc",
+    description: "Plateforme de collaboration médicale",
+    url: "https://omnidoc.fr/"
   },
   {
     id: "appthera",

@@ -293,8 +293,8 @@ function App() {
                   { name: 'Recomed', url: 'https://recomedicales.fr/', color: 'bg-blue-50 text-blue-700 hover:bg-blue-100' },
                   { name: 'Ordotype', url: 'https://www.ordotype.fr/', color: 'bg-green-50 text-green-700 hover:bg-green-100' },
                   { name: 'Antibioclic', url: 'https://antibioclic.com/', color: 'bg-red-50 text-red-700 hover:bg-red-100' },
-                  { name: 'Medicalcul', url: 'http://medicalcul.free.fr/', color: 'bg-purple-50 text-purple-700 hover:bg-purple-100' },
-                  { name: 'Ameli Pro', url: 'https://annuairesante.ameli.fr/', color: 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100' },
+                  { name: 'Omnidoc', url: 'https://omnidoc.fr/', color: 'bg-purple-50 text-purple-700 hover:bg-purple-100' },
+                  { name: 'Ameli Pro', url: 'https://authps-espacepro.ameli.fr/oauth2/authorize?response_type=code&scope=openid%20profile%20infosps%20email&client_id=csm-cen-prod_ameliprotransverse-connexionadmin_1_amtrx_i1_csm-cen-prod%2Fameliprotransverse-connexionadmin_1%2Famtrx_i1&state=0uLmiQtNwK3Oj_3bzE11SPlRnNY&redirect_uri=https%3A%2F%2Fespacepro.ameli.fr%2Fpage-accueil-ihm%2Fredirect_uri&nonce=BxK70DF6GATpBdoPi3MHhDQ1x9lFpxfTc6VEhIey1CI', color: 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100' },
                   { name: 'HAS', url: 'https://www.has-sante.fr/', color: 'bg-orange-50 text-orange-700 hover:bg-orange-100' },
                 ].map((item) => (
                   <a

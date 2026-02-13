@@ -62,7 +62,7 @@ export function Footer() {
           </div>
 
           {/* Contact Form */}
-          <div>
+          <div id="add-resource-form">
             <h3 className="font-semibold text-white mb-4">Proposer une ressource</h3>
             {submitted ? (
               <div className="bg-teal-900/50 border border-teal-700 rounded-lg p-4 text-center">
