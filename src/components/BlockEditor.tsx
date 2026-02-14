@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus, GripVertical, Globe, Stethoscope, ArrowDownAZ } from 'lucide-react';
-import { useManagedBlocks } from '@/hooks/useManagedBlocks';
+import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import type { Category, Resource } from '@/types/resources';
 import { getSortAlphabetically, setSortAlphabetically } from '@/lib/sortAzPrefs';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ export function BlockEditor() {
     updateCategory,
     deleteResource,
     deleteCategory,
-  } = useManagedBlocks();
+  } = useManagedBlocksContext();
 
   const [seedLoading, setSeedLoading] = useState(false);
   const [seedError, setSeedError] = useState('');

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Lock, Plus, LogOut, Shield, Eye, EyeOff } from 'lucide-react';
 import { isWebmasterLoggedIn, login, logout, getToken, getRateLimitStatus } from '@/lib/webmasterAuth';
 import { getSortAlphabetically } from '@/lib/sortAzPrefs';
-import { useManagedBlocks } from '@/hooks/useManagedBlocks';
+import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import { BlockEditor } from '@/components/BlockEditor';
 import { ProposalManager } from '@/components/ProposalManager';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ export function Webmaster() {
   const [loading, setLoading] = useState(false);
   const [rateLimitStatus, setRateLimitStatus] = useState(getRateLimitStatus);
   const [addLoading, setAddLoading] = useState(false);
-  const { generalCategories, medicalSpecialties, fromDb, addResource, reorderResources } = useManagedBlocks();
+  const { generalCategories, medicalSpecialties, fromDb, addResource, reorderResources } = useManagedBlocksContext();
   const [form, setForm] = useState({
     categoryId: '',
     name: '',
