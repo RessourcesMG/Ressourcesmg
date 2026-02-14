@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Stethoscope, Heart, Send, Mail, Shield } from 'lucide-react';
+import { Stethoscope, Heart, Send, Mail, Shield, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,9 +39,28 @@ export function Footer({ categories = [] }: FooterProps) {
     }
   }, [categories]);
 
+  function validateForm(): string | null {
+    const name = formData.name.trim();
+    const url = formData.url.trim();
+    if (!name) return 'Le nom du site est requis.';
+    if (!url) return 'Le lien du site est requis.';
+    try {
+      new URL(url);
+    } catch {
+      return 'Veuillez entrer une URL valide (ex. https://…).';
+    }
+    if (!effectiveCategoryId && categories.length > 0) return 'Choisissez une catégorie.';
+    return null;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/proposals', {
@@ -61,6 +81,10 @@ export function Footer({ categories = [] }: FooterProps) {
           url: '',
           description: '',
           categoryId: categories[0]?.id ?? '',
+        });
+        toast.success('Proposition envoyée', {
+          description: 'Merci ! Elle sera examinée par l’équipe.',
+          duration: 5000,
         });
         setTimeout(() => setSubmitted(false), 4000);
       } else {
@@ -109,9 +133,10 @@ export function Footer({ categories = [] }: FooterProps) {
                 Un site utile ? Proposez-le rapidement.
               </p>
               {submitted ? (
-                <div className="bg-teal-900/50 border border-teal-700 rounded-xl p-5 text-center">
-                  <p className="text-teal-300 text-sm">Merci pour votre proposition !</p>
-                  <p className="text-teal-400 text-xs mt-1">Elle sera examinée par l&apos;équipe.</p>
+                <div className="bg-teal-900/50 border border-teal-700 rounded-xl p-6 text-center">
+                  <CheckCircle className="w-12 h-12 text-teal-400 mx-auto mb-3" aria-hidden />
+                  <p className="text-teal-300 font-semibold text-base">Merci pour votre proposition !</p>
+                  <p className="text-teal-400 text-sm mt-1">Elle sera examinée par l&apos;équipe.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-3">

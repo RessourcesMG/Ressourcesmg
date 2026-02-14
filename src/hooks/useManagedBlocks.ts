@@ -12,8 +12,11 @@ export function useManagedBlocks() {
   const [medicalSpecialties, setMedicalSpecialties] = useState<Category[]>(() => staticSpecialties);
   const [fromDb, setFromDb] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchBlocks = useCallback(async () => {
+    setError(null);
+    setLoading(true);
     try {
       const res = await fetch(API_URL);
       const data = await res.json().catch(() => ({}));
@@ -29,6 +32,7 @@ export function useManagedBlocks() {
         setFromDb(false);
       }
     } catch {
+      setError('Impossible de charger les ressources.');
       setGeneralCategories(staticCategories.slice(0, 3));
       setMedicalSpecialties(staticSpecialties);
       setFromDb(false);
@@ -288,6 +292,8 @@ export function useManagedBlocks() {
     medicalSpecialties,
     fromDb,
     loading,
+    error,
+    retry: fetchBlocks,
     refresh: fetchBlocks,
     seedBlocks,
     addResource,

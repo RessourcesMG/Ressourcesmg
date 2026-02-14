@@ -14,7 +14,9 @@ import {
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { SearchX, Stethoscope, Globe } from 'lucide-react';
+import { SearchX, Stethoscope, Globe, RefreshCw } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import type { Category } from '@/types/resources';
 
 function AppContent() {
@@ -24,7 +26,7 @@ function AppContent() {
 
   const debouncedQuery = useDebouncedValue(searchQuery, 280);
 
-  const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties, loading: blocksLoading } = useManagedBlocks();
+  const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties, loading: blocksLoading, error: blocksError, retry: retryBlocks } = useManagedBlocks();
   const { resources: customResources } = useCustomResources();
   const { generalCategories, medicalSpecialties: mergedSpecialties } = useCategoriesWithCustom(
     baseGeneralCategories,
@@ -131,6 +133,9 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <a href="#resources-section" className="skip-link">
+        Aller au contenu
+      </a>
       <Header 
         searchQuery={searchQuery}
         onSearch={setSearchQuery} 
@@ -148,16 +153,58 @@ function AppContent() {
           />
         )}
 
-        <section id="resources-section" className={`scroll-mt-[7.5rem] ${isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}`}>
+        <section
+          id="resources-section"
+          className={`scroll-mt-[7.5rem] ${isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}`}
+          aria-label="Ressources"
+        >
           <div className="max-w-7xl mx-auto">
+            {/* Erreur chargement API */}
+            {blocksError && (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <p className="text-slate-700 font-medium mb-2">{blocksError}</p>
+                <Button onClick={() => retryBlocks()} variant="outline" className="gap-2">
+                  <RefreshCw className="w-4 h-4" />
+                  Réessayer
+                </Button>
+              </div>
+            )}
+
+            {/* Skeletons pendant le chargement */}
+            {!blocksError && blocksLoading && (
+              <div className="space-y-12">
+                <div className="flex items-center gap-4 mb-8">
+                  <Skeleton className="h-12 w-12 rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <Skeleton key={i} className="h-40 rounded-lg" />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contenu normal (résultats, catégories) */}
+            {!blocksError && !blocksLoading && (
+              <>
+            {/* Annonce pour lecteurs d'écran */}
+            {(searchQuery || selectedCategory) && (
+              <p className="sr-only" aria-live="polite" aria-atomic="true">
+                {totalFilteredResources} résultat{totalFilteredResources > 1 ? 's' : ''} trouvé{totalFilteredResources > 1 ? 's' : ''}
+                {searchQuery && ` pour ${searchQuery}`}.
+              </p>
+            )}
             {/* Results info */}
             {(searchQuery || selectedCategory) && (
               <div className="mb-6 flex items-center justify-between">
                 <p className="text-slate-600">
-                  {totalFilteredResources} résultat{totalFilteredResources > 1 ? 's' : ''} trouvé
-                  {totalFilteredResources > 1 ? 's' : ''}
+                  {totalFilteredResources} résultat{totalFilteredResources > 1 ? 's' : ''} trouvé{totalFilteredResources > 1 ? 's' : ''}
                   {searchQuery && (
-                    <span> pour "<span className="font-medium text-slate-900">{searchQuery}</span>"</span>
+                    <span> pour &quot;<span className="font-medium text-slate-900">{searchQuery}</span>&quot;</span>
                   )}
                 </p>
                 {(searchQuery || selectedCategory) && (
@@ -271,6 +318,8 @@ function AppContent() {
                   ))}
                 </div>
               </div>
+            )}
+              </>
             )}
           </div>
         </section>

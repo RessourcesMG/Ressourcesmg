@@ -75,6 +75,13 @@
   html {
     scroll-behavior: smooth;
   }
+  /* Contour visible au focus clavier (accessibilité) */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-teal-500;
+  }
+  .skip-link {
+    @apply absolute left-4 top-4 z-[100] -translate-y-16 rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2;
+  }
 }
 
 @layer utilities {
