@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ExternalLink, Lock, Info, Globe, Star } from 'lucide-react';
 import type { Resource } from '@/types/resources';
 import { trackResourceClick } from '@/lib/analytics';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
@@ -164,7 +164,7 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 flex-1 flex flex-col">
         <p className="text-slate-600 text-sm leading-relaxed mb-3">
           {resource.description}
         </p>
@@ -174,25 +174,25 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
             <span>{resource.note}</span>
           </div>
         )}
-        <div className="flex flex-wrap items-center gap-2">
-          <a
-            href={resource.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
-            onClick={() => trackResourceClick({ resourceId: resource.id, resourceName: resource.name, categoryId })}
-          >
-            Accéder au site
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-          {resource.requiresAuth && (
-            <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0 h-4 font-normal">
-              <Lock className="w-2.5 h-2.5 mr-0.5" />
-              Connexion
-            </Badge>
-          )}
-        </div>
       </CardContent>
+      <CardFooter className="flex w-full items-end justify-between gap-2 pt-0 pb-0">
+        <a
+          href={resource.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
+          onClick={() => trackResourceClick({ resourceId: resource.id, resourceName: resource.name, categoryId })}
+        >
+          Accéder au site
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+        {resource.requiresAuth && (
+          <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0 h-4 font-normal shrink-0">
+            <Lock className="w-2.5 h-2.5 mr-0.5" />
+            Connexion
+          </Badge>
+        )}
+      </CardFooter>
     </Card>
   );
 }
