@@ -368,7 +368,10 @@ export function Header({
             className="flex items-center gap-2 overflow-x-auto scrollbar-hide min-w-0 flex-1 py-1"
           >
             <button
-              onClick={() => onCategorySelect(null)}
+              onClick={() => {
+                onCategorySelect(null);
+                onShowOnlyFavoritesChange?.(false);
+              }}
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
                 selectedCategory === null && !showOnlyFavorites
                   ? 'bg-teal-600 text-white'
@@ -394,7 +397,7 @@ export function Header({
               <button
                 key={category.id}
                 onClick={() => {
-                  onCategorySelect(category.id);
+                  handleCategoryClick(category.id);
                   showOnlyFavorites && onShowOnlyFavoritesChange?.(false);
                 }}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
