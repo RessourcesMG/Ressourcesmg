@@ -48,6 +48,9 @@ function parseBody(req) {
 
 // Stockage en mémoire pour /api/resources en dev local (sans Supabase)
 const devResources = new Map();
+// Analytics en mémoire pour dev
+const devAnalyticsClicks = [];
+const devAnalyticsSearches = [];
 
 async function findFavicon(pageUrlStr) {
   try {
@@ -204,6 +207,103 @@ const server = createServer(async (req, res) => {
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
     res.writeHead(200);
     res.end(JSON.stringify({ valid: token ? verifyToken(token) : false }));
+    return;
+  }
+
+  // POST /api/analytics (en dev : stockage en mémoire)
+  if (url.pathname === '/api/analytics') {
+    if (req.method === 'POST') {
+      let body;
+      try {
+        body = await parseBody(req);
+      } catch {
+        body = {};
+      }
+      if (body.type === 'resource_click') {
+        devAnalyticsClicks.push({
+          resource_id: body.resourceId,
+          resource_name: body.resourceName,
+          category_id: body.categoryId,
+        });
+      } else if (body.type === 'search') {
+        devAnalyticsSearches.push({ query: body.query, result_count: body.resultCount || 0 });
+      }
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+    if (req.method === 'GET') {
+      const auth = req.headers.authorization || '';
+      const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+      if (!token || !verifyToken(token)) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: 'Non autorisé' }));
+        return;
+      }
+      const clickCounts = new Map();
+      for (const c of devAnalyticsClicks) {
+        const k = c.resource_id;
+        const cur = clickCounts.get(k) || { name: c.resource_name, categoryId: c.category_id, count: 0 };
+        cur.count++;
+        clickCounts.set(k, cur);
+      }
+      const topResources = [...clickCounts.entries()].map(([id, d]) => ({ id, ...d })).sort((a, b) => b.count - a.count).slice(0, 20);
+      const searchCounts = new Map();
+      for (const s of devAnalyticsSearches) {
+        const q = (s.query || '').toLowerCase();
+        if (q) searchCounts.set(q, (searchCounts.get(q) || 0) + 1);
+      }
+      const topSearches = [...searchCounts.entries()].map(([query, count]) => ({ query, count })).sort((a, b) => b.count - a.count).slice(0, 20);
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        topResources,
+        topSearches,
+        totalClicks: devAnalyticsClicks.length,
+        totalSearches: devAnalyticsSearches.length,
+        periodDays: 30,
+      }));
+      return;
+    }
+  }
+
+  // GET /api/sitemap (en dev : sitemap minimal)
+  if (url.pathname === '/api/sitemap' && req.method === 'GET') {
+    const base = 'http://localhost:5173';
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${base}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>${base}/webmaster</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+</urlset>`;
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.writeHead(200);
+    res.end(xml);
+    return;
+  }
+
+  // POST /api/proposals (mock en dev sans Supabase : honeypot + validation URL basique)
+  if (url.pathname === '/api/proposals' && req.method === 'POST') {
+    const body = await parseBody(req);
+    if (body.website && body.website.trim()) {
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, message: 'Proposition envoyée. Merci !' }));
+      return;
+    }
+    const name = (body.name || '').trim();
+    const urlStr = (body.url || '').trim();
+    if (!name || !urlStr) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ error: 'Nom et lien du site requis' }));
+      return;
+    }
+    try {
+      new URL(urlStr);
+    } catch {
+      res.writeHead(400);
+      res.end(JSON.stringify({ error: 'URL invalide' }));
+      return;
+    }
+    res.writeHead(201);
+    res.end(JSON.stringify({ success: true, message: 'Proposition envoyée. Merci !' }));
     return;
   }
 

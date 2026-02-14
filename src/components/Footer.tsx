@@ -26,6 +26,7 @@ export function Footer({ categories = [] }: FooterProps) {
     url: '',
     description: '',
     categoryId: categories[0]?.id ?? '',
+    website: '', // Honeypot anti-spam (caché, ne doit pas être rempli)
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -71,6 +72,7 @@ export function Footer({ categories = [] }: FooterProps) {
           url: formData.url.trim(),
           description: formData.description.trim(),
           ...(effectiveCategoryId ? { categoryId: effectiveCategoryId } : {}),
+          website: formData.website, // Honeypot
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -81,6 +83,7 @@ export function Footer({ categories = [] }: FooterProps) {
           url: '',
           description: '',
           categoryId: categories[0]?.id ?? '',
+          website: '',
         });
         toast.success('Proposition envoyée', {
           description: 'Merci ! Elle sera examinée par l’équipe.',
@@ -187,6 +190,19 @@ export function Footer({ categories = [] }: FooterProps) {
                       onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                       className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-9 rounded-lg"
                       required
+                    />
+                  </div>
+                  {/* Honeypot anti-spam : champ caché, ne pas remplir */}
+                  <div className="absolute -left-[9999px] w-1 h-1 overflow-hidden" aria-hidden="true">
+                    <label htmlFor="website">Ne pas remplir</label>
+                    <input
+                      type="text"
+                      id="website"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={formData.website}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     />
                   </div>
                   <div>

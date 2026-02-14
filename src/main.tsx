@@ -1,6 +1,7 @@
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from 'next-themes'
 import { inject } from '@vercel/analytics'
 import './index.css'
 import App from './App.tsx'
@@ -15,9 +16,10 @@ inject()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <ManagedBlocksProvider>
-        <FavoritesProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <BrowserRouter>
+        <ManagedBlocksProvider>
+          <FavoritesProvider>
           <Toaster richColors position="top-center" />
           <Routes>
           <Route path="/" element={<App />} />
@@ -31,7 +33,8 @@ createRoot(document.getElementById('root')!).render(
           />
         </Routes>
         </FavoritesProvider>
-      </ManagedBlocksProvider>
-    </BrowserRouter>
+        </ManagedBlocksProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   </StrictMode>,
 )

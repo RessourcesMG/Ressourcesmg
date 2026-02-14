@@ -58,7 +58,19 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
   // POST : soumission publique (sans auth)
   if (req.method === 'POST') {
-    const body = req.body as { name?: string; url?: string; description?: string; categoryId?: string };
+    const body = req.body as {
+      name?: string;
+      url?: string;
+      description?: string;
+      categoryId?: string;
+      website?: string; // Honeypot : si rempli = spam
+    };
+    // Honeypot : rejeter silencieusement si le champ "website" est rempli
+    const honeypot = typeof body?.website === 'string' ? body.website.trim() : '';
+    if (honeypot) {
+      return res.status(200).json({ success: true, message: 'Proposition envoyée. Merci !' });
+    }
+
     const name = typeof body?.name === 'string' ? body.name.trim() : '';
     const url = typeof body?.url === 'string' ? body.url.trim() : '';
     const description = typeof body?.description === 'string' ? body.description.trim() : '';
@@ -66,6 +78,61 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
     if (!name || !url) {
       return res.status(400).json({ error: 'Nom et lien du site requis' });
+    }
+
+    // Validation de l'URL : vérifier qu'elle est accessible
+    try {
+      const parsedUrl = new URL(url);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ error: 'L\'URL doit commencer par http:// ou https://' });
+      }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      let urlOk = false;
+      try {
+        const headRes = await fetch(url, {
+          method: 'HEAD',
+          signal: controller.signal,
+          headers: { 'User-Agent': 'RessourcesMG/1.0 (proposal-validation)' },
+          redirect: 'follow',
+        });
+        urlOk = headRes.ok || [405, 403, 404].includes(headRes.status);
+        if (!urlOk) {
+          const getRes = await fetch(url, {
+            method: 'GET',
+            signal: controller.signal,
+            headers: { 'User-Agent': 'RessourcesMG/1.0 (proposal-validation)' },
+            redirect: 'follow',
+          });
+          urlOk = getRes.ok;
+        }
+      } catch {
+        // Fallback : certains serveurs refusent HEAD ou timeout
+        try {
+          const getController = new AbortController();
+          const getTimeout = setTimeout(() => getController.abort(), 6000);
+          const getRes = await fetch(url, {
+            method: 'GET',
+            signal: getController.signal,
+            headers: { 'User-Agent': 'RessourcesMG/1.0 (proposal-validation)' },
+            redirect: 'follow',
+          });
+          urlOk = getRes.ok;
+          clearTimeout(getTimeout);
+        } catch {
+          urlOk = false;
+        }
+      }
+      clearTimeout(timeout);
+      if (!urlOk) {
+        return res.status(400).json({
+          error: 'Impossible d\'accéder à ce lien. Vérifiez que l\'URL est correcte et accessible.',
+        });
+      }
+    } catch {
+      return res.status(400).json({
+        error: 'Impossible de vérifier ce lien. Assurez-vous que l\'URL est valide et accessible.',
+      });
     }
 
     const { error } = await supabase.from('resource_proposals').insert({
@@ -77,6 +144,32 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     });
 
     if (error) return res.status(500).json({ error: error.message });
+
+    // Notification email (optionnel : RESEND_API_KEY et NOTIFICATION_EMAIL)
+    const resendKey = process.env.RESEND_API_KEY;
+    const notifyEmail = process.env.NOTIFICATION_EMAIL;
+    if (resendKey && notifyEmail) {
+      try {
+        const { Resend } = await import('resend');
+        const resend = new Resend(resendKey);
+        await resend.emails.send({
+          from: 'Ressources MG <onboarding@resend.dev>',
+          to: [notifyEmail],
+          subject: `[Ressources MG] Nouvelle proposition : ${name}`,
+          html: `
+            <p>Une nouvelle ressource a été proposée sur Ressources MG.</p>
+            <p><strong>Nom :</strong> ${name}</p>
+            <p><strong>URL :</strong> <a href="${url}">${url}</a></p>
+            <p><strong>Description :</strong> ${description || '(vide)'}</p>
+            <p><strong>Catégorie :</strong> ${categoryId || '(non spécifiée)'}</p>
+            <p>Connectez-vous à l'espace webmaster pour examiner la proposition.</p>
+          `,
+        });
+      } catch {
+        // Ne pas bloquer la réponse si l'email échoue
+      }
+    }
+
     return res.status(201).json({ success: true, message: 'Proposition envoyée. Merci !' });
   }
 

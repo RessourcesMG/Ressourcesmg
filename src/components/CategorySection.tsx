@@ -48,14 +48,14 @@ export function CategorySection({ category, isExpanded = true }: CategorySection
           <ul className="divide-y divide-slate-100 border border-slate-200 rounded-lg bg-white overflow-hidden">
             {category.resources.map((resource) => (
               <li key={resource.id}>
-                <ResourceCard key={resource.id} resource={resource} />
+                <ResourceCard key={resource.id} resource={resource} categoryId={category.id} />
               </li>
             ))}
           </ul>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {category.resources.map((resource) => (
-              <ResourceCard key={resource.id} resource={resource} />
+              <ResourceCard key={resource.id} resource={resource} categoryId={category.id} />
             ))}
           </div>
         )
