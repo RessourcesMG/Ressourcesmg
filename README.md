@@ -77,7 +77,7 @@ export default defineConfig([
 Pour ajouter des ressources **de manière durable** (stockées en base de données) :
 
 1. **Supabase** : créez un projet gratuit sur [supabase.com](https://supabase.com)
-   - Exécutez le script `supabase/schema.sql` dans SQL Editor
+   - Exécutez les scripts `supabase/schema.sql` et `supabase/schema-analytics.sql` dans SQL Editor
    - Dans Settings > API : copiez l'URL et la clé `service_role`
 2. **Vercel** : ajoutez les variables d'environnement :
    - `WEBMASTER_PASSWORD` : votre mot de passe
@@ -88,3 +88,14 @@ Pour ajouter des ressources **de manière durable** (stockées en base de donné
 Les ressources sont stockées dans Supabase et visibles par tous les visiteurs.
 
 **En local** : `npm run dev:api` puis `npm run dev`. Sans Supabase, les ressources sont en mémoire (perdues au redémarrage).
+
+## Fonctionnalités avancées
+
+- **Mode sombre** : toggle dans le header (respecte `prefers-color-scheme`)
+- **PWA** : application installable, mise à jour automatique du service worker
+- **Analytics** : tableau de bord dans l'espace webmaster (clics ressources, recherches populaires)
+- **Notifications email** : variable `RESEND_API_KEY` + `NOTIFICATION_EMAIL` pour recevoir un email à chaque nouvelle proposition
+- **Validation des URLs** : vérification que le lien est accessible avant d'accepter une proposition
+- **Protection anti-spam** : honeypot sur le formulaire de proposition
+- **Sitemap dynamique** : `/sitemap.xml` généré à partir des catégories Supabase
+- **Schema.org** : données structurées ItemList pour le SEO

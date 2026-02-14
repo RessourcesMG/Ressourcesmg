@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink, Lock, Info, Globe, Star } from 'lucide-react';
 import type { Resource } from '@/types/resources';
+import { trackResourceClick } from '@/lib/analytics';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCompactMode } from '@/contexts/CompactModeContext';
@@ -14,6 +15,7 @@ import {
 
 interface ResourceCardProps {
   resource: Resource;
+  categoryId?: string;
 }
 
 function getFaviconSources(url: string): string[] {
@@ -35,7 +37,7 @@ function getFaviconSources(url: string): string[] {
   }
 }
 
-export function ResourceCard({ resource }: ResourceCardProps) {
+export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
   const { isCompact } = useCompactMode();
   const { isFavorite, toggleFavorite } = useFavorites();
   const sources = getFaviconSources(resource.url);
@@ -105,7 +107,10 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           target="_blank"
           rel="noopener noreferrer"
           className="shrink-0 inline-flex items-center gap-1 text-teal-600 hover:text-teal-700 font-medium text-xs py-1 px-2 rounded hover:bg-teal-50 transition-colors"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            trackResourceClick({ resourceId: resource.id, resourceName: resource.name, categoryId });
+          }}
         >
           Ouvrir
           <ExternalLink className="w-3.5 h-3.5" />
@@ -180,6 +185,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
+          onClick={() => trackResourceClick({ resourceId: resource.id, resourceName: resource.name, categoryId })}
         >
           Accéder au site
           <ExternalLink className="w-3.5 h-3.5" />

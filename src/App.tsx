@@ -11,6 +11,7 @@ import {
   scoreSearchMatch,
   getDidYouMeanSuggestions,
 } from '@/lib/searchSynonyms';
+import { trackSearch } from '@/lib/analytics';
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -19,6 +20,7 @@ import { SearchX, Stethoscope, Globe, RefreshCw, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import type { Category } from '@/types/resources';
+import { SchemaOrgResources } from '@/components/SchemaOrgResources';
 
 function AppContent() {
   const { isCompact } = useCompactMode();
@@ -164,12 +166,20 @@ function AppContent() {
     0
   );
 
+  // Enregistrer les recherches (analytics)
+  useEffect(() => {
+    if (debouncedQuery.trim()) {
+      trackSearch({ query: debouncedQuery.trim(), resultCount: totalFilteredResources });
+    }
+  }, [debouncedQuery, totalFilteredResources]);
+
   // Check if viewing a specialty section
   const isViewingSpecialties = !selectedCategory || mergedSpecialties.some(s => s.id === selectedCategory);
   const isViewingGeneral = !selectedCategory || generalCategories.some(s => s.id === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <SchemaOrgResources generalCategories={baseGeneralCategories} medicalSpecialties={baseSpecialties} />
       <a href="#resources-section" className="skip-link">
         Aller au contenu
       </a>

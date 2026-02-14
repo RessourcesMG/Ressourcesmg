@@ -6,6 +6,7 @@ import { getSortAlphabetically } from '@/lib/sortAzPrefs';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import { BlockEditor } from '@/components/BlockEditor';
 import { ProposalManager } from '@/components/ProposalManager';
+import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -325,6 +326,9 @@ export function Webmaster() {
             )}
           </CardContent>
         </Card>
+
+        {/* Dashboard Analytics */}
+        <AnalyticsDashboard />
 
         {/* Propositions des utilisateurs */}
         <ProposalManager />
