@@ -144,12 +144,6 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
             </h3>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            {resource.requiresAuth && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
-                <Lock className="w-3 h-3 mr-1" />
-                Connexion
-              </Badge>
-            )}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -167,6 +161,12 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
                 <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            {resource.requiresAuth && (
+              <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
+                <Lock className="w-3 h-3 mr-1" />
+                Connexion
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
