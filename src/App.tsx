@@ -14,15 +14,18 @@ import {
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { SearchX, Stethoscope, Globe, RefreshCw } from 'lucide-react';
+import { useFavorites } from '@/contexts/FavoritesContext';
+import { SearchX, Stethoscope, Globe, RefreshCw, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import type { Category } from '@/types/resources';
 
 function AppContent() {
   const { isCompact } = useCompactMode();
+  const { favoriteIds } = useFavorites();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
   const debouncedQuery = useDebouncedValue(searchQuery, 280);
 
@@ -50,6 +53,16 @@ function AppContent() {
       }
     }
   }, [searchQuery]);
+
+  // Scroll vers "Ressources essentielles" si l'URL contient le hash (lien en bas de page)
+  useEffect(() => {
+    if (window.location.hash !== '#ressources-essentielles' || searchQuery || selectedCategory) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById('ressources-essentielles');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    return () => clearTimeout(t);
+  }, [searchQuery, selectedCategory]);
 
   // Calculate totals
   const totalResources = useMemo(() => {
@@ -117,13 +130,37 @@ function AppContent() {
     [debouncedQuery, selectedCategory, mergedSpecialties]
   );
 
+  // Appliquer le filtre "Mes favoris" si actif
+  const applyFavoritesFilter = useCallback(
+    (categoriesList: Category[]) => {
+      if (!showOnlyFavorites || favoriteIds.length === 0) return categoriesList;
+      return categoriesList
+        .map((cat) => ({
+          ...cat,
+          resources: cat.resources.filter((r) => favoriteIds.includes(r.id)),
+        }))
+        .filter((cat) => cat.resources.length > 0);
+    },
+    [showOnlyFavorites, favoriteIds]
+  );
+
+  const displayGeneralCategories = useMemo(
+    () => applyFavoritesFilter(filteredGeneralCategories),
+    [applyFavoritesFilter, filteredGeneralCategories]
+  );
+
+  const displaySpecialties = useMemo(
+    () => applyFavoritesFilter(filteredSpecialties),
+    [applyFavoritesFilter, filteredSpecialties]
+  );
+
   // Check if any results found
-  const hasGeneralResults = filteredGeneralCategories.length > 0;
-  const hasSpecialtyResults = filteredSpecialties.length > 0;
+  const hasGeneralResults = displayGeneralCategories.length > 0;
+  const hasSpecialtyResults = displaySpecialties.length > 0;
   const hasResults = hasGeneralResults || hasSpecialtyResults;
-  
-  const totalFilteredResources = [...filteredGeneralCategories, ...filteredSpecialties].reduce(
-    (acc, cat) => acc + cat.resources.length, 
+
+  const totalFilteredResources = [...displayGeneralCategories, ...displaySpecialties].reduce(
+    (acc, cat) => acc + cat.resources.length,
     0
   );
 
@@ -136,11 +173,19 @@ function AppContent() {
       <a href="#resources-section" className="skip-link">
         Aller au contenu
       </a>
-      <Header 
+      <Header
         searchQuery={searchQuery}
-        onSearch={setSearchQuery} 
+        onSearch={setSearchQuery}
         onCategorySelect={setSelectedCategory}
         selectedCategory={selectedCategory}
+        onGoHome={() => {
+          setSearchQuery('');
+          setSelectedCategory(null);
+          setShowOnlyFavorites(false);
+        }}
+        showOnlyFavorites={showOnlyFavorites}
+        onShowOnlyFavoritesChange={setShowOnlyFavorites}
+        favoritesCount={favoriteIds.length}
       />
       
       <main>
@@ -207,17 +252,32 @@ function AppContent() {
                     <span> pour &quot;<span className="font-medium text-slate-900">{searchQuery}</span>&quot;</span>
                   )}
                 </p>
-                {(searchQuery || selectedCategory) && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory(null);
-                    }}
-                    className="text-sm text-teal-600 hover:text-teal-700 font-medium"
-                  >
-                    Réinitialiser les filtres
-                  </button>
-                )}
+                <div className="flex items-center gap-3 flex-wrap">
+                  {(searchQuery || selectedCategory) && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory(null);
+                      }}
+                      className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  )}
+                  {favoriteIds.length > 0 && (
+                    <button
+                      onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+                      className={`inline-flex items-center gap-1.5 text-sm font-medium px-2.5 py-1 rounded-full transition-colors ${
+                        showOnlyFavorites
+                          ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                          : 'text-slate-600 hover:text-amber-700 hover:bg-amber-50'
+                      }`}
+                    >
+                      <Star className={`w-3.5 h-3.5 ${showOnlyFavorites ? 'fill-current' : ''}`} />
+                      Mes favoris ({favoriteIds.length})
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -228,10 +288,12 @@ function AppContent() {
                   <SearchX className="w-8 h-8 text-slate-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  Aucun résultat trouvé
+                  {showOnlyFavorites ? 'Aucune ressource en favori' : 'Aucun résultat trouvé'}
                 </h3>
                 <p className="text-slate-600 mb-4">
-                  Essayez avec d'autres termes de recherche
+                  {showOnlyFavorites
+                    ? 'Ajoutez des ressources en favori avec l\'étoile sur chaque carte.'
+                    : 'Essayez avec d\'autres termes de recherche'}
                 </p>
                 {debouncedQuery.trim() && (() => {
                   const suggestions = getDidYouMeanSuggestions(debouncedQuery, searchVocabulary, 3);
@@ -256,6 +318,7 @@ function AppContent() {
                   onClick={() => {
                     setSearchQuery('');
                     setSelectedCategory(null);
+                    setShowOnlyFavorites(false);
                   }}
                   className="text-teal-600 hover:text-teal-700 font-medium"
                 >
@@ -275,13 +338,13 @@ function AppContent() {
                     </div>
                     <div>
                       <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources globales</h2>
-                      <p className="text-slate-600 text-sm">{filteredGeneralCategories.length} catégories</p>
+                      <p className="text-slate-600 text-sm">{displayGeneralCategories.length} catégories</p>
                     </div>
                   </div>
                 )}
                 
                 <div className={isCompact ? 'space-y-6' : 'space-y-12'}>
-                  {filteredGeneralCategories.map((category) => (
+                  {displayGeneralCategories.map((category) => (
                     <CategorySection 
                       key={category.id} 
                       category={category}
@@ -303,13 +366,13 @@ function AppContent() {
                     </div>
                     <div>
                       <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources par spécialités médicales</h2>
-                      <p className="text-slate-600 text-sm">{filteredSpecialties.length} spécialités</p>
+                      <p className="text-slate-600 text-sm">{displaySpecialties.length} spécialités</p>
                     </div>
                   </div>
                 )}
                 
                 <div className={isCompact ? 'space-y-6' : 'space-y-12'}>
-                  {filteredSpecialties.map((category) => (
+                  {displaySpecialties.map((category) => (
                     <CategorySection 
                       key={category.id} 
                       category={category}
@@ -326,7 +389,7 @@ function AppContent() {
 
         {/* Quick access section */}
         {!searchQuery && !selectedCategory && (
-          <section className={isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'}>
+          <section id="ressources-essentielles" className={isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className={`text-center ${isCompact ? 'mb-4' : 'mb-8'}`}>
                 <div className={`inline-flex items-center justify-center bg-teal-100 rounded-full mb-4 ${isCompact ? 'w-10 h-10' : 'w-12 h-12'}`}>

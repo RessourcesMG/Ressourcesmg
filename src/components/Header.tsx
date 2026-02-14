@@ -33,7 +33,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
-  List
+  List,
+  Star
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -94,9 +95,22 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   onCategorySelect: (categoryId: string | null) => void;
   selectedCategory: string | null;
+  onGoHome?: () => void;
+  showOnlyFavorites?: boolean;
+  onShowOnlyFavoritesChange?: (value: boolean) => void;
+  favoritesCount?: number;
 }
 
-export function Header({ searchQuery, onSearch, onCategorySelect, selectedCategory }: HeaderProps) {
+export function Header({
+  searchQuery,
+  onSearch,
+  onCategorySelect,
+  selectedCategory,
+  onGoHome,
+  showOnlyFavorites = false,
+  onShowOnlyFavoritesChange,
+  favoritesCount = 0,
+}: HeaderProps) {
   const { isCompact, setCompact } = useCompactMode();
   const [isScrolled, setIsScrolled] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -175,8 +189,13 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity">
+          {/* Logo : retour accueil et réinitialisation recherche / filtres */}
+          <Link
+            to="/"
+            onClick={onGoHome}
+            className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity"
+            aria-label="Ressources MG – Retour à l'accueil"
+          >
             <div className="p-2 bg-teal-600 rounded-lg">
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
@@ -265,7 +284,7 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-80 overflow-y-auto">
-              <Link to="/" className="flex items-center gap-2 mb-4 hover:opacity-90 transition-opacity">
+              <Link to="/" onClick={onGoHome} className="flex items-center gap-2 mb-4 hover:opacity-90 transition-opacity">
                 <div className="p-2 bg-teal-600 rounded-lg">
                   <Stethoscope className="w-5 h-5 text-white" />
                 </div>
@@ -273,7 +292,7 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
               </Link>
               {/* Vue compacte - mobile : bien visible (fond teal quand actif) */}
               <div
-                className={`flex items-center justify-between gap-3 py-3 px-4 rounded-xl border-2 mb-6 min-h-[48px] transition-colors ${
+                className={`flex items-center justify-between gap-3 py-3 px-4 rounded-xl border-2 mb-4 min-h-[48px] transition-colors ${
                   isCompact ? 'bg-teal-50 border-teal-300' : 'bg-slate-50 border-slate-200'
                 }`}
               >
@@ -285,6 +304,20 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                   className="data-[state=checked]:bg-teal-600 scale-110 touch-manipulation"
                 />
               </div>
+              {favoritesCount > 0 && onShowOnlyFavoritesChange && (
+                <button
+                  type="button"
+                  onClick={() => onShowOnlyFavoritesChange(!showOnlyFavorites)}
+                  className={`w-full flex items-center justify-between gap-3 py-3 px-4 rounded-xl border-2 mb-6 min-h-[48px] transition-colors ${
+                    showOnlyFavorites ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <span className="text-sm font-semibold text-slate-800 inline-flex items-center gap-2">
+                    <Star className={`w-4 h-4 ${showOnlyFavorites ? 'fill-amber-500 text-amber-500' : 'text-slate-500'}`} />
+                    Favoris ({favoritesCount})
+                  </span>
+                </button>
+              )}
               <nav className="space-y-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">
                   Spécialités
@@ -294,9 +327,12 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
                   return (
                     <button
                       key={category.id}
-                      onClick={() => handleCategoryClick(category.id)}
+                      onClick={() => {
+                        handleCategoryClick(category.id);
+                        showOnlyFavorites && onShowOnlyFavoritesChange?.(false);
+                      }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                        selectedCategory === category.id
+                        selectedCategory === category.id && !showOnlyFavorites
                           ? 'bg-teal-50 text-teal-700'
                           : 'text-slate-700 hover:bg-slate-100'
                       }`}
@@ -334,19 +370,35 @@ export function Header({ searchQuery, onSearch, onCategorySelect, selectedCatego
             <button
               onClick={() => onCategorySelect(null)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
-                selectedCategory === null
+                selectedCategory === null && !showOnlyFavorites
                   ? 'bg-teal-600 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               Toutes
             </button>
+            {favoritesCount > 0 && onShowOnlyFavoritesChange && (
+              <button
+                onClick={() => onShowOnlyFavoritesChange(!showOnlyFavorites)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 inline-flex items-center gap-1.5 ${
+                  showOnlyFavorites
+                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <Star className={`w-3.5 h-3.5 ${showOnlyFavorites ? 'fill-current' : ''}`} />
+                Favoris ({favoritesCount})
+              </button>
+            )}
             {categories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => handleCategoryClick(category.id)}
+                onClick={() => {
+                  onCategorySelect(category.id);
+                  showOnlyFavorites && onShowOnlyFavoritesChange?.(false);
+                }}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
-                  selectedCategory === category.id
+                  selectedCategory === category.id && !showOnlyFavorites
                     ? 'bg-teal-600 text-white'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}

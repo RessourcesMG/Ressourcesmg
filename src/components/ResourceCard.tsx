@@ -1,9 +1,16 @@
 import { useState } from 'react';
-import { ExternalLink, Lock, Info, Globe } from 'lucide-react';
+import { ExternalLink, Lock, Info, Globe, Star } from 'lucide-react';
 import type { Resource } from '@/types/resources';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCompactMode } from '@/contexts/CompactModeContext';
+import { useFavorites } from '@/contexts/FavoritesContext';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
 
 interface ResourceCardProps {
   resource: Resource;
@@ -30,7 +37,14 @@ function getFaviconSources(url: string): string[] {
 
 export function ResourceCard({ resource }: ResourceCardProps) {
   const { isCompact } = useCompactMode();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const sources = getFaviconSources(resource.url);
+  const fav = isFavorite(resource.id);
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(resource.id);
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
   const faviconUrl = sources[currentIndex] ?? '';
   const showFallbackIcon = !faviconUrl || currentIndex >= sources.length;
@@ -69,6 +83,23 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           )}
           <span className="text-slate-500 text-xs truncate min-w-0">— {resource.description}</span>
         </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={handleToggleFavorite}
+                className={`shrink-0 p-1.5 rounded-full transition-colors ${
+                  fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
+                }`}
+                aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+              >
+                <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <a
           href={resource.url}
           target="_blank"
@@ -107,7 +138,24 @@ export function ResourceCard({ resource }: ResourceCardProps) {
               {resource.name}
             </h3>
           </div>
-          <div className="flex gap-1 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={handleToggleFavorite}
+                    className={`p-1.5 rounded-full transition-colors ${
+                      fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
+                    }`}
+                    aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                  >
+                    <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {resource.requiresAuth && (
               <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
                 <Lock className="w-3 h-3 mr-1" />
