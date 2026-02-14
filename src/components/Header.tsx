@@ -172,10 +172,15 @@ export function Header({
       onCategorySelect(null);
     } else {
       onCategorySelect(categoryId);
-      const element = document.getElementById(categoryId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      // Attendre le re-render (ex. disparition du Hero) avant de scroller, sinon la vue finit sur le footer
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const element = document.getElementById(categoryId);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
     }
   };
 
