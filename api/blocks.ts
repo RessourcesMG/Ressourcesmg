@@ -184,6 +184,23 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       }
       return res.status(200).json({ success: true });
     }
+    if (body?.action === 'reorderResources') {
+      const { categoryId, resourceIds } = body as { categoryId?: string; resourceIds?: string[] };
+      if (!categoryId || !Array.isArray(resourceIds) || resourceIds.length === 0) {
+        return res.status(400).json({ error: 'categoryId et resourceIds (tableau) requis' });
+      }
+      for (let i = 0; i < resourceIds.length; i++) {
+        const id = resourceIds[i];
+        if (!id) continue;
+        const { error } = await supabase
+          .from('managed_resources')
+          .update({ sort_order: i })
+          .eq('id', id)
+          .eq('category_id', categoryId);
+        if (error) return res.status(500).json({ error: error.message });
+      }
+      return res.status(200).json({ success: true });
+    }
     if (body?.action !== 'seed' || !Array.isArray(body.categories)) {
       return res.status(400).json({ error: 'Action seed ou addResource et champs requis' });
     }
