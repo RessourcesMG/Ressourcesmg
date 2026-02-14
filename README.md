@@ -91,7 +91,6 @@ Les ressources sont stockées dans Supabase et visibles par tous les visiteurs.
 
 ## Fonctionnalités avancées
 
-- **Mode sombre** : toggle dans le header (respecte `prefers-color-scheme`)
 - **PWA** : application installable, mise à jour automatique du service worker
 - **Analytics** : tableau de bord dans l'espace webmaster (clics ressources, recherches populaires)
 - **Notifications email** : variable `RESEND_API_KEY` + `NOTIFICATION_EMAIL` pour recevoir un email à chaque nouvelle proposition
