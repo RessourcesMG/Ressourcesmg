@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Inbox, Check, X, Pencil, ExternalLink, Trash2 } from 'lucide-react';
 import { getToken } from '@/lib/webmasterAuth';
+import { getSortAlphabetically } from '@/lib/sortAzPrefs';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,7 +36,7 @@ export type Proposal = {
 const PROPOSALS_API = typeof window !== 'undefined' ? `${window.location.origin}/api/proposals` : '/api/proposals';
 
 export function ProposalManager() {
-  const { generalCategories, medicalSpecialties, fromDb, refresh } = useManagedBlocks();
+  const { generalCategories, medicalSpecialties, fromDb, refresh, reorderResources } = useManagedBlocks();
   const categoriesForSelect = [...generalCategories, ...medicalSpecialties];
 
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -118,7 +119,13 @@ export function ProposalManager() {
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
         await fetchProposals();
-        await refresh();
+        const updated = await refresh();
+        const allCats = [...(updated?.generalCategories ?? []), ...(updated?.medicalSpecialties ?? [])];
+        const cat = allCats.find((c) => c.id === categoryId);
+        if (cat && getSortAlphabetically(categoryId)) {
+          const sorted = [...cat.resources].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+          await reorderResources(categoryId, sorted.map((r) => r.id));
+        }
         setAcceptCategoryId((prev) => {
           const next = { ...prev };
           delete next[id];

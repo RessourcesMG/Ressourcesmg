@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Plus, LogOut, Shield, Eye, EyeOff } from 'lucide-react';
 import { isWebmasterLoggedIn, login, logout, getToken, getRateLimitStatus } from '@/lib/webmasterAuth';
+import { getSortAlphabetically } from '@/lib/sortAzPrefs';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import { BlockEditor } from '@/components/BlockEditor';
 import { ProposalManager } from '@/components/ProposalManager';
@@ -30,7 +31,7 @@ export function Webmaster() {
   const [loading, setLoading] = useState(false);
   const [rateLimitStatus, setRateLimitStatus] = useState(getRateLimitStatus);
   const [addLoading, setAddLoading] = useState(false);
-  const { generalCategories, medicalSpecialties, fromDb, addResource } = useManagedBlocks();
+  const { generalCategories, medicalSpecialties, fromDb, addResource, reorderResources } = useManagedBlocks();
   const [form, setForm] = useState({
     categoryId: '',
     name: '',
@@ -88,6 +89,12 @@ export function Webmaster() {
       return;
     }
     const result = await addResource(form);
+    if (result.success && result.category && getSortAlphabetically(form.categoryId)) {
+      const sorted = [...result.category.resources].sort((a, b) =>
+        a.name.localeCompare(b.name, 'fr')
+      );
+      await reorderResources(form.categoryId, sorted.map((r) => r.id));
+    }
     setAddLoading(false);
     if (result.success) {
       setForm({

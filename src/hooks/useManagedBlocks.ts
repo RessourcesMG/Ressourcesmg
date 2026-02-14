@@ -14,7 +14,7 @@ export function useManagedBlocks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBlocks = useCallback(async () => {
+  const fetchBlocks = useCallback(async (): Promise<{ generalCategories: Category[]; medicalSpecialties: Category[] }> => {
     setError(null);
     setLoading(true);
     try {
@@ -23,19 +23,24 @@ export function useManagedBlocks() {
       if (data?.fromDb && Array.isArray(data.categories) && data.categories.length > 0) {
         const gen = data.categories.filter((c: Category) => !c.isSpecialty);
         const spec = data.categories.filter((c: Category) => c.isSpecialty);
-        setGeneralCategories(gen.length > 0 ? gen : staticCategories.slice(0, 3));
-        setMedicalSpecialties(spec.length > 0 ? spec : staticSpecialties);
+        const general = gen.length > 0 ? gen : staticCategories.slice(0, 3);
+        const specialty = spec.length > 0 ? spec : staticSpecialties;
+        setGeneralCategories(general);
+        setMedicalSpecialties(specialty);
         setFromDb(true);
+        return { generalCategories: general, medicalSpecialties: specialty };
       } else {
         setGeneralCategories(staticCategories.slice(0, 3));
         setMedicalSpecialties(staticSpecialties);
         setFromDb(false);
+        return { generalCategories: staticCategories.slice(0, 3), medicalSpecialties: staticSpecialties };
       }
     } catch {
       setError('Impossible de charger les ressources.');
       setGeneralCategories(staticCategories.slice(0, 3));
       setMedicalSpecialties(staticSpecialties);
       setFromDb(false);
+      return { generalCategories: staticCategories.slice(0, 3), medicalSpecialties: staticSpecialties };
     } finally {
       setLoading(false);
     }
@@ -112,7 +117,9 @@ export function useManagedBlocks() {
   );
 
   const addResource = useCallback(
-    async (input: { categoryId: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string }): Promise<{ success: boolean; error?: string }> => {
+    async (
+      input: { categoryId: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string }
+    ): Promise<{ success: boolean; error?: string; id?: string; category?: Category }> => {
       const token = getToken();
       if (!token) return { success: false, error: 'Session expirée' };
       try {
@@ -134,8 +141,10 @@ export function useManagedBlocks() {
         });
         const out = await res.json().catch(() => ({}));
         if (res.ok && out.success) {
-          await fetchBlocks();
-          return { success: true };
+          const updated = await fetchBlocks();
+          const allCats = [...(updated.generalCategories || []), ...(updated.medicalSpecialties || [])];
+          const category = allCats.find((c) => c.id === input.categoryId);
+          return { success: true, id: out.id, category: category ?? undefined };
         }
         return { success: false, error: out?.error || `Erreur ${res.status}` };
       } catch (e) {
