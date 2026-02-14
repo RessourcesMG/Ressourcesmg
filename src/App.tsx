@@ -4,7 +4,7 @@ import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
-import { useManagedBlocks } from '@/hooks/useManagedBlocks';
+import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import {
   getSearchTermGroups,
   matchesSearch,
@@ -26,7 +26,7 @@ function AppContent() {
 
   const debouncedQuery = useDebouncedValue(searchQuery, 280);
 
-  const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties, loading: blocksLoading, error: blocksError, retry: retryBlocks } = useManagedBlocks();
+  const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties, loading: blocksLoading, error: blocksError, retry: retryBlocks } = useManagedBlocksContext();
   const { resources: customResources } = useCustomResources();
   const { generalCategories, medicalSpecialties: mergedSpecialties } = useCategoriesWithCustom(
     baseGeneralCategories,

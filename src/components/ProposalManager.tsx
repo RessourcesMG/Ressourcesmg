@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Inbox, Check, X, Pencil, ExternalLink, Trash2 } from 'lucide-react';
 import { getToken } from '@/lib/webmasterAuth';
 import { getSortAlphabetically } from '@/lib/sortAzPrefs';
-import { useManagedBlocks } from '@/hooks/useManagedBlocks';
+import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -36,7 +36,7 @@ export type Proposal = {
 const PROPOSALS_API = typeof window !== 'undefined' ? `${window.location.origin}/api/proposals` : '/api/proposals';
 
 export function ProposalManager() {
-  const { generalCategories, medicalSpecialties, fromDb, refresh, reorderResources } = useManagedBlocks();
+  const { generalCategories, medicalSpecialties, fromDb, refresh, reorderResources } = useManagedBlocksContext();
   const categoriesForSelect = [...generalCategories, ...medicalSpecialties];
 
   const [proposals, setProposals] = useState<Proposal[]>([]);
