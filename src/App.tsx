@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { CompactModeProvider, useCompactMode } from '@/contexts/CompactModeContext';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
@@ -344,7 +344,7 @@ function AppContent() {
                 )}
                 
                 <div className={isCompact ? 'space-y-6' : 'space-y-12'}>
-                  {displayGeneralCategories.map((category) => (
+                  {displayGeneralCategories.map((category: Category) => (
                     <CategorySection 
                       key={category.id} 
                       category={category}
@@ -372,7 +372,7 @@ function AppContent() {
                 )}
                 
                 <div className={isCompact ? 'space-y-6' : 'space-y-12'}>
-                  {displaySpecialties.map((category) => (
+                  {displaySpecialties.map((category: Category) => (
                     <CategorySection 
                       key={category.id} 
                       category={category}
