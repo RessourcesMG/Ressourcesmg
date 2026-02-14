@@ -182,6 +182,7 @@ function AppContent() {
           setSearchQuery('');
           setSelectedCategory(null);
           setShowOnlyFavorites(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         showOnlyFavorites={showOnlyFavorites}
         onShowOnlyFavoritesChange={(v) => {
