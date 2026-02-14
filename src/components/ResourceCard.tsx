@@ -122,26 +122,21 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
   return (
     <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
-              {showFallbackIcon ? (
-                <Globe className="w-5 h-5 text-slate-400" />
-              ) : (
-                <img
-                  src={faviconUrl}
-                  alt=""
-                  className="w-full h-full object-contain"
-                  width={32}
-                  height={32}
-                  loading="lazy"
-                  onError={handleFaviconError}
-                />
-              )}
-            </div>
-            <h3 className="font-semibold text-slate-900 text-base leading-tight group-hover:text-teal-600 transition-colors">
-              {resource.name}
-            </h3>
+        <div className="flex items-start justify-between gap-2">
+          <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
+            {showFallbackIcon ? (
+              <Globe className="w-5 h-5 text-slate-400" />
+            ) : (
+              <img
+                src={faviconUrl}
+                alt=""
+                className="w-full h-full object-contain"
+                width={32}
+                height={32}
+                loading="lazy"
+                onError={handleFaviconError}
+              />
+            )}
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <TooltipProvider>
@@ -169,6 +164,9 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
             )}
           </div>
         </div>
+        <h3 className="font-semibold text-slate-900 text-base leading-snug mt-2 group-hover:text-teal-600 transition-colors break-words">
+          {resource.name}
+        </h3>
       </CardHeader>
       <CardContent className="pt-0">
         <p className="text-slate-600 text-sm leading-relaxed mb-3">
