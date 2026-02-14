@@ -184,13 +184,16 @@ function AppContent() {
           setShowOnlyFavorites(false);
         }}
         showOnlyFavorites={showOnlyFavorites}
-        onShowOnlyFavoritesChange={setShowOnlyFavorites}
+        onShowOnlyFavoritesChange={(v) => {
+          setShowOnlyFavorites(v);
+          if (v) setSelectedCategory(null);
+        }}
         favoritesCount={favoriteIds.length}
       />
       
       <main>
-        {/* Hero affiché uniquement quand il n'y a ni recherche ni catégorie sélectionnée */}
-        {!searchQuery && !selectedCategory && (
+        {/* Hero affiché uniquement quand il n'y a ni recherche, ni catégorie, ni filtre favoris */}
+        {!searchQuery && !selectedCategory && !showOnlyFavorites && (
           <Hero 
             totalResources={totalResources} 
             totalCategories={specialtyCount}
