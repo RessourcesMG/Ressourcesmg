@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search,
   Menu,
-  Moon,
-  Sun,
   Stethoscope,
   Wind,
   Heart,
@@ -51,7 +49,6 @@ import {
 import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';
-import { useTheme } from 'next-themes';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -115,7 +112,6 @@ export function Header({
   favoritesCount = 0,
 }: HeaderProps) {
   const { isCompact, setCompact } = useCompactMode();
-  const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -192,8 +188,8 @@ export function Header({
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-700' 
-          : 'bg-white dark:bg-slate-900'
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200' 
+          : 'bg-white'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -208,7 +204,7 @@ export function Header({
             <div className="p-2 bg-teal-600 rounded-lg">
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-slate-900 dark:text-slate-100 text-lg hidden sm:block">Ressources MG</span>
+            <span className="font-bold text-slate-900 text-lg hidden sm:block">Ressources MG</span>
           </Link>
 
           {/* Search Bar + termes associés */}
@@ -222,7 +218,7 @@ export function Header({
                 placeholder="Rechercher (ex. rein, pédiatrie, ordonnance…)"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10 pr-4 w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-teal-500/20"
+                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
                 aria-label="Rechercher une ressource médicale"
               />
             </div>
@@ -252,25 +248,6 @@ export function Header({
             )}
           </button>
 
-          {/* Toggle thème clair/sombre */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 h-9 w-9 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  aria-label={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
-                >
-                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">
-                {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
           {/* Toggle vue compacte - Desktop : discret, proportionné à la barre de recherche */}
           <TooltipProvider>
             <Tooltip>
@@ -316,20 +293,8 @@ export function Header({
                 <div className="p-2 bg-teal-600 rounded-lg">
                   <Stethoscope className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-slate-900 dark:text-slate-100">Ressources MG</span>
+                <span className="font-bold text-slate-900">Ressources MG</span>
               </Link>
-              {/* Toggle thème - mobile */}
-              <div className="flex items-center justify-between gap-3 py-3 px-4 rounded-xl border-2 mb-4 min-h-[48px] bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600">
-                <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Mode sombre</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  aria-label={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
-                >
-                  {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </Button>
-              </div>
               {/* Vue compacte - mobile : bien visible (fond teal quand actif) */}
               <div
                 className={`flex items-center justify-between gap-3 py-3 px-4 rounded-xl border-2 mb-4 min-h-[48px] transition-colors ${

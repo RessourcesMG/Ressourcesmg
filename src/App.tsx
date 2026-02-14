@@ -178,7 +178,7 @@ function AppContent() {
   const isViewingGeneral = !selectedCategory || generalCategories.some(s => s.id === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50">
       <SchemaOrgResources generalCategories={baseGeneralCategories} medicalSpecialties={baseSpecialties} />
       <a href="#resources-section" className="skip-link">
         Aller au contenu

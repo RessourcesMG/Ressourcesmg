@@ -107,34 +107,34 @@ export function AnalyticsDashboard() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 flex items-center gap-3">
+          <div className="bg-slate-50 rounded-lg p-4 flex items-center gap-3">
             <MousePointer className="w-8 h-8 text-teal-600" />
             <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{data.totalClicks}</p>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Clics sur les ressources</p>
+              <p className="text-2xl font-bold text-slate-900">{data.totalClicks}</p>
+              <p className="text-sm text-slate-600">Clics sur les ressources</p>
             </div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 flex items-center gap-3">
+          <div className="bg-slate-50 rounded-lg p-4 flex items-center gap-3">
             <Search className="w-8 h-8 text-teal-600" />
             <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{data.totalSearches}</p>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Recherches effectuées</p>
+              <p className="text-2xl font-bold text-slate-900">{data.totalSearches}</p>
+              <p className="text-sm text-slate-600">Recherches effectuées</p>
             </div>
           </div>
         </div>
 
         <div>
-          <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Ressources les plus cliquées</h4>
+          <h4 className="font-semibold text-slate-900 mb-2">Ressources les plus cliquées</h4>
           {data.topResources.length === 0 ? (
             <p className="text-slate-500 text-sm">Aucune donnée</p>
           ) : (
             <ul className="space-y-1.5 text-sm">
               {data.topResources.map((r, i) => (
                 <li key={r.id} className="flex justify-between items-center">
-                  <span className="text-slate-700 dark:text-slate-300 truncate max-w-[70%]">
+                  <span className="text-slate-700 truncate max-w-[70%]">
                     {i + 1}. {r.name}
                   </span>
-                  <span className="text-teal-600 dark:text-teal-400 font-medium shrink-0 ml-2">{r.count}</span>
+                  <span className="text-teal-600 font-medium shrink-0 ml-2">{r.count}</span>
                 </li>
               ))}
             </ul>
@@ -142,17 +142,17 @@ export function AnalyticsDashboard() {
         </div>
 
         <div>
-          <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Recherches populaires</h4>
+          <h4 className="font-semibold text-slate-900 mb-2">Recherches populaires</h4>
           {data.topSearches.length === 0 ? (
             <p className="text-slate-500 text-sm">Aucune donnée</p>
           ) : (
             <ul className="space-y-1.5 text-sm">
               {data.topSearches.map((s, i) => (
                 <li key={`${s.query}-${i}`} className="flex justify-between items-center">
-                  <span className="text-slate-700 dark:text-slate-300 truncate max-w-[70%]">
+                  <span className="text-slate-700 truncate max-w-[70%]">
                     {i + 1}. &quot;{s.query}&quot;
                   </span>
-                  <span className="text-teal-600 dark:text-teal-400 font-medium shrink-0 ml-2">{s.count}</span>
+                  <span className="text-teal-600 font-medium shrink-0 ml-2">{s.count}</span>
                 </li>
               ))}
             </ul>
