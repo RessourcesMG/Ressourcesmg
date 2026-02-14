@@ -138,35 +138,33 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
               />
             )}
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={handleToggleFavorite}
-                    className={`p-1.5 rounded-full transition-colors ${
-                      fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
-                    }`}
-                    aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                  >
-                    <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            {resource.requiresAuth && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
-                <Lock className="w-3 h-3 mr-1" />
-                Connexion
-              </Badge>
-            )}
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  className={`p-1.5 rounded-full transition-colors ${
+                    fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
+                  }`}
+                  aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                >
+                  <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <h3 className="font-semibold text-slate-900 text-base leading-snug mt-2 group-hover:text-teal-600 transition-colors break-words">
           {resource.name}
         </h3>
+        {resource.requiresAuth && (
+          <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs mt-2 w-fit">
+            <Lock className="w-3 h-3 mr-1" />
+            Connexion
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="pt-0">
         <p className="text-slate-600 text-sm leading-relaxed mb-3">
