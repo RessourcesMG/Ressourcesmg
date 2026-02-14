@@ -1,4 +1,4 @@
-import { Stethoscope, ArrowDown } from 'lucide-react';
+import { Stethoscope, ArrowDown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 
@@ -20,6 +20,13 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
 
   const scrollToAddResource = () => {
     const element = document.getElementById('add-resource-form');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const scrollToEssentielles = () => {
+    const element = document.getElementById('ressources-essentielles');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
@@ -96,6 +103,18 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
               Ajouter une ressource
             </Button>
           </div>
+
+          {/* Lien discret vers les ressources essentielles (plus petit, autre format) */}
+          <button
+            type="button"
+            onClick={scrollToEssentielles}
+            className={`mt-4 inline-flex items-center gap-1.5 text-slate-500 hover:text-teal-600 transition-colors ${isCompact ? 'text-xs' : 'text-sm'}`}
+            aria-label="Aller aux ressources essentielles"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-teal-500" />
+            <span>Ressources essentielles</span>
+            <ArrowDown className="w-3 h-3 opacity-70" />
+          </button>
         </div>
       </div>
     </section>

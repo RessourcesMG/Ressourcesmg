@@ -6,6 +6,7 @@ import './index.css'
 import App from './App.tsx'
 import { Toaster } from '@/components/ui/sonner'
 import { ManagedBlocksProvider } from '@/contexts/ManagedBlocksContext'
+import { FavoritesProvider } from '@/contexts/FavoritesContext'
 
 const Webmaster = lazy(() => import('./pages/Webmaster.tsx').then((m) => ({ default: m.Webmaster })))
 
@@ -16,8 +17,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ManagedBlocksProvider>
-        <Toaster richColors position="top-center" />
-        <Routes>
+        <FavoritesProvider>
+          <Toaster richColors position="top-center" />
+          <Routes>
           <Route path="/" element={<App />} />
           <Route
             path="/webmaster"
@@ -28,6 +30,7 @@ createRoot(document.getElementById('root')!).render(
             }
           />
         </Routes>
+        </FavoritesProvider>
       </ManagedBlocksProvider>
     </BrowserRouter>
   </StrictMode>,
