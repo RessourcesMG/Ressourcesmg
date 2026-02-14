@@ -121,7 +121,7 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
 
   return (
     <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-1.5">
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
             <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
@@ -161,12 +161,6 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
                 <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            {resource.requiresAuth && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs">
-                <Lock className="w-3 h-3 mr-1" />
-                Connexion
-              </Badge>
-            )}
           </div>
         </div>
       </CardHeader>
@@ -180,16 +174,24 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
             <span>{resource.note}</span>
           </div>
         )}
-        <a
-          href={resource.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
-          onClick={() => trackResourceClick({ resourceId: resource.id, resourceName: resource.name, categoryId })}
-        >
-          Accéder au site
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={resource.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
+            onClick={() => trackResourceClick({ resourceId: resource.id, resourceName: resource.name, categoryId })}
+          >
+            Accéder au site
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          {resource.requiresAuth && (
+            <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0 h-4 font-normal">
+              <Lock className="w-2.5 h-2.5 mr-0.5" />
+              Connexion
+            </Badge>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
