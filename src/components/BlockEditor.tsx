@@ -2,30 +2,7 @@ import { useState, useCallback } from 'react';
 import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus, GripVertical, Globe, Stethoscope, ArrowDownAZ } from 'lucide-react';
 import { useManagedBlocks } from '@/hooks/useManagedBlocks';
 import type { Category, Resource } from '@/types/resources';
-
-const SORT_AZ_STORAGE_KEY = 'ressourcesmg-sort-az';
-
-function getSortAlphabetically(categoryId: string): boolean {
-  try {
-    const raw = localStorage.getItem(SORT_AZ_STORAGE_KEY);
-    if (!raw) return true;
-    const prefs = JSON.parse(raw) as Record<string, boolean>;
-    return prefs[categoryId] !== false;
-  } catch {
-    return true;
-  }
-}
-
-function setSortAlphabetically(categoryId: string, value: boolean): void {
-  try {
-    const raw = localStorage.getItem(SORT_AZ_STORAGE_KEY);
-    const prefs = (raw ? JSON.parse(raw) : {}) as Record<string, boolean>;
-    prefs[categoryId] = value;
-    localStorage.setItem(SORT_AZ_STORAGE_KEY, JSON.stringify(prefs));
-  } catch {
-    // ignore
-  }
-}
+import { getSortAlphabetically, setSortAlphabetically } from '@/lib/sortAzPrefs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -81,7 +58,9 @@ export function BlockEditor() {
   const [dragCategoryId, setDragCategoryId] = useState<string | null>(null);
   const [dragSection, setDragSection] = useState<'general' | 'specialty' | null>(null);
   const [dragResource, setDragResource] = useState<{ resourceId: string; categoryId: string } | null>(null);
-  const [dropTargetResourceId, setDropTargetResourceId] = useState<string | null>(null);
+  const [dropIndicator, setDropIndicator] = useState<
+    { type: 'category'; section: 'general' | 'specialty'; index: number } | { type: 'resource'; categoryId: string; index: number } | null
+  >(null);
   const [reorderLoading, setReorderLoading] = useState(false);
   const [pendingResourceOrder, setPendingResourceOrder] = useState<Record<string, string[]>>({});
   const [sortAzPrefs, setSortAzPrefs] = useState<Record<string, boolean>>(() => ({}));
@@ -166,6 +145,16 @@ export function BlockEditor() {
     return out;
   };
 
+  /** Déplace l'élément à fromIdx pour l'insérer à la position toIdx (avant l'élément actuellement à toIdx). */
+  const insertAtOrder = <T,>(arr: T[], fromIdx: number, toIdx: number): T[] => {
+    if (fromIdx === -1 || toIdx < 0 || toIdx > arr.length) return arr;
+    const out = arr.slice();
+    const [item] = out.splice(fromIdx, 1);
+    const insertIdx = toIdx > fromIdx ? toIdx - 1 : toIdx;
+    out.splice(insertIdx, 0, item);
+    return out;
+  };
+
   const handleDragStart = (e: React.DragEvent, categoryId: string, section: 'general' | 'specialty') => {
     setDragCategoryId(categoryId);
     setDragSection(section);
@@ -181,6 +170,43 @@ export function BlockEditor() {
   const handleDragEnd = () => {
     setDragCategoryId(null);
     setDragSection(null);
+    setDropIndicator(null);
+  };
+
+  const handleCategoryDropZoneOver = (e: React.DragEvent, section: 'general' | 'specialty', index: number) => {
+    if (!dragCategoryId || dragSection !== section) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDropIndicator({ type: 'category', section, index });
+  };
+
+  const handleCategoryDropZoneDrop = async (e: React.DragEvent, section: 'general' | 'specialty', toIndex: number) => {
+    e.preventDefault();
+    setDropIndicator(null);
+    if (!dragCategoryId || dragSection !== section) {
+      setDragCategoryId(null);
+      setDragSection(null);
+      return;
+    }
+    const list = section === 'general' ? generalCategories : medicalSpecialties;
+    const fromIdx = list.findIndex((c) => c.id === dragCategoryId);
+    if (fromIdx === -1) {
+      setDragCategoryId(null);
+      setDragSection(null);
+      return;
+    }
+    const reordered = insertAtOrder(list, fromIdx, toIndex);
+    const newOrder = reordered.map((c) => c.id);
+    setDragCategoryId(null);
+    setDragSection(null);
+    setReorderLoading(true);
+    setSaveError('');
+    const result =
+      section === 'general'
+        ? await reorderCategories(newOrder, undefined)
+        : await reorderCategories(undefined, newOrder);
+    setReorderLoading(false);
+    if (!result.success) setSaveError(result.error || 'Erreur réordonnancement');
   };
 
   const handleDrop = async (e: React.DragEvent, targetId: string, section: 'general' | 'specialty') => {
@@ -227,11 +253,28 @@ export function BlockEditor() {
     [pendingResourceOrder, sortAzPrefs]
   );
 
-  const toggleSortAlphabetically = useCallback((categoryId: string) => {
-    const next = !getSortAlphabetically(categoryId);
-    setSortAlphabetically(categoryId, next);
-    setSortAzPrefs((p) => ({ ...p, [categoryId]: next }));
-  }, []);
+  const toggleSortAlphabetically = useCallback(
+    async (cat: Category) => {
+      const next = !getSortAlphabetically(cat.id);
+      setSortAlphabetically(cat.id, next);
+      setSortAzPrefs((p) => ({ ...p, [cat.id]: next }));
+      if (next && cat.resources.length > 0) {
+        setReorderLoading(true);
+        setSaveError('');
+        const sorted = [...cat.resources].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+        const result = await reorderResources(cat.id, sorted.map((r) => r.id));
+        setReorderLoading(false);
+        if (result.success) {
+          setPendingResourceOrder((p) => {
+            const next_ = { ...p };
+            delete next_[cat.id];
+            return next_;
+          });
+        } else setSaveError(result.error || 'Erreur');
+      }
+    },
+    [reorderResources]
+  );
 
   const applySortAlphabetically = useCallback(
     async (cat: Category) => {
@@ -261,34 +304,23 @@ export function BlockEditor() {
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleResourceDragOver = (e: React.DragEvent, targetResourceId: string, categoryId: string) => {
-    if (!dragResource || dragResource.categoryId !== categoryId || dragResource.resourceId === targetResourceId) {
-      setDropTargetResourceId(null);
-      return;
-    }
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDropTargetResourceId(targetResourceId);
-  };
-
-  const handleResourceDragLeave = () => {
-    setDropTargetResourceId(null);
-  };
-
   const handleResourceDragEnd = () => {
     setDragResource(null);
-    setDropTargetResourceId(null);
+    setDropIndicator(null);
   };
 
-  const handleResourceDrop = useCallback(
-    async (e: React.DragEvent, targetResourceId: string, categoryId: string) => {
+  const handleResourceDropZoneOver = (e: React.DragEvent, categoryId: string, index: number) => {
+    if (!dragResource || dragResource.categoryId !== categoryId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDropIndicator({ type: 'resource', categoryId, index });
+  };
+
+  const handleResourceDropZoneDrop = useCallback(
+    async (e: React.DragEvent, categoryId: string, toIndex: number) => {
       e.preventDefault();
-      setDropTargetResourceId(null);
+      setDropIndicator(null);
       if (!dragResource || dragResource.categoryId !== categoryId) {
-        setDragResource(null);
-        return;
-      }
-      if (dragResource.resourceId === targetResourceId) {
         setDragResource(null);
         return;
       }
@@ -296,12 +328,11 @@ export function BlockEditor() {
       if (!cat) return;
       const displayed = getDisplayedResources(cat);
       const fromIdx = displayed.findIndex((r) => r.id === dragResource.resourceId);
-      const toIdx = displayed.findIndex((r) => r.id === targetResourceId);
-      if (fromIdx === -1 || toIdx === -1) {
+      if (fromIdx === -1) {
         setDragResource(null);
         return;
       }
-      const reordered = moveInArray(displayed, dragResource.resourceId, targetResourceId, 'id');
+      const reordered = insertAtOrder(displayed, fromIdx, toIndex);
       const newIds = reordered.map((r) => r.id);
       setDragResource(null);
       setPendingResourceOrder((p) => ({ ...p, [categoryId]: newIds }));
@@ -395,64 +426,74 @@ export function BlockEditor() {
                     Ajouter une catégorie
                   </Button>
                 </div>
-                <div className="max-h-[280px] overflow-y-auto space-y-2">
-                  {generalCategories.map((cat) => (
-                    <Collapsible
-                      key={cat.id}
-                      open={openCategories[cat.id] ?? true}
-                      onOpenChange={() => toggleCategory(cat.id)}
-                    >
+                <div className="max-h-[420px] overflow-y-auto space-y-2">
+                  {generalCategories.map((cat, idx) => (
+                    <div key={cat.id} className="space-y-0">
                       <div
-                        className={`transition-opacity duration-75 ${dragCategoryId === cat.id ? 'opacity-50' : ''}`}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, cat.id, 'general')}
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, cat.id, 'general')}
-                        onDragEnd={handleDragEnd}
+                        className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === idx ? 'py-1' : ''}`}
+                        onDragOver={(e) => handleCategoryDropZoneOver(e, 'general', idx)}
+                        onDragLeave={() => setDropIndicator(null)}
+                        onDrop={(e) => handleCategoryDropZoneDrop(e, 'general', idx)}
                       >
-                        <div className="border border-slate-200 rounded-lg bg-white">
-                          <CollapsibleTrigger asChild>
-                            <div className="flex items-center gap-2 p-3 cursor-pointer hover:bg-slate-50">
-                              <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600" title="Glisser pour réordonner" onPointerDown={(e) => e.stopPropagation()}>
-                                <GripVertical className="w-4 h-4" />
-                              </span>
-                              {openCategories[cat.id] !== false ? (
-                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4 text-slate-400" />
-                              )}
-                              <span className="font-medium text-slate-900">{cat.name}</span>
-                              <span className="text-sm text-slate-500">
-                                ({cat.resources.length} ressources)
-                              </span>
-                              {cat.resources.length > 0 && (
-                                <>
-                                  <div className="flex items-center gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
-                                    <Checkbox
-                                      id={`sort-az-${cat.id}`}
-                                      checked={sortAzPrefs[cat.id] ?? getSortAlphabetically(cat.id)}
-                                      onCheckedChange={() => toggleSortAlphabetically(cat.id)}
-                                      title="Afficher en ordre alphabétique"
-                                    />
-                                    <Label htmlFor={`sort-az-${cat.id}`} className="text-xs cursor-pointer flex items-center gap-1 text-slate-600">
-                                      <ArrowDownAZ className="w-3.5 h-3.5" />
-                                      A–Z
-                                    </Label>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 text-xs text-slate-600"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      applySortAlphabetically(cat);
-                                    }}
-                                    title="Appliquer l'ordre alphabétique et l'enregistrer"
-                                  >
-                                    Appliquer A–Z
-                                  </Button>
-                                </>
-                              )}
+                        {dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === idx && (
+                          <div className="h-1 w-full max-w-[calc(100%-1rem)] mx-2 bg-teal-500 rounded-full shrink-0" />
+                        )}
+                      </div>
+                      <Collapsible
+                        open={openCategories[cat.id] ?? true}
+                        onOpenChange={() => toggleCategory(cat.id)}
+                      >
+                        <div
+                          className={`transition-opacity duration-75 ${dragCategoryId === cat.id ? 'opacity-50' : ''}`}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, cat.id, 'general')}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, cat.id, 'general')}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <div className="border border-slate-200 rounded-lg bg-white">
+                            <CollapsibleTrigger asChild>
+                              <div className="flex items-center gap-2 p-3 cursor-pointer hover:bg-slate-50">
+                                <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600" title="Glisser pour réordonner" onPointerDown={(e) => e.stopPropagation()}>
+                                  <GripVertical className="w-4 h-4" />
+                                </span>
+                                {openCategories[cat.id] !== false ? (
+                                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                                )}
+                                <span className="font-medium text-slate-900">{cat.name}</span>
+                                <span className="text-sm text-slate-500">
+                                  ({cat.resources.length} ressources)
+                                </span>
+                                {cat.resources.length > 0 && (
+                                  <>
+                                    <div className="flex items-center gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                                      <Checkbox
+                                        id={`sort-az-${cat.id}`}
+                                        checked={sortAzPrefs[cat.id] ?? getSortAlphabetically(cat.id)}
+                                        onCheckedChange={() => toggleSortAlphabetically(cat)}
+                                        title="Ordre alphabétique (appliqué sur le site quand coché)"
+                                      />
+                                      <Label htmlFor={`sort-az-${cat.id}`} className="text-xs cursor-pointer flex items-center gap-1 text-slate-600">
+                                        <ArrowDownAZ className="w-3.5 h-3.5" />
+                                        A–Z
+                                      </Label>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-xs text-slate-600"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        applySortAlphabetically(cat);
+                                      }}
+                                      title="Appliquer l'ordre alphabétique maintenant"
+                                    >
+                                      Appliquer A–Z
+                                    </Button>
+                                  </>
+                                )}
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -481,62 +522,93 @@ export function BlockEditor() {
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="border-t border-slate-200 p-2 space-y-0">
-                              {getDisplayedResources(cat).map((res) => (
-                                <div
-                                  key={res.id}
-                                  draggable
-                                  onDragStart={(e) => handleResourceDragStart(e, res.id, cat.id)}
-                                  onDragOver={(e) => handleResourceDragOver(e, res.id, cat.id)}
-                                  onDragLeave={handleResourceDragLeave}
-                                  onDrop={(e) => handleResourceDrop(e, res.id, cat.id)}
-                                  onDragEnd={handleResourceDragEnd}
-                                  className={`flex items-center justify-between gap-2 py-2 px-3 rounded transition-opacity duration-75 select-none ${
-                                    dragResource?.resourceId === res.id && dragResource?.categoryId === cat.id
-                                      ? 'opacity-40 bg-slate-100'
-                                      : 'hover:bg-slate-50'
-                                  } ${dropTargetResourceId === res.id ? 'ring-1 ring-teal-400 ring-inset bg-teal-50/50' : ''}`}
-                                >
-                                  <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 touch-none" title="Glisser pour réordonner">
-                                    <GripVertical className="w-4 h-4 shrink-0" />
-                                  </span>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-medium text-slate-800 truncate">{res.name}</p>
-                                    <p className="text-xs text-slate-500 truncate">{res.description}</p>
+                              {getDisplayedResources(cat).map((res, resIdx) => (
+                                <div key={res.id} className="space-y-0">
+                                  <div
+                                    className={`min-h-[6px] flex items-center transition-colors ${dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === resIdx ? 'py-0.5' : ''}`}
+                                    onDragOver={(e) => handleResourceDropZoneOver(e, cat.id, resIdx)}
+                                    onDragLeave={() => setDropIndicator(null)}
+                                    onDrop={(e) => handleResourceDropZoneDrop(e, cat.id, resIdx)}
+                                  >
+                                    {dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === resIdx && (
+                                      <div className="h-0.5 w-full bg-teal-500 rounded-full" />
+                                    )}
                                   </div>
-                                  <div className="flex gap-1 shrink-0">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8"
-                                      onClick={() => openEditResource(cat, res)}
-                                      title="Modifier la ressource"
-                                    >
-                                      <Pencil className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                      onClick={() =>
-                                        setDeleteTarget({
-                                          type: 'resource',
-                                          id: res.id,
-                                          name: res.name,
-                                        })
-                                      }
-                                      title="Supprimer la ressource"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
+                                  <div
+                                    draggable
+                                    onDragStart={(e) => handleResourceDragStart(e, res.id, cat.id)}
+                                    onDragEnd={handleResourceDragEnd}
+                                    className={`flex items-center justify-between gap-2 py-2 px-3 rounded transition-opacity duration-75 select-none ${
+                                      dragResource?.resourceId === res.id && dragResource?.categoryId === cat.id
+                                        ? 'opacity-40 bg-slate-100'
+                                        : 'hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 touch-none" title="Glisser pour réordonner">
+                                      <GripVertical className="w-4 h-4 shrink-0" />
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                      <p className="text-xs text-slate-500 truncate">{res.description}</p>
+                                    </div>
+                                    <div className="flex gap-1 shrink-0">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => openEditResource(cat, res)}
+                                        title="Modifier la ressource"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() =>
+                                          setDeleteTarget({
+                                            type: 'resource',
+                                            id: res.id,
+                                            name: res.name,
+                                          })
+                                        }
+                                        title="Supprimer la ressource"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
+                              {getDisplayedResources(cat).length > 0 && (
+                                <div
+                                  className={`min-h-[6px] flex items-center ${dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === getDisplayedResources(cat).length ? 'py-0.5' : ''}`}
+                                  onDragOver={(e) => handleResourceDropZoneOver(e, cat.id, getDisplayedResources(cat).length)}
+                                  onDragLeave={() => setDropIndicator(null)}
+                                  onDrop={(e) => handleResourceDropZoneDrop(e, cat.id, getDisplayedResources(cat).length)}
+                                >
+                                  {dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === getDisplayedResources(cat).length && (
+                                    <div className="h-0.5 w-full bg-teal-500 rounded-full" />
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </CollapsibleContent>
                         </div>
                       </div>
                     </Collapsible>
+                    </div>
                   ))}
+                  <div
+                    className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === generalCategories.length ? 'py-1' : ''}`}
+                    onDragOver={(e) => handleCategoryDropZoneOver(e, 'general', generalCategories.length)}
+                    onDragLeave={() => setDropIndicator(null)}
+                    onDrop={(e) => handleCategoryDropZoneDrop(e, 'general', generalCategories.length)}
+                  >
+                    {dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === generalCategories.length && (
+                      <div className="h-1 w-full max-w-[calc(100%-1rem)] mx-2 bg-teal-500 rounded-full shrink-0" />
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -552,64 +624,74 @@ export function BlockEditor() {
                     Ajouter une catégorie
                   </Button>
                 </div>
-                <div className="max-h-[280px] overflow-y-auto space-y-2">
-                  {medicalSpecialties.map((cat) => (
-                    <Collapsible
-                      key={cat.id}
-                      open={openCategories[cat.id] ?? true}
-                      onOpenChange={() => toggleCategory(cat.id)}
-                    >
+                <div className="max-h-[420px] overflow-y-auto space-y-2">
+                  {medicalSpecialties.map((cat, idx) => (
+                    <div key={cat.id} className="space-y-0">
                       <div
-                        className={`transition-opacity duration-75 ${dragCategoryId === cat.id ? 'opacity-50' : ''}`}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, cat.id, 'specialty')}
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, cat.id, 'specialty')}
-                        onDragEnd={handleDragEnd}
+                        className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === idx ? 'py-1' : ''}`}
+                        onDragOver={(e) => handleCategoryDropZoneOver(e, 'specialty', idx)}
+                        onDragLeave={() => setDropIndicator(null)}
+                        onDrop={(e) => handleCategoryDropZoneDrop(e, 'specialty', idx)}
                       >
-                        <div className="border border-slate-200 rounded-lg bg-white">
-                          <CollapsibleTrigger asChild>
-                            <div className="flex items-center gap-2 p-3 cursor-pointer hover:bg-slate-50">
-                              <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600" title="Glisser pour réordonner" onPointerDown={(e) => e.stopPropagation()}>
-                                <GripVertical className="w-4 h-4" />
-                              </span>
-                              {openCategories[cat.id] !== false ? (
-                                <ChevronDown className="w-4 h-4 text-slate-400" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4 text-slate-400" />
-                              )}
-                              <span className="font-medium text-slate-900">{cat.name}</span>
-                              <span className="text-sm text-slate-500">
-                                ({cat.resources.length} ressources)
-                              </span>
-                              {cat.resources.length > 0 && (
-                                <>
-                                  <div className="flex items-center gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
-                                    <Checkbox
-                                      id={`sort-az-spec-${cat.id}`}
-                                      checked={sortAzPrefs[cat.id] ?? getSortAlphabetically(cat.id)}
-                                      onCheckedChange={() => toggleSortAlphabetically(cat.id)}
-                                      title="Afficher en ordre alphabétique"
-                                    />
-                                    <Label htmlFor={`sort-az-spec-${cat.id}`} className="text-xs cursor-pointer flex items-center gap-1 text-slate-600">
-                                      <ArrowDownAZ className="w-3.5 h-3.5" />
-                                      A–Z
-                                    </Label>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 text-xs text-slate-600"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      applySortAlphabetically(cat);
-                                    }}
-                                    title="Appliquer l'ordre alphabétique et l'enregistrer"
-                                  >
-                                    Appliquer A–Z
-                                  </Button>
-                                </>
-                              )}
+                        {dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === idx && (
+                          <div className="h-1 w-full max-w-[calc(100%-1rem)] mx-2 bg-teal-500 rounded-full shrink-0" />
+                        )}
+                      </div>
+                      <Collapsible
+                        open={openCategories[cat.id] ?? true}
+                        onOpenChange={() => toggleCategory(cat.id)}
+                      >
+                        <div
+                          className={`transition-opacity duration-75 ${dragCategoryId === cat.id ? 'opacity-50' : ''}`}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, cat.id, 'specialty')}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, cat.id, 'specialty')}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <div className="border border-slate-200 rounded-lg bg-white">
+                            <CollapsibleTrigger asChild>
+                              <div className="flex items-center gap-2 p-3 cursor-pointer hover:bg-slate-50">
+                                <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600" title="Glisser pour réordonner" onPointerDown={(e) => e.stopPropagation()}>
+                                  <GripVertical className="w-4 h-4" />
+                                </span>
+                                {openCategories[cat.id] !== false ? (
+                                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                                )}
+                                <span className="font-medium text-slate-900">{cat.name}</span>
+                                <span className="text-sm text-slate-500">
+                                  ({cat.resources.length} ressources)
+                                </span>
+                                {cat.resources.length > 0 && (
+                                  <>
+                                    <div className="flex items-center gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+                                      <Checkbox
+                                        id={`sort-az-spec-${cat.id}`}
+                                        checked={sortAzPrefs[cat.id] ?? getSortAlphabetically(cat.id)}
+                                        onCheckedChange={() => toggleSortAlphabetically(cat)}
+                                        title="Ordre alphabétique (appliqué sur le site quand coché)"
+                                      />
+                                      <Label htmlFor={`sort-az-spec-${cat.id}`} className="text-xs cursor-pointer flex items-center gap-1 text-slate-600">
+                                        <ArrowDownAZ className="w-3.5 h-3.5" />
+                                        A–Z
+                                      </Label>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-xs text-slate-600"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        applySortAlphabetically(cat);
+                                      }}
+                                      title="Appliquer l'ordre alphabétique maintenant"
+                                    >
+                                      Appliquer A–Z
+                                    </Button>
+                                  </>
+                                )}
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -638,62 +720,93 @@ export function BlockEditor() {
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <div className="border-t border-slate-200 p-2 space-y-0">
-                              {getDisplayedResources(cat).map((res) => (
-                                <div
-                                  key={res.id}
-                                  draggable
-                                  onDragStart={(e) => handleResourceDragStart(e, res.id, cat.id)}
-                                  onDragOver={(e) => handleResourceDragOver(e, res.id, cat.id)}
-                                  onDragLeave={handleResourceDragLeave}
-                                  onDrop={(e) => handleResourceDrop(e, res.id, cat.id)}
-                                  onDragEnd={handleResourceDragEnd}
-                                  className={`flex items-center justify-between gap-2 py-2 px-3 rounded transition-opacity duration-75 select-none ${
-                                    dragResource?.resourceId === res.id && dragResource?.categoryId === cat.id
-                                      ? 'opacity-40 bg-slate-100'
-                                      : 'hover:bg-slate-50'
-                                  } ${dropTargetResourceId === res.id ? 'ring-1 ring-teal-400 ring-inset bg-teal-50/50' : ''}`}
-                                >
-                                  <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 touch-none" title="Glisser pour réordonner">
-                                    <GripVertical className="w-4 h-4 shrink-0" />
-                                  </span>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-medium text-slate-800 truncate">{res.name}</p>
-                                    <p className="text-xs text-slate-500 truncate">{res.description}</p>
+                              {getDisplayedResources(cat).map((res, resIdx) => (
+                                <div key={res.id} className="space-y-0">
+                                  <div
+                                    className={`min-h-[6px] flex items-center transition-colors ${dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === resIdx ? 'py-0.5' : ''}`}
+                                    onDragOver={(e) => handleResourceDropZoneOver(e, cat.id, resIdx)}
+                                    onDragLeave={() => setDropIndicator(null)}
+                                    onDrop={(e) => handleResourceDropZoneDrop(e, cat.id, resIdx)}
+                                  >
+                                    {dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === resIdx && (
+                                      <div className="h-0.5 w-full bg-teal-500 rounded-full" />
+                                    )}
                                   </div>
-                                  <div className="flex gap-1 shrink-0">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8"
-                                      onClick={() => openEditResource(cat, res)}
-                                      title="Modifier la ressource"
-                                    >
-                                      <Pencil className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                      onClick={() =>
-                                        setDeleteTarget({
-                                          type: 'resource',
-                                          id: res.id,
-                                          name: res.name,
-                                        })
-                                      }
-                                      title="Supprimer la ressource"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
+                                  <div
+                                    draggable
+                                    onDragStart={(e) => handleResourceDragStart(e, res.id, cat.id)}
+                                    onDragEnd={handleResourceDragEnd}
+                                    className={`flex items-center justify-between gap-2 py-2 px-3 rounded transition-opacity duration-75 select-none ${
+                                      dragResource?.resourceId === res.id && dragResource?.categoryId === cat.id
+                                        ? 'opacity-40 bg-slate-100'
+                                        : 'hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 touch-none" title="Glisser pour réordonner">
+                                      <GripVertical className="w-4 h-4 shrink-0" />
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                      <p className="text-xs text-slate-500 truncate">{res.description}</p>
+                                    </div>
+                                    <div className="flex gap-1 shrink-0">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => openEditResource(cat, res)}
+                                        title="Modifier la ressource"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() =>
+                                          setDeleteTarget({
+                                            type: 'resource',
+                                            id: res.id,
+                                            name: res.name,
+                                          })
+                                        }
+                                        title="Supprimer la ressource"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               ))}
+                              {getDisplayedResources(cat).length > 0 && (
+                                <div
+                                  className={`min-h-[6px] flex items-center ${dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === getDisplayedResources(cat).length ? 'py-0.5' : ''}`}
+                                  onDragOver={(e) => handleResourceDropZoneOver(e, cat.id, getDisplayedResources(cat).length)}
+                                  onDragLeave={() => setDropIndicator(null)}
+                                  onDrop={(e) => handleResourceDropZoneDrop(e, cat.id, getDisplayedResources(cat).length)}
+                                >
+                                  {dropIndicator?.type === 'resource' && dropIndicator.categoryId === cat.id && dropIndicator.index === getDisplayedResources(cat).length && (
+                                    <div className="h-0.5 w-full bg-teal-500 rounded-full" />
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </CollapsibleContent>
                         </div>
                       </div>
                     </Collapsible>
+                    </div>
                   ))}
+                  <div
+                    className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === medicalSpecialties.length ? 'py-1' : ''}`}
+                    onDragOver={(e) => handleCategoryDropZoneOver(e, 'specialty', medicalSpecialties.length)}
+                    onDragLeave={() => setDropIndicator(null)}
+                    onDrop={(e) => handleCategoryDropZoneDrop(e, 'specialty', medicalSpecialties.length)}
+                  >
+                    {dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === medicalSpecialties.length && (
+                      <div className="h-1 w-full max-w-[calc(100%-1rem)] mx-2 bg-teal-500 rounded-full shrink-0" />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
