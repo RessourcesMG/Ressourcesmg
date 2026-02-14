@@ -209,6 +209,39 @@ export function useManagedBlocks() {
     [fetchBlocks]
   );
 
+  const reorderResources = useCallback(
+    async (categoryId: string, resourceIds: string[]): Promise<{ success: boolean; error?: string }> => {
+      const token = getToken();
+      if (!token) return { success: false, error: 'Session expirée' };
+      if (!categoryId || !Array.isArray(resourceIds) || resourceIds.length === 0) {
+        return { success: false, error: 'categoryId et resourceIds requis' };
+      }
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            action: 'reorderResources',
+            categoryId,
+            resourceIds,
+          }),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.success) {
+          await fetchBlocks();
+          return { success: true };
+        }
+        return { success: false, error: out?.error || `Erreur ${res.status}` };
+      } catch (e) {
+        return { success: false, error: e instanceof Error ? e.message : 'Erreur réseau' };
+      }
+    },
+    [fetchBlocks]
+  );
+
   const deleteResource = useCallback(
     async (id: string): Promise<{ success: boolean; error?: string }> => {
       const token = getToken();
@@ -299,6 +332,7 @@ export function useManagedBlocks() {
     addResource,
     addCategory,
     reorderCategories,
+    reorderResources,
     updateResource,
     updateCategory,
     deleteResource,
