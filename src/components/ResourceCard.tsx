@@ -120,7 +120,7 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
   }
 
   return (
-    <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-slate-200 bg-white">
+    <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 motion-reduce:hover:translate-y-0 border border-slate-200 bg-white">
       <CardHeader className="pb-1.5">
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
@@ -164,14 +164,14 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0 flex-1 flex flex-col">
-        <p className="text-slate-600 text-sm leading-relaxed mb-3">
+      <CardContent className="pt-0 flex-1 flex flex-col min-h-0">
+        <p className="text-slate-600 text-sm leading-relaxed mb-3 line-clamp-3">
           {resource.description}
         </p>
         {resource.note && (
           <div className="flex items-start gap-1.5 text-xs text-slate-500 mb-3 bg-slate-50 p-2 rounded">
-            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />
-            <span>{resource.note}</span>
+            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400 flex-shrink-0" />
+            <span className="line-clamp-2">{resource.note}</span>
           </div>
         )}
       </CardContent>

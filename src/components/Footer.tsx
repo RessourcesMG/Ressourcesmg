@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Stethoscope, Heart, Send, Mail, Shield, CheckCircle } from 'lucide-react';
+import { Stethoscope, Heart, Send, Mail, Shield, CheckCircle, ArrowUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -153,7 +153,7 @@ export function Footer({ categories = [] }: FooterProps) {
                         onValueChange={(v) => setFormData((f) => ({ ...f, categoryId: v }))}
                         required
                       >
-                        <SelectTrigger className="w-full bg-slate-800 border-slate-600 text-white h-9 rounded-lg text-sm">
+                        <SelectTrigger className="w-full bg-slate-800 border-slate-600 text-white min-h-10 h-10 rounded-lg text-sm">
                           <SelectValue placeholder="Choisir une catégorie" />
                         </SelectTrigger>
                         <SelectContent>
@@ -175,7 +175,7 @@ export function Footer({ categories = [] }: FooterProps) {
                       placeholder="Ex. Recomed, Ordotype…"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-9 rounded-lg"
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-10 h-10 rounded-lg"
                       required
                     />
                   </div>
@@ -188,7 +188,7 @@ export function Footer({ categories = [] }: FooterProps) {
                       placeholder="https://…"
                       value={formData.url}
                       onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm h-9 rounded-lg"
+                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-10 h-10 rounded-lg"
                       required
                     />
                   </div>
@@ -222,7 +222,7 @@ export function Footer({ categories = [] }: FooterProps) {
                   <Button
                     type="submit"
                     size="sm"
-                    className="w-full bg-teal-600 hover:bg-teal-500 text-white h-9 rounded-lg font-medium text-sm"
+                    className="w-full bg-teal-600 hover:bg-teal-500 text-white min-h-10 h-10 rounded-lg font-medium text-sm"
                     disabled={loading}
                   >
                     <Send className="w-3.5 h-3.5 mr-1.5" />
@@ -234,12 +234,21 @@ export function Footer({ categories = [] }: FooterProps) {
           </div>
         </div>
 
-        {/* Bottom bar : copyright + webmaster discret en bas */}
+        {/* Bottom bar : copyright + liens + retour en haut */}
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-500">
             {currentYear} Ressources MG.
           </p>
-          <div className="flex items-center gap-3 text-slate-500 text-xs">
+          <div className="flex items-center gap-3 text-slate-500 text-xs flex-wrap justify-center sm:justify-end">
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors"
+              aria-label="Retour en haut de la page"
+            >
+              <ArrowUp className="w-3.5 h-3.5 shrink-0" />
+              Haut de page
+            </button>
             <p className="flex items-center gap-1">
               Fait avec <Heart className="w-4 h-4 text-red-500 fill-red-500" /> pour la médecine générale
             </p>

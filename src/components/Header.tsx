@@ -353,9 +353,8 @@ export function Header({
           </Sheet>
         </div>
 
-        {/* Category Pills - Desktop */}
+        {/* Category Pills - Desktop avec indicateurs de scroll */}
         <div className="hidden lg:flex items-center pb-3 gap-1">
-          {/* Flèche gauche : visible quand on peut scroller à gauche */}
           {canScrollLeft && (
             <button
               type="button"
@@ -368,10 +367,17 @@ export function Header({
               <ChevronLeft className="w-4 h-4" />
             </button>
           )}
-          <div
-            ref={categoriesScrollRef}
-            className="flex items-center gap-2 overflow-x-auto scrollbar-hide min-w-0 flex-1 py-1"
-          >
+          <div className="relative flex-1 min-w-0">
+            {canScrollLeft && (
+              <div className={`absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r ${isScrolled ? 'from-white/95' : 'from-white'} to-transparent pointer-events-none z-10 rounded-l`} aria-hidden />
+            )}
+            {canScrollRight && (
+              <div className={`absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l ${isScrolled ? 'from-white/95' : 'from-white'} to-transparent pointer-events-none z-10 rounded-r`} aria-hidden />
+            )}
+            <div
+              ref={categoriesScrollRef}
+              className="flex items-center gap-2 overflow-x-auto scrollbar-hide min-w-0 py-1 relative"
+            >
             <button
               onClick={() => {
                 onCategorySelect(null);
@@ -414,8 +420,8 @@ export function Header({
                 {category.name}
               </button>
             ))}
+            </div>
           </div>
-          {/* Flèche droite : indique qu'on peut faire défiler */}
           {canScrollRight && (
             <button
               type="button"

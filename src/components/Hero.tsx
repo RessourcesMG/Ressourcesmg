@@ -59,9 +59,9 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
             Un référencement complet des outils web utiles pour la pratique quotidienne en médecine générale en France. Organisé par spécialité pour une consultation rapide.
           </p>
 
-          {/* Stats */}
+          {/* Stats avec léger fade-in au chargement */}
           <div className={`flex items-center justify-center ${isCompact ? 'gap-4 mb-6' : 'gap-8 mb-10'}`}>
-            <div className="text-center">
+            <div className="text-center animate-fade-in-up">
               <div className={`font-bold text-teal-600 min-w-[2.5rem] ${isCompact ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}>
                 {isLoading ? (
                   <span className="inline-block w-10 h-9 bg-teal-200/60 rounded animate-pulse" aria-hidden />
@@ -71,8 +71,8 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
               </div>
               <div className="text-sm text-slate-500">ressources</div>
             </div>
-            <div className={`w-px bg-slate-200 ${isCompact ? 'h-8' : 'h-12'}`} />
-            <div className="text-center">
+            <div className={`w-px bg-slate-200 ${isCompact ? 'h-8' : 'h-12'} animate-fade-in-up`} style={{ animationDelay: '0.1s', animationFillMode: 'backwards' }} />
+            <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.15s', animationFillMode: 'backwards' }}>
               <div className={`font-bold text-teal-600 min-w-[2.5rem] ${isCompact ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'}`}>
                 {isLoading ? (
                   <span className="inline-block w-10 h-9 bg-teal-200/60 rounded animate-pulse" aria-hidden />
@@ -104,17 +104,19 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
             </Button>
           </div>
 
-          {/* Lien discret vers les ressources essentielles (plus petit, autre format) */}
-          <button
+          {/* Lien secondaire visible vers les ressources essentielles */}
+          <Button
             type="button"
+            variant="ghost"
+            size={isCompact ? 'sm' : 'default'}
             onClick={scrollToEssentielles}
-            className={`mt-4 inline-flex items-center gap-1.5 text-slate-500 hover:text-teal-600 transition-colors ${isCompact ? 'text-xs' : 'text-sm'}`}
+            className={`mt-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 text-slate-600 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 ${isCompact ? 'text-xs' : 'text-sm'}`}
             aria-label="Aller aux ressources essentielles"
           >
-            <Sparkles className="w-3.5 h-3.5 text-teal-500" />
+            <Sparkles className="w-4 h-4 text-teal-500" />
             <span>Ressources essentielles</span>
-            <ArrowDown className="w-3 h-3 opacity-70" />
-          </button>
+            <ArrowDown className="w-3.5 h-3.5 text-slate-400" />
+          </Button>
         </div>
       </div>
     </section>
