@@ -16,7 +16,7 @@ import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { SearchX, Stethoscope, Globe, RefreshCw, Star } from 'lucide-react';
+import { SearchX, Stethoscope, Globe, RefreshCw, Star, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import type { Category } from '@/types/resources';
@@ -268,28 +268,31 @@ function AppContent() {
                 </p>
                 <div className="flex items-center gap-3 flex-wrap">
                   {(searchQuery || selectedCategory) && (
-                    <button
+                    <Button
+                      variant="link"
+                      className="text-sm text-teal-600 hover:text-teal-700 font-medium h-auto p-0"
                       onClick={() => {
                         setSearchQuery('');
                         setSelectedCategory(null);
                       }}
-                      className="text-sm text-teal-600 hover:text-teal-700 font-medium"
                     >
                       Réinitialiser les filtres
-                    </button>
+                    </Button>
                   )}
                   {favoriteIds.length > 0 && (
-                    <button
+                    <Button
+                      variant={showOnlyFavorites ? 'secondary' : 'ghost'}
+                      size="sm"
                       onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-                      className={`inline-flex items-center gap-1.5 text-sm font-medium px-2.5 py-1 rounded-full transition-colors ${
+                      className={`rounded-full gap-1.5 ${
                         showOnlyFavorites
-                          ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                          ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200'
                           : 'text-slate-600 hover:text-amber-700 hover:bg-amber-50'
                       }`}
                     >
                       <Star className={`w-3.5 h-3.5 ${showOnlyFavorites ? 'fill-current' : ''}`} />
                       Mes favoris ({favoriteIds.length})
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -328,23 +331,23 @@ function AppContent() {
                     </div>
                   ) : null;
                 })()}
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setSearchQuery('');
                     setSelectedCategory(null);
                     setShowOnlyFavorites(false);
                   }}
-                  className="text-teal-600 hover:text-teal-700 font-medium"
+                  className="border-teal-600 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
                 >
                   Voir toutes les ressources
-                </button>
+                </Button>
               </div>
             )}
 
-            {/* General Categories - Ressources globales */}
+            {/* General Categories - Ressources globales (style teal) */}
             {isViewingGeneral && hasGeneralResults && (
               <div className={isCompact ? 'mb-8' : 'mb-16'}>
-                {/* Big Section Header */}
                 {!selectedCategory && (
                   <div className={`flex items-center gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
                     <div className={isCompact ? 'p-2 bg-teal-100 rounded-lg' : 'p-3 bg-teal-100 rounded-xl'}>
@@ -352,7 +355,7 @@ function AppContent() {
                     </div>
                     <div>
                       <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources globales</h2>
-                      <p className="text-slate-600 text-sm">{displayGeneralCategories.length} catégories</p>
+                      <p className="text-teal-700/80 text-sm">{displayGeneralCategories.length} catégories</p>
                     </div>
                   </div>
                 )}
@@ -369,18 +372,17 @@ function AppContent() {
               </div>
             )}
 
-            {/* Medical Specialties Section */}
+            {/* Medical Specialties Section (style bleu pour distinguer des globales) */}
             {isViewingSpecialties && hasSpecialtyResults && (
               <div className={`border-t border-slate-200 ${isCompact ? 'pt-6' : 'pt-12'}`}>
-                {/* Big Section Header */}
                 {!selectedCategory && (
                   <div className={`flex items-center gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
-                    <div className={isCompact ? 'p-2 bg-teal-100 rounded-lg' : 'p-3 bg-teal-100 rounded-xl'}>
-                      <Stethoscope className={isCompact ? 'w-5 h-5 text-teal-600' : 'w-6 h-6 text-teal-600'} />
+                    <div className={isCompact ? 'p-2 bg-sky-100 rounded-lg' : 'p-3 bg-sky-100 rounded-xl'}>
+                      <Stethoscope className={isCompact ? 'w-5 h-5 text-sky-600' : 'w-6 h-6 text-sky-600'} />
                     </div>
                     <div>
                       <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources par spécialités médicales</h2>
-                      <p className="text-slate-600 text-sm">{displaySpecialties.length} spécialités</p>
+                      <p className="text-sky-700/80 text-sm">{displaySpecialties.length} spécialités</p>
                     </div>
                   </div>
                 )}
@@ -431,8 +433,9 @@ function AppContent() {
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`rounded-lg text-sm font-medium text-center transition-colors ${item.color} ${isCompact ? 'px-3 py-2' : 'px-4 py-3'}`}
+                    className={`inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors ${item.color} ${isCompact ? 'px-3 py-2' : 'px-4 py-3'}`}
                   >
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-80" aria-hidden />
                     {item.name}
                   </a>
                 ))}
