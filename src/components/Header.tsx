@@ -218,7 +218,7 @@ export function Header({
                 placeholder="Rechercher (ex. rein, pédiatrie, ordonnance…)"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/25 focus-visible:border-teal-400"
+                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white focus-visible:border-teal-500/60 focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:outline-none"
                 aria-label="Rechercher une ressource médicale"
               />
             </div>
