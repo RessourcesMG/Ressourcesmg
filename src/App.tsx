@@ -372,17 +372,17 @@ function AppContent() {
               </div>
             )}
 
-            {/* Medical Specialties Section (style indigo pour distinguer des globales) */}
+            {/* Medical Specialties Section (même style teal que Ressources globales) */}
             {isViewingSpecialties && hasSpecialtyResults && (
               <div className={`border-t border-slate-200 ${isCompact ? 'pt-6' : 'pt-12'}`}>
                 {!selectedCategory && (
                   <div className={`flex items-center gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
-                    <div className={isCompact ? 'p-2 bg-indigo-100 rounded-lg' : 'p-3 bg-indigo-100 rounded-xl'}>
-                      <Stethoscope className={isCompact ? 'w-5 h-5 text-indigo-600' : 'w-6 h-6 text-indigo-600'} />
+                    <div className={isCompact ? 'p-2 bg-teal-100 rounded-lg' : 'p-3 bg-teal-100 rounded-xl'}>
+                      <Stethoscope className={isCompact ? 'w-5 h-5 text-teal-600' : 'w-6 h-6 text-teal-600'} />
                     </div>
                     <div>
                       <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources par spécialités médicales</h2>
-                      <p className="text-indigo-700/80 text-sm">{displaySpecialties.length} spécialités</p>
+                      <p className="text-teal-700/80 text-sm">{displaySpecialties.length} spécialités</p>
                     </div>
                   </div>
                 )}
