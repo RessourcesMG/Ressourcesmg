@@ -175,20 +175,20 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex w-full items-end justify-between gap-2 pt-0 pb-0">
+      <CardFooter className="flex w-full items-center justify-between gap-3 pt-3 pb-0">
         <a
           href={resource.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 hover:text-teal-700 transition-colors min-h-[1.75rem]"
           onClick={() => trackResourceClick({ resourceId: resource.id, resourceName: resource.name, categoryId })}
         >
           Accéder au site
-          <ExternalLink className="w-3.5 h-3.5" />
+          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
         </a>
         {resource.requiresAuth && (
-          <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs px-2 py-0.5 h-6 font-normal shrink-0">
-            <Lock className="w-3 h-3 mr-1" />
+          <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs px-2 py-1 h-7 font-normal shrink-0 inline-flex items-center">
+            <Lock className="w-3 h-3 mr-1 shrink-0" />
             Connexion
           </Badge>
         )}
