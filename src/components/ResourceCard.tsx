@@ -10,7 +10,6 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  TooltipProvider,
 } from '@/components/ui/tooltip';
 
 interface ResourceCardProps {
@@ -85,23 +84,21 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
           )}
           <span className="text-slate-500 text-xs truncate min-w-0">— {resource.description}</span>
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={handleToggleFavorite}
-                className={`shrink-0 p-1.5 rounded-full transition-colors ${
-                  fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
-                }`}
-                aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-              >
-                <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              className={`shrink-0 p-1.5 rounded-full transition-colors ${
+                fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
+              }`}
+              aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            >
+              <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
+        </Tooltip>
         <a
           href={resource.url}
           target="_blank"
@@ -144,23 +141,21 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
             </h3>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={handleToggleFavorite}
-                    className={`p-1.5 rounded-full transition-colors ${
-                      fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
-                    }`}
-                    aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                  >
-                    <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  className={`p-1.5 rounded-full transition-colors ${
+                    fav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-amber-500'
+                  }`}
+                  aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                >
+                  <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="left">{fav ? 'Retirer des favoris' : 'Mettre en favori'}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </CardHeader>
