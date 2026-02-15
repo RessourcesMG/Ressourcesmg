@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ManagedBlocksProvider } from '@/contexts/ManagedBlocksContext'
 import { FavoritesProvider } from '@/contexts/FavoritesContext'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const Webmaster = lazy(() => import('./pages/Webmaster.tsx').then((m) => ({ default: m.Webmaster })))
 
@@ -20,6 +21,7 @@ if (typeof requestIdleCallback !== 'undefined') {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <ErrorBoundary>
     <BrowserRouter>
       <ManagedBlocksProvider>
         <FavoritesProvider>
@@ -40,5 +42,6 @@ createRoot(document.getElementById('root')!).render(
         </FavoritesProvider>
         </ManagedBlocksProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

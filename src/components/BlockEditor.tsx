@@ -843,7 +843,13 @@ export function BlockEditor() {
               <div>
                 <Label>Catégorie</Label>
                 <Select
-                  value={editItem.categoryId ?? ''}
+                  value={
+                    (() => {
+                      const allIds = [...generalCategories, ...medicalSpecialties].map((c) => c.id);
+                      const id = editItem.categoryId ?? '';
+                      return allIds.includes(id) ? id : (allIds[0] ?? '');
+                    })()
+                  }
                   onValueChange={(v) => setEditItem((i) => (i ? { ...i, categoryId: v } : null))}
                 >
                   <SelectTrigger className="mt-1">
