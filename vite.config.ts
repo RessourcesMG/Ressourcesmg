@@ -66,17 +66,6 @@ export default defineConfig({
     cssMinify: true,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            // React et Radix dans le même chunk : Radix utilise useLayoutEffect de React
-            if (id.includes('react-dom') || id.includes('react/') || id.includes('@radix-ui')) return 'react';
-            if (id.includes('react-router')) return 'router';
-            if (id.includes('lucide-react')) return 'lucide';
-            if (id.includes('recharts')) return 'recharts';
-            if (id.includes('@supabase')) return 'supabase';
-            return 'vendor';
-          }
-        },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',
