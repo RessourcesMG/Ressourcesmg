@@ -118,4 +118,9 @@
   .animate-fade-in-up {
     animation: fade-in-up 0.5s ease-out forwards;
   }
+  /* Réduit le travail de rendu pour le contenu hors écran (machines lentes) */
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 200px;
+  }
 }

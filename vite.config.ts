@@ -62,10 +62,20 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    minify: 'esbuild',
     cssMinify: true,
     rollupOptions: {
       output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react/')) return 'react-vendor';
+            if (id.includes('react-router')) return 'router';
+            if (id.includes('@radix-ui')) return 'radix';
+            if (id.includes('lucide-react')) return 'lucide';
+            if (id.includes('@supabase')) return 'supabase';
+            if (id.includes('recharts')) return 'recharts';
+            if (id.includes('@vercel/analytics')) return 'analytics';
+          }
+        },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',

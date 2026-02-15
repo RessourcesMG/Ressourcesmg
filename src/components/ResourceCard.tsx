@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ExternalLink, Lock, Info, Globe, Star } from 'lucide-react';
 import type { Resource } from '@/types/resources';
 import { trackResourceClick } from '@/lib/analytics';
@@ -6,11 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ResourceCardProps {
   resource: Resource;
@@ -36,7 +32,7 @@ function getFaviconSources(url: string): string[] {
   }
 }
 
-export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
+function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
   const { isCompact } = useCompactMode();
   const { isFavorite, toggleFavorite } = useFavorites();
   const sources = getFaviconSources(resource.url);
@@ -73,6 +69,7 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
               width={20}
               height={20}
               loading="lazy"
+              decoding="async"
               onError={handleFaviconError}
             />
           )}
@@ -125,15 +122,16 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
               {showFallbackIcon ? (
                 <Globe className="w-5 h-5 text-slate-400" />
               ) : (
-                <img
-                  src={faviconUrl}
-                  alt=""
-                  className="w-full h-full object-contain"
-                  width={32}
-                  height={32}
-                  loading="lazy"
-                  onError={handleFaviconError}
-                />
+            <img
+              src={faviconUrl}
+              alt=""
+              className="w-full h-full object-contain"
+              width={32}
+              height={32}
+              loading="lazy"
+              decoding="async"
+              onError={handleFaviconError}
+            />
               )}
             </div>
             <h3 className="font-semibold text-slate-900 text-base leading-tight group-hover:text-teal-600 transition-colors truncate min-w-0" title={resource.name}>
@@ -191,3 +189,5 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
     </Card>
   );
 }
+
+export const ResourceCard = memo(ResourceCardInner);
