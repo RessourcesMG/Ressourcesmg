@@ -16,7 +16,7 @@ import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useFavorites } from '@/contexts/FavoritesContext';
-import { SearchX, Stethoscope, Globe, RefreshCw, Star, ExternalLink } from 'lucide-react';
+import { SearchX, Stethoscope, Globe, RefreshCw, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import type { Category } from '@/types/resources';
@@ -372,17 +372,17 @@ function AppContent() {
               </div>
             )}
 
-            {/* Medical Specialties Section (style bleu pour distinguer des globales) */}
+            {/* Medical Specialties Section (style indigo pour distinguer des globales) */}
             {isViewingSpecialties && hasSpecialtyResults && (
               <div className={`border-t border-slate-200 ${isCompact ? 'pt-6' : 'pt-12'}`}>
                 {!selectedCategory && (
                   <div className={`flex items-center gap-4 ${isCompact ? 'mb-4' : 'mb-8'}`}>
-                    <div className={isCompact ? 'p-2 bg-sky-100 rounded-lg' : 'p-3 bg-sky-100 rounded-xl'}>
-                      <Stethoscope className={isCompact ? 'w-5 h-5 text-sky-600' : 'w-6 h-6 text-sky-600'} />
+                    <div className={isCompact ? 'p-2 bg-indigo-100 rounded-lg' : 'p-3 bg-indigo-100 rounded-xl'}>
+                      <Stethoscope className={isCompact ? 'w-5 h-5 text-indigo-600' : 'w-6 h-6 text-indigo-600'} />
                     </div>
                     <div>
                       <h2 className={isCompact ? 'text-xl font-bold text-slate-900' : 'text-2xl font-bold text-slate-900'}>Ressources par spécialités médicales</h2>
-                      <p className="text-sky-700/80 text-sm">{displaySpecialties.length} spécialités</p>
+                      <p className="text-indigo-700/80 text-sm">{displaySpecialties.length} spécialités</p>
                     </div>
                   </div>
                 )}
@@ -408,8 +408,8 @@ function AppContent() {
           <section id="ressources-essentielles" className={isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className={`text-center ${isCompact ? 'mb-4' : 'mb-8'}`}>
-                <div className={`inline-flex items-center justify-center bg-teal-100 rounded-full mb-4 ${isCompact ? 'w-10 h-10' : 'w-12 h-12'}`}>
-                  <Stethoscope className={isCompact ? 'w-5 h-5 text-teal-600' : 'w-6 h-6 text-teal-600'} />
+                <div className={`inline-flex items-center justify-center bg-indigo-100 rounded-full mb-4 ${isCompact ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                  <Stethoscope className={isCompact ? 'w-5 h-5 text-indigo-600' : 'w-6 h-6 text-indigo-600'} />
                 </div>
                 <h2 className={isCompact ? 'text-xl font-bold text-slate-900 mb-1' : 'text-2xl font-bold text-slate-900 mb-2'}>
                   Ressources essentielles
@@ -433,9 +433,8 @@ function AppContent() {
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors ${item.color} ${isCompact ? 'px-3 py-2' : 'px-4 py-3'}`}
+                    className={`rounded-lg text-sm font-medium text-center transition-colors ${item.color} ${isCompact ? 'px-3 py-2' : 'px-4 py-3'}`}
                   >
-                    <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-80" aria-hidden />
                     {item.name}
                   </a>
                 ))}
