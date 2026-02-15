@@ -253,7 +253,6 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       if (body.note !== undefined) up.note = body.note;
       if (body.categoryId !== undefined) {
         up.category_id = body.categoryId;
-        // Mettre la ressource à la fin de la nouvelle catégorie
         const { data: maxOrder } = await supabase
           .from('managed_resources')
           .select('sort_order')
@@ -266,6 +265,27 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       if (Object.keys(up).length === 0) return res.status(400).json({ error: 'Aucun champ à modifier' });
       const { error } = await supabase.from('managed_resources').update(up).eq('id', id);
       if (error) return res.status(500).json({ error: error.message });
+      // Réordonner par ordre alphabétique si la catégorie a changé
+      if (body.categoryId !== undefined) {
+        const { data: resources } = await supabase
+          .from('managed_resources')
+          .select('id, name')
+          .eq('category_id', body.categoryId)
+          .order('sort_order', { ascending: true });
+        if (resources && resources.length > 0) {
+          const sorted = [...resources].sort((a, b) =>
+            (a.name || '').localeCompare(b.name || '', 'fr')
+          );
+          for (let i = 0; i < sorted.length; i++) {
+            const { error: err } = await supabase
+              .from('managed_resources')
+              .update({ sort_order: i })
+              .eq('id', sorted[i].id)
+              .eq('category_id', body.categoryId);
+            if (err) return res.status(500).json({ error: err.message });
+          }
+        }
+      }
       return res.status(200).json({ success: true });
     }
     if (type === 'category') {
