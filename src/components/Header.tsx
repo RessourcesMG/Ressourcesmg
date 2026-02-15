@@ -218,7 +218,7 @@ export function Header({
                 placeholder="Rechercher (ex. rein, pédiatrie, ordonnance…)"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-teal-500/20"
+                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white focus-visible:border-teal-500/60 focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:outline-none"
                 aria-label="Rechercher une ressource médicale"
               />
             </div>
@@ -396,7 +396,7 @@ export function Header({
                 onClick={() => onShowOnlyFavoritesChange(!showOnlyFavorites)}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 inline-flex items-center gap-1.5 ${
                   showOnlyFavorites
-                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >

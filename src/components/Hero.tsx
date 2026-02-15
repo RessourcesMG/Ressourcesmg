@@ -115,7 +115,6 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
           >
             <Sparkles className="w-4 h-4 text-teal-500" />
             <span>Ressources essentielles</span>
-            <ArrowDown className="w-3.5 h-3.5 text-slate-400" />
           </Button>
         </div>
       </div>
