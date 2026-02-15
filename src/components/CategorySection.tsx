@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { Category } from '@/types/resources';
 import { ResourceCard } from './ResourceCard';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ interface CategorySectionProps {
   isExpanded?: boolean;
 }
 
-export function CategorySection({ category, isExpanded = true }: CategorySectionProps) {
+export const CategorySection = memo(function CategorySection({ category, isExpanded = true }: CategorySectionProps) {
   const [expanded, setExpanded] = useState(isExpanded);
   const { isCompact } = useCompactMode();
   const IconComponent = iconComponents[category.icon] || iconComponents.Circle;
@@ -19,7 +19,7 @@ export function CategorySection({ category, isExpanded = true }: CategorySection
   return (
     <section 
       id={category.id} 
-      className="scroll-mt-24"
+      className="scroll-mt-24 content-visibility-auto"
     >
       <div className={`flex items-center gap-3 ${isCompact ? 'mb-2' : 'mb-4'}`}>
         <div className={isCompact ? 'p-1.5 bg-teal-100 rounded-md' : 'p-2 bg-teal-100 rounded-lg'}>
@@ -62,4 +62,4 @@ export function CategorySection({ category, isExpanded = true }: CategorySection
       )}
     </section>
   );
-}
+});
