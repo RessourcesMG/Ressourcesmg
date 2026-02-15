@@ -11,6 +11,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { IconPicker } from '@/components/IconPicker';
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -46,7 +55,7 @@ export function BlockEditor() {
   const [seedLoading, setSeedLoading] = useState(false);
   const [seedError, setSeedError] = useState('');
   const [editType, setEditType] = useState<'resource' | 'category' | 'newCategory' | null>(null);
-  const [editItem, setEditItem] = useState<{ id: string; categoryId?: string } & Partial<Category['resources'][0]> & Partial<Pick<Category, 'name' | 'icon'>> | null>(null);
+  const [editItem, setEditItem] = useState<{ id: string; categoryId?: string; originalCategoryId?: string } & Partial<Category['resources'][0]> & Partial<Pick<Category, 'name' | 'icon'>> | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
@@ -79,6 +88,7 @@ export function BlockEditor() {
     setEditItem({
       id: res.id,
       categoryId: cat.id,
+      originalCategoryId: cat.id,
       name: res.name,
       description: res.description ?? '',
       url: res.url,
@@ -111,6 +121,9 @@ export function BlockEditor() {
             url: editItem.url,
             requiresAuth: editItem.requiresAuth,
             note: editItem.note,
+            ...(editItem.categoryId && editItem.categoryId !== editItem.originalCategoryId
+              ? { categoryId: editItem.categoryId }
+              : {}),
           })
         : await updateCategory(editItem.id, { name: editItem.name, icon: editItem.icon });
     setSaving(false);
@@ -827,6 +840,35 @@ export function BlockEditor() {
           </DialogHeader>
           {editItem && editType === 'resource' && (
             <div className="space-y-4 pt-2">
+              <div>
+                <Label>Catégorie</Label>
+                <Select
+                  value={editItem.categoryId ?? ''}
+                  onValueChange={(v) => setEditItem((i) => (i ? { ...i, categoryId: v } : null))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Choisir une section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Ressources globales</SelectLabel>
+                      {generalCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                    <SelectGroup>
+                      <SelectLabel>Ressources par spécialités</SelectLabel>
+                      {medicalSpecialties.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label>Nom</Label>
                 <Input

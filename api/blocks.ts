@@ -241,7 +241,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'PATCH') {
     if (!verifyToken(getToken(req))) return res.status(401).json({ error: 'Non autorisé' });
-    const body = req.body as { type?: string; id?: string; name?: string; description?: string; url?: string; requiresAuth?: boolean; note?: string; icon?: string };
+    const body = req.body as { type?: string; id?: string; name?: string; description?: string; url?: string; requiresAuth?: boolean; note?: string; icon?: string; categoryId?: string };
     const { type, id } = body;
     if (!type || !id) return res.status(400).json({ error: 'type et id requis' });
     if (type === 'resource') {
@@ -251,6 +251,18 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       if (body.url !== undefined) up.url = body.url;
       if (body.requiresAuth !== undefined) up.requires_auth = body.requiresAuth;
       if (body.note !== undefined) up.note = body.note;
+      if (body.categoryId !== undefined) {
+        up.category_id = body.categoryId;
+        // Mettre la ressource à la fin de la nouvelle catégorie
+        const { data: maxOrder } = await supabase
+          .from('managed_resources')
+          .select('sort_order')
+          .eq('category_id', body.categoryId)
+          .order('sort_order', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        up.sort_order = maxOrder != null ? maxOrder.sort_order + 1 : 0;
+      }
       if (Object.keys(up).length === 0) return res.status(400).json({ error: 'Aucun champ à modifier' });
       const { error } = await supabase.from('managed_resources').update(up).eq('id', id);
       if (error) return res.status(500).json({ error: error.message });
