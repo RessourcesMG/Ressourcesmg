@@ -187,8 +187,8 @@ export function ResourceCard({ resource, categoryId = '' }: ResourceCardProps) {
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
         {resource.requiresAuth && (
-          <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-[10px] px-1.5 py-0 h-4 font-normal shrink-0">
-            <Lock className="w-2.5 h-2.5 mr-0.5" />
+          <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 text-xs px-2 py-0.5 h-6 font-normal shrink-0">
+            <Lock className="w-3 h-3 mr-1" />
             Connexion
           </Badge>
         )}
