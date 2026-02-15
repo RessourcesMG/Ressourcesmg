@@ -44,7 +44,6 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  TooltipProvider,
 } from '@/components/ui/tooltip';
 import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
@@ -249,10 +248,9 @@ export function Header({
           </button>
 
           {/* Toggle vue compacte - Desktop : discret, proportionné à la barre de recherche */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
                   className={`hidden lg:flex items-center gap-2 shrink-0 pl-2.5 pr-1.5 py-1 rounded-full border transition-colors cursor-pointer h-9 ${
                     isCompact
                       ? 'bg-teal-50 border-teal-300 text-teal-800'
@@ -279,7 +277,6 @@ export function Header({
                 Réduire la taille des blocs pour parcourir plus vite
               </TooltipContent>
             </Tooltip>
-          </TooltipProvider>
 
           {/* Mobile Menu */}
           <Sheet>

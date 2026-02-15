@@ -5,20 +5,26 @@ import { inject } from '@vercel/analytics'
 import './index.css'
 import App from './App.tsx'
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { ManagedBlocksProvider } from '@/contexts/ManagedBlocksContext'
 import { FavoritesProvider } from '@/contexts/FavoritesContext'
 
 const Webmaster = lazy(() => import('./pages/Webmaster.tsx').then((m) => ({ default: m.Webmaster })))
 
-// Injecte le script Analytics au chargement
-inject()
+// Analytics en différé pour ne pas bloquer le premier rendu (surtout sur machines lentes)
+if (typeof requestIdleCallback !== 'undefined') {
+  requestIdleCallback(() => inject(), { timeout: 2000 });
+} else {
+  setTimeout(() => inject(), 100);
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ManagedBlocksProvider>
         <FavoritesProvider>
-          <Toaster richColors position="top-center" />
+          <TooltipProvider delayDuration={200} skipDelayDuration={0}>
+            <Toaster richColors position="top-center" />
           <Routes>
           <Route path="/" element={<App />} />
           <Route
@@ -30,6 +36,7 @@ createRoot(document.getElementById('root')!).render(
             }
           />
         </Routes>
+          </TooltipProvider>
         </FavoritesProvider>
         </ManagedBlocksProvider>
     </BrowserRouter>
