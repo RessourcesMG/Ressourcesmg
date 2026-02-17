@@ -90,7 +90,7 @@ export function useManagedBlocks() {
   const updateResource = useCallback(
     async (
       id: string,
-      data: { name?: string; description?: string; url?: string; requiresAuth?: boolean; note?: string; categoryId?: string }
+      data: { name?: string; description?: string; url?: string; requiresAuth?: boolean; note?: string; categoryId?: string; isHidden?: boolean }
     ): Promise<{ success: boolean; error?: string }> => {
       const token = getToken();
       if (!token) return { success: false, error: 'Session expirée' };

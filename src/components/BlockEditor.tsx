@@ -95,6 +95,7 @@ export function BlockEditor() {
       url: res.url,
       requiresAuth: res.requiresAuth ?? false,
       note: res.note ?? '',
+      isHidden: res.isHidden ?? false,
     });
   };
 
@@ -122,6 +123,7 @@ export function BlockEditor() {
             url: editItem.url,
             requiresAuth: editItem.requiresAuth,
             note: editItem.note,
+            isHidden: editItem.isHidden,
             ...(editItem.categoryId && editItem.categoryId !== editItem.originalCategoryId
               ? { categoryId: editItem.categoryId }
               : {}),
@@ -603,7 +605,14 @@ export function BlockEditor() {
                                       <GripVertical className="w-4 h-4 shrink-0" />
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                      <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                        {res.isHidden && (
+                                          <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded" title="Ressource masquée">
+                                            Masquée
+                                          </span>
+                                        )}
+                                      </div>
                                       <p className="text-xs text-slate-500 truncate">{res.description}</p>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -806,7 +815,14 @@ export function BlockEditor() {
                                       <GripVertical className="w-4 h-4 shrink-0" />
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                      <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-medium text-slate-800 truncate">{res.name}</p>
+                                        {res.isHidden && (
+                                          <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded" title="Ressource masquée">
+                                            Masquée
+                                          </span>
+                                        )}
+                                      </div>
                                       <p className="text-xs text-slate-500 truncate">{res.description}</p>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
@@ -961,6 +977,15 @@ export function BlockEditor() {
                   }
                 />
                 <Label>Nécessite une connexion</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={editItem.isHidden ?? false}
+                  onCheckedChange={(c) =>
+                    setEditItem((i) => (i ? { ...i, isHidden: !!c } : null))
+                  }
+                />
+                <Label>Masquer sur le site</Label>
               </div>
             </div>
           )}

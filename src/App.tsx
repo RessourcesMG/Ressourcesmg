@@ -67,13 +67,14 @@ function AppContent() {
     return () => clearTimeout(t);
   }, [searchQuery, selectedCategory]);
 
-  // Calculate totals
+  // Calculate totals (exclure les ressources masquées)
+  // Utiliser les catégories fusionnées pour inclure les ressources personnalisées
   const totalResources = useMemo(() => {
-    return [...baseGeneralCategories, ...baseSpecialties].reduce(
-      (acc, cat) => acc + cat.resources.length,
+    return [...generalCategories, ...mergedSpecialties].reduce(
+      (acc, cat) => acc + cat.resources.filter((r) => !r.isHidden).length,
       0
     );
-  }, [baseGeneralCategories, baseSpecialties]);
+  }, [generalCategories, mergedSpecialties]);
 
   const specialtyCount = baseSpecialties.length;
 

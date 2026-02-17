@@ -57,15 +57,25 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
   if (!supabase) return res.status(503).json({ error: 'Base de données non configurée' });
 
   if (req.method === 'GET') {
+    const isWebmaster = verifyToken(getToken(req));
     const { data: cats } = await supabase
       .from('managed_categories')
       .select('*')
       .order('is_specialty', { ascending: true })
       .order('sort_order', { ascending: true });
-    const { data: ress } = await supabase
+    
+    // Si c'est le webmaster, inclure toutes les ressources (y compris cachées)
+    // Sinon, filtrer les ressources cachées
+    let resourceQuery = supabase
       .from('managed_resources')
       .select('*')
       .order('sort_order', { ascending: true });
+    
+    if (!isWebmaster) {
+      resourceQuery = resourceQuery.eq('is_hidden', false);
+    }
+    
+    const { data: ress } = await resourceQuery;
 
     if (!cats?.length && !ress?.length) {
       return res.status(200).json({ categories: [], fromDb: false });
@@ -85,6 +95,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
           url: r.url,
           requiresAuth: r.requires_auth ?? false,
           note: r.note ?? undefined,
+          isHidden: r.is_hidden ?? false,
         })),
     }));
     return res.status(200).json({ categories, fromDb: true });
@@ -94,7 +105,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     if (!verifyToken(getToken(req))) return res.status(401).json({ error: 'Non autorisé' });
     const body = req.body as {
       action?: string;
-      categories?: Array<{ id: string; name: string; icon: string; isSpecialty?: boolean; resources: Array<{ id: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string }> }>;
+      categories?: Array<{ id: string; name: string; icon: string; isSpecialty?: boolean; resources: Array<{ id: string; name: string; description?: string; url: string; requiresAuth?: boolean; note?: string; isHidden?: boolean }> }>;
       categoryId?: string;
       name?: string;
       description?: string;
@@ -103,6 +114,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       note?: string;
       icon?: string;
       id?: string;
+      isHidden?: boolean;
     };
     if (body?.action === 'addResource') {
       const { categoryId, name, url } = body;
@@ -121,6 +133,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
           requires_auth: body.requiresAuth ?? false,
           note: body.note ?? null,
           sort_order: 9999,
+          is_hidden: false,
         })
         .select('id')
         .single();
@@ -227,6 +240,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
           requires_auth: res.requiresAuth ?? false,
           note: res.note ?? null,
           sort_order: resIdx,
+          is_hidden: res.isHidden ?? false,
         });
       });
     });
@@ -241,7 +255,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'PATCH') {
     if (!verifyToken(getToken(req))) return res.status(401).json({ error: 'Non autorisé' });
-    const body = req.body as { type?: string; id?: string; name?: string; description?: string; url?: string; requiresAuth?: boolean; note?: string; icon?: string; categoryId?: string };
+    const body = req.body as { type?: string; id?: string; name?: string; description?: string; url?: string; requiresAuth?: boolean; note?: string; icon?: string; categoryId?: string; isHidden?: boolean };
     const { type, id } = body;
     if (!type || !id) return res.status(400).json({ error: 'type et id requis' });
     if (type === 'resource') {
@@ -251,6 +265,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       if (body.url !== undefined) up.url = body.url;
       if (body.requiresAuth !== undefined) up.requires_auth = body.requiresAuth;
       if (body.note !== undefined) up.note = body.note;
+      if (body.isHidden !== undefined) up.is_hidden = body.isHidden;
       if (body.categoryId !== undefined) {
         up.category_id = body.categoryId;
         const { data: maxOrder } = await supabase
