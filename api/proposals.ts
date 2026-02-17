@@ -1,6 +1,42 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabase } from '../api-utils/supabase';
-import { getToken, verifyToken } from '../api-utils/auth';
+import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+
+let _supabase: ReturnType<typeof createClient> | null = null;
+function getSupabase() {
+  if (_supabase) return _supabase;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  try {
+    _supabase = createClient(url, key, { auth: { persistSession: false } });
+    return _supabase;
+  } catch {
+    return null;
+  }
+}
+
+const SECRET = process.env.WEBMASTER_SECRET || 'ressourcesmg-default-secret-change-me';
+const TOKEN_MS = 8 * 60 * 60 * 1000;
+function verifyToken(token: string | null | undefined): boolean {
+  if (!token) return false;
+  try {
+    const [payloadB64, sig] = token.split('.');
+    if (!payloadB64 || !sig) return false;
+    const payload = Buffer.from(payloadB64, 'base64url').toString();
+    const expected = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+    if (sig !== expected) return false;
+    const data = JSON.parse(payload);
+    return Date.now() - data.t < TOKEN_MS;
+  } catch {
+    return false;
+  }
+}
+
+function getToken(req: VercelRequest): string | null {
+  const auth = req.headers.authorization;
+  return auth?.startsWith('Bearer ') ? auth.slice(7) : null;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {

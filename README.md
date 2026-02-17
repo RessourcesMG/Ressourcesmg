@@ -81,7 +81,6 @@ Pour ajouter des ressources **de manière durable** (stockées en base de donné
    - Dans Settings > API : copiez l'URL et la clé `service_role`
 2. **Vercel** : ajoutez les variables d'environnement :
    - `WEBMASTER_PASSWORD` : votre mot de passe
-   - `WEBMASTER_SECRET` : secret pour signer les sessions (obligatoire en production)
    - `SUPABASE_URL` : l'URL du projet
    - `SUPABASE_SERVICE_ROLE_KEY` : la clé service_role
 3. Accédez à `/webmaster`, connectez-vous et ajoutez vos ressources

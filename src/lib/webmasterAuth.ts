@@ -90,22 +90,7 @@ export async function login(password: string): Promise<{ success: boolean; error
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     });
-    const text = await res.text();
-    let data: { success?: boolean; token?: string; error?: string } = {};
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      // Réponse non-JSON (ex. page d'erreur HTML) : afficher un message utile
-      if (!res.ok) {
-        return {
-          success: false,
-          error: res.status === 500
-            ? 'Erreur serveur. Vérifiez que WEBMASTER_SECRET est défini sur Vercel.'
-            : `Erreur ${res.status}. Réessayez ou vérifiez la configuration.`,
-        };
-      }
-      return { success: false, error: 'Réponse serveur invalide.' };
-    }
+    const data = await res.json();
     if (data.success && data.token) {
       clearRateLimit();
       sessionStorage.setItem(SESSION_KEY, data.token);
@@ -113,12 +98,8 @@ export async function login(password: string): Promise<{ success: boolean; error
     }
     recordFailedAttempt();
     return { success: false, error: data.error || 'Échec de connexion' };
-  } catch (err) {
-    // Vraie erreur réseau (fetch a échoué)
-    return {
-      success: false,
-      error: 'Erreur réseau. Vérifiez votre connexion et que le site est bien déployé.',
-    };
+  } catch {
+    return { success: false, error: 'Erreur réseau' };
   }
 }
 
