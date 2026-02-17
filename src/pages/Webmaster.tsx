@@ -7,6 +7,7 @@ import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import { BlockEditor } from '@/components/BlockEditor';
 import { ProposalManager } from '@/components/ProposalManager';
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
+import { AnnouncementManager } from '@/components/AnnouncementManager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -212,6 +213,9 @@ export function Webmaster() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        {/* Bandeaux d'informations */}
+        <AnnouncementManager />
+
         {/* Propositions des utilisateurs */}
         <ProposalManager />
 
