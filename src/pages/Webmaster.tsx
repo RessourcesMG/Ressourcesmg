@@ -212,6 +212,9 @@ export function Webmaster() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        {/* Propositions des utilisateurs */}
+        <ProposalManager />
+
         {/* Formulaire d'ajout */}
         <Card>
           <CardHeader>
@@ -329,9 +332,6 @@ export function Webmaster() {
 
         {/* Dashboard Analytics */}
         <AnalyticsDashboard />
-
-        {/* Propositions des utilisateurs */}
-        <ProposalManager />
 
         {/* Éditer les blocs */}
         <BlockEditor />
