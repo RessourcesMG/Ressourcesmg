@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabase } from '../api-utils/supabase';
-import { getToken, verifyToken } from '../api-utils/auth';
+import { getSupabase } from './lib/supabase';
+import { getToken, verifyToken } from './lib/auth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
