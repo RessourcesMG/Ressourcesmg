@@ -145,25 +145,31 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    // Notification email (optionnel : RESEND_API_KEY et NOTIFICATION_EMAIL)
-    const resendKey = process.env.RESEND_API_KEY;
+    // Notification email via EmailJS (gratuit, sans domaine requis)
+    const emailjsServiceId = process.env.EMAILJS_SERVICE_ID;
+    const emailjsTemplateId = process.env.EMAILJS_TEMPLATE_ID;
+    const emailjsPublicKey = process.env.EMAILJS_PUBLIC_KEY;
     const notifyEmail = process.env.NOTIFICATION_EMAIL;
-    if (resendKey && notifyEmail) {
+    
+    if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey && notifyEmail) {
       try {
-        const { Resend } = await import('resend');
-        const resend = new Resend(resendKey);
-        await resend.emails.send({
-          from: 'Ressources MG <onboarding@resend.dev>',
-          to: [notifyEmail],
-          subject: `[Ressources MG] Nouvelle proposition : ${name}`,
-          html: `
-            <p>Une nouvelle ressource a été proposée sur Ressources MG.</p>
-            <p><strong>Nom :</strong> ${name}</p>
-            <p><strong>URL :</strong> <a href="${url}">${url}</a></p>
-            <p><strong>Description :</strong> ${description || '(vide)'}</p>
-            <p><strong>Catégorie :</strong> ${categoryId || '(non spécifiée)'}</p>
-            <p>Connectez-vous à l'espace webmaster pour examiner la proposition.</p>
-          `,
+        const emailjsUrl = `https://api.emailjs.com/api/v1.0/email/send`;
+        await fetch(emailjsUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: emailjsServiceId,
+            template_id: emailjsTemplateId,
+            user_id: emailjsPublicKey,
+            template_params: {
+              to_email: notifyEmail,
+              subject: `[Ressources MG] Nouvelle proposition : ${name}`,
+              name: name,
+              url: url,
+              description: description || '(vide)',
+              category: categoryId || '(non spécifiée)',
+            },
+          }),
         });
       } catch {
         // Ne pas bloquer la réponse si l'email échoue
