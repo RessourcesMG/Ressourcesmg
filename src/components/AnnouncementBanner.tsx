@@ -63,24 +63,34 @@ export function AnnouncementBanner() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(newDismissed)));
   };
 
-  if (loading) return null;
-
   // Filtrer les annonces non masquées
   const visibleAnnouncements = announcements.filter((a) => !dismissedIds.has(a.id));
-
-  // Afficher uniquement la plus récente
   const latestAnnouncement = visibleAnnouncements.length > 0 ? visibleAnnouncements[0] : null;
 
-  // Définir une variable CSS pour la hauteur du bandeau (même si pas d'annonce)
+  // Définir une variable CSS pour la hauteur du bandeau
   useEffect(() => {
     if (bannerRef.current && latestAnnouncement) {
-      const height = bannerRef.current.offsetHeight;
-      document.documentElement.style.setProperty('--announcement-banner-height', `${height}px`);
+      // Utiliser ResizeObserver pour détecter les changements de hauteur
+      const updateHeight = () => {
+        if (bannerRef.current) {
+          const height = bannerRef.current.offsetHeight;
+          document.documentElement.style.setProperty('--announcement-banner-height', `${height}px`);
+        }
+      };
+      
+      updateHeight();
+      const resizeObserver = new ResizeObserver(updateHeight);
+      resizeObserver.observe(bannerRef.current);
+      
+      return () => {
+        resizeObserver.disconnect();
+      };
     } else {
       document.documentElement.style.setProperty('--announcement-banner-height', '0px');
     }
-  }, [visibleAnnouncements.length, latestAnnouncement?.id]);
+  }, [latestAnnouncement?.id]);
 
+  if (loading) return null;
   if (!latestAnnouncement) return null;
 
   const getIcon = () => {
@@ -121,14 +131,6 @@ export function AnnouncementBanner() {
         return 'text-blue-600';
     }
   };
-
-  // Définir une variable CSS pour la hauteur du bandeau
-  useEffect(() => {
-    if (bannerRef.current) {
-      const height = bannerRef.current.offsetHeight;
-      document.documentElement.style.setProperty('--announcement-banner-height', `${height}px`);
-    }
-  }, [visibleAnnouncements.length, latestAnnouncement?.id]);
 
   return (
     <div ref={bannerRef} className={`border-b ${getBgColor()} shadow-sm sticky top-0 z-40`}>
