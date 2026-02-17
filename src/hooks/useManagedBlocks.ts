@@ -18,7 +18,13 @@ export function useManagedBlocks() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(API_URL);
+      // Inclure le token d'authentification si disponible (pour voir les ressources masquées dans l'espace webmaster)
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch(API_URL, { headers });
       const data = await res.json().catch(() => ({}));
       if (data?.fromDb && Array.isArray(data.categories) && data.categories.length > 0) {
         const gen = data.categories.filter((c: Category) => !c.isSpecialty);
