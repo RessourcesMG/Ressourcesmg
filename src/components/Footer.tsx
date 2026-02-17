@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import emailjs from '@emailjs/browser';
 import {
   Select,
   SelectContent,
@@ -78,6 +79,34 @@ export function Footer({ categories = [] }: FooterProps) {
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
         setSubmitted(true);
+        
+        // Envoyer la notification email côté client (EmailJS)
+        const emailjsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const emailjsTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+        const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        const notifyEmail = import.meta.env.VITE_NOTIFICATION_EMAIL;
+        
+        if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey && notifyEmail) {
+          try {
+            await emailjs.send(
+              emailjsServiceId,
+              emailjsTemplateId,
+              {
+                to_email: notifyEmail,
+                subject: `[Ressources MG] Nouvelle proposition : ${formData.name.trim()}`,
+                name: formData.name.trim(),
+                url: formData.url.trim(),
+                description: formData.description.trim() || '(vide)',
+                category: effectiveCategoryId || '(non spécifiée)',
+              },
+              emailjsPublicKey
+            );
+          } catch (emailError) {
+            // Ne pas bloquer l'utilisateur si l'email échoue
+            console.error('[EmailJS] Erreur lors de l\'envoi de la notification:', emailError);
+          }
+        }
+        
         setFormData({
           name: '',
           url: '',
