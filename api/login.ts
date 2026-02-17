@@ -1,5 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createToken } from '../api-utils/auth';
+import crypto from 'node:crypto';
+
+/** Création du token directement ici pour éviter tout souci d'import api-utils sur Vercel. */
+function createToken(): string {
+  const secret = process.env.WEBMASTER_SECRET;
+  if (!secret) {
+    throw new Error('WEBMASTER_SECRET doit être défini sur Vercel (Environment Variables).');
+  }
+  const payload = JSON.stringify({
+    t: Date.now(),
+    r: crypto.randomBytes(16).toString('hex'),
+  });
+  const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  return Buffer.from(payload).toString('base64url') + '.' + signature;
+}
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -16,7 +30,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   const expectedPassword = process.env.WEBMASTER_PASSWORD;
   if (!expectedPassword) {
-    return res.status(500).json({ success: false, error: 'Configuration manquante' });
+    return res.status(500).json({ success: false, error: 'WEBMASTER_PASSWORD manquant sur Vercel.' });
   }
 
   const { password } = req.body || {};
@@ -32,7 +46,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const token = createToken();
     return res.status(200).json({ success: true, token });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Configuration manquante';
+    const msg = err instanceof Error ? err.message : 'Erreur inattendue';
     return res.status(500).json({ success: false, error: msg });
   }
 }
