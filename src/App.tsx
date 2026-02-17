@@ -203,6 +203,8 @@ function AppContent() {
         favoritesCount={favoriteIds.length}
       />
       
+      <AnnouncementBanner />
+      
       <main>
         {/* Hero affiché uniquement quand il n'y a ni recherche, ni catégorie, ni filtre favoris */}
         {!searchQuery && !selectedCategory && !showOnlyFavorites && (
