@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus, GripVertical, Globe, Stethoscope, ArrowDownAZ } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus, GripVertical, Globe, Stethoscope, ArrowDownAZ, Search } from 'lucide-react';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import type { Category, Resource } from '@/types/resources';
 import { getSortAlphabetically, setSortAlphabetically } from '@/lib/sortAzPrefs';
@@ -73,6 +73,7 @@ export function BlockEditor() {
   const [reorderLoading, setReorderLoading] = useState(false);
   const [pendingResourceOrder, setPendingResourceOrder] = useState<Record<string, string[]>>({});
   const [sortAzPrefs, setSortAzPrefs] = useState<Record<string, boolean>>(() => ({}));
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSeed = async () => {
     setSeedError('');
@@ -387,6 +388,31 @@ export function BlockEditor() {
     setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Filtrer les catégories et ressources selon la recherche
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return { general: generalCategories, specialty: medicalSpecialties };
+    }
+    const query = searchQuery.toLowerCase().trim();
+    const filterCategory = (cat: Category) => {
+      const matchesCategory = cat.name.toLowerCase().includes(query);
+      const matchingResources = cat.resources.filter(
+        (r) =>
+          r.name.toLowerCase().includes(query) ||
+          r.description?.toLowerCase().includes(query) ||
+          r.url.toLowerCase().includes(query) ||
+          r.note?.toLowerCase().includes(query)
+      );
+      return matchesCategory || matchingResources.length > 0
+        ? { ...cat, resources: matchingResources.length > 0 ? matchingResources : cat.resources }
+        : null;
+    };
+    return {
+      general: generalCategories.map(filterCategory).filter(Boolean) as Category[],
+      specialty: medicalSpecialties.map(filterCategory).filter(Boolean) as Category[],
+    };
+  }, [searchQuery, generalCategories, medicalSpecialties]);
+
   if (loading) {
     return (
       <Card>
@@ -422,6 +448,18 @@ export function BlockEditor() {
           )}
           {fromDb && (
             <div className="space-y-6">
+              {/* Barre de recherche */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Rechercher une ressource (nom, description, URL, note)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
               {reorderLoading && (
                 <p className="text-sm text-slate-500">Réorganisation en cours...</p>
               )}
@@ -440,13 +478,17 @@ export function BlockEditor() {
                   </Button>
                 </div>
                 <div className="max-h-[420px] overflow-y-auto space-y-2">
-                  {generalCategories.map((cat, idx) => (
+                  {filteredCategories.general.map((cat, idx) => {
+                    const originalCat = generalCategories.find((c) => c.id === cat.id);
+                    if (!originalCat) return null;
+                    const originalIdx = generalCategories.findIndex((c) => c.id === cat.id);
+                    return (
                     <div key={cat.id} className="space-y-0">
                       <div
-                        className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === idx ? 'py-1' : ''}`}
-                        onDragOver={(e) => handleCategoryDropZoneOver(e, 'general', idx)}
+                        className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === originalIdx ? 'py-1' : ''}`}
+                        onDragOver={(e) => handleCategoryDropZoneOver(e, 'general', originalIdx)}
                         onDragLeave={() => setDropIndicator(null)}
-                        onDrop={(e) => handleCategoryDropZoneDrop(e, 'general', idx)}
+                        onDrop={(e) => handleCategoryDropZoneDrop(e, 'general', originalIdx)}
                       >
                         {dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === idx && (
                           <div className="h-1 w-full max-w-[calc(100%-1rem)] mx-2 bg-teal-500 rounded-full shrink-0" />
@@ -611,7 +653,8 @@ export function BlockEditor() {
                       </div>
                     </Collapsible>
                     </div>
-                  ))}
+                    );
+                  })}
                   <div
                     className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === generalCategories.length ? 'py-1' : ''}`}
                     onDragOver={(e) => handleCategoryDropZoneOver(e, 'general', generalCategories.length)}
@@ -638,15 +681,19 @@ export function BlockEditor() {
                   </Button>
                 </div>
                 <div className="max-h-[420px] overflow-y-auto space-y-2">
-                  {medicalSpecialties.map((cat, idx) => (
+                  {filteredCategories.specialty.map((cat, idx) => {
+                    const originalCat = medicalSpecialties.find((c) => c.id === cat.id);
+                    if (!originalCat) return null;
+                    const originalIdx = medicalSpecialties.findIndex((c) => c.id === cat.id);
+                    return (
                     <div key={cat.id} className="space-y-0">
                       <div
-                        className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === idx ? 'py-1' : ''}`}
-                        onDragOver={(e) => handleCategoryDropZoneOver(e, 'specialty', idx)}
+                        className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === originalIdx ? 'py-1' : ''}`}
+                        onDragOver={(e) => handleCategoryDropZoneOver(e, 'specialty', originalIdx)}
                         onDragLeave={() => setDropIndicator(null)}
-                        onDrop={(e) => handleCategoryDropZoneDrop(e, 'specialty', idx)}
+                        onDrop={(e) => handleCategoryDropZoneDrop(e, 'specialty', originalIdx)}
                       >
-                        {dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === idx && (
+                        {dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === originalIdx && (
                           <div className="h-1 w-full max-w-[calc(100%-1rem)] mx-2 bg-teal-500 rounded-full shrink-0" />
                         )}
                       </div>
@@ -809,7 +856,8 @@ export function BlockEditor() {
                       </div>
                     </Collapsible>
                     </div>
-                  ))}
+                    );
+                  })}
                   <div
                     className={`min-h-[10px] flex items-center transition-colors ${dropIndicator?.type === 'category' && dropIndicator.section === 'specialty' && dropIndicator.index === medicalSpecialties.length ? 'py-1' : ''}`}
                     onDragOver={(e) => handleCategoryDropZoneOver(e, 'specialty', medicalSpecialties.length)}

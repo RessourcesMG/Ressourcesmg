@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,8 @@ export type Proposal = {
   description: string;
   status: 'pending' | 'accepted' | 'rejected';
   categoryId?: string;
+  note?: string;
+  requiresAuth?: boolean;
   createdAt: string;
 };
 
@@ -46,7 +49,7 @@ export function ProposalManager() {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editProposal, setEditProposal] = useState<Proposal | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', url: '', description: '' });
+  const [editForm, setEditForm] = useState({ name: '', url: '', description: '', categoryId: '', note: '', requiresAuth: false });
   const [acceptCategoryId, setAcceptCategoryId] = useState<Record<string, string>>({});
 
   const fetchProposals = useCallback(async () => {
@@ -174,7 +177,14 @@ export function ProposalManager() {
 
   const openEdit = (p: Proposal) => {
     setEditProposal(p);
-    setEditForm({ name: p.name, url: p.url, description: p.description });
+    setEditForm({ 
+      name: p.name, 
+      url: p.url, 
+      description: p.description,
+      categoryId: p.categoryId || '',
+      note: p.note || '',
+      requiresAuth: p.requiresAuth || false,
+    });
   };
 
   const handleDelete = async (id: string) => {
@@ -231,6 +241,9 @@ export function ProposalManager() {
           name: editForm.name.trim(),
           url: editForm.url.trim(),
           description: editForm.description.trim(),
+          categoryId: editForm.categoryId || undefined,
+          note: editForm.note.trim() || undefined,
+          requiresAuth: editForm.requiresAuth,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -318,8 +331,8 @@ export function ProposalManager() {
                                 setAcceptCategoryId((prev) => ({ ...prev, [p.id]: v }))
                               }
                             >
-                              <SelectTrigger className="w-[140px] h-8 text-xs">
-                                <SelectValue placeholder="Catégorie" />
+                              <SelectTrigger className="w-[140px] h-8 text-xs max-w-[140px]">
+                                <SelectValue placeholder="Catégorie" className="truncate" />
                               </SelectTrigger>
                               <SelectContent>
                                 {categoriesForSelect.map((cat) => (
@@ -493,6 +506,46 @@ export function ProposalManager() {
                   className="mt-1"
                   rows={2}
                 />
+              </div>
+              {fromDb && categoriesForSelect.length > 0 && (
+                <div>
+                  <Label>Catégorie</Label>
+                  <Select
+                    value={editForm.categoryId}
+                    onValueChange={(v) => setEditForm((f) => ({ ...f, categoryId: v }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Choisir une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoriesForSelect.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div>
+                <Label>Note (optionnel)</Label>
+                <Textarea
+                  value={editForm.note}
+                  onChange={(e) => setEditForm((f) => ({ ...f, note: e.target.value }))}
+                  className="mt-1"
+                  rows={2}
+                  placeholder="Note additionnelle sur cette ressource"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="requiresAuth"
+                  checked={editForm.requiresAuth}
+                  onCheckedChange={(checked) => setEditForm((f) => ({ ...f, requiresAuth: checked === true }))}
+                />
+                <Label htmlFor="requiresAuth" className="cursor-pointer">
+                  Nécessite une authentification
+                </Label>
               </div>
             </div>
           )}

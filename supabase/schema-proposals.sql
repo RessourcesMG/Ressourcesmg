@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS resource_proposals (
   description TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
   category_id TEXT REFERENCES managed_categories(id) ON DELETE SET NULL,
+  note TEXT,
+  requires_auth BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
