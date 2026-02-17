@@ -145,43 +145,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    // Notification email via EmailJS (gratuit, sans domaine requis)
-    const emailjsServiceId = process.env.EMAILJS_SERVICE_ID;
-    const emailjsTemplateId = process.env.EMAILJS_TEMPLATE_ID;
-    const emailjsPublicKey = process.env.EMAILJS_PUBLIC_KEY;
-    const notifyEmail = process.env.NOTIFICATION_EMAIL;
-    
-    if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey && notifyEmail) {
-      try {
-        const emailjsUrl = `https://api.emailjs.com/api/v1.0/email/send`;
-        const emailjsResponse = await fetch(emailjsUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            service_id: emailjsServiceId,
-            template_id: emailjsTemplateId,
-            user_id: emailjsPublicKey,
-            template_params: {
-              to_email: notifyEmail,
-              subject: `[Ressources MG] Nouvelle proposition : ${name}`,
-              name: name,
-              url: url,
-              description: description || '(vide)',
-              category: categoryId || '(non spécifiée)',
-            },
-          }),
-        });
-        
-        if (!emailjsResponse.ok) {
-          const errorText = await emailjsResponse.text();
-          console.error('[EmailJS] Erreur:', emailjsResponse.status, errorText);
-        }
-      } catch (err) {
-        console.error('[EmailJS] Exception:', err instanceof Error ? err.message : String(err));
-        // Ne pas bloquer la réponse si l'email échoue
-      }
-    }
-
+    // L'envoi d'email se fait maintenant côté client (voir Footer.tsx)
     return res.status(201).json({ success: true, message: 'Proposition envoyée. Merci !' });
   }
 
