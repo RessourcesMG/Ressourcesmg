@@ -50,7 +50,8 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
 
           {/* Title */}
           <h1 className={`font-bold text-slate-900 leading-tight ${isCompact ? 'text-2xl sm:text-3xl mb-4' : 'text-3xl sm:text-4xl lg:text-5xl mb-6'}`}>
-            Vos ressources médicales{' '}
+            Vos ressources médicales
+            <br />
             <span className="text-teal-600">en un clic</span>
           </h1>
 
