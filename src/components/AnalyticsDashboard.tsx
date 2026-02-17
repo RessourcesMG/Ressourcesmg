@@ -123,40 +123,41 @@ export function AnalyticsDashboard() {
           </div>
         </div>
 
-        <div>
-          <h4 className="font-semibold text-slate-900 mb-2">Ressources les plus cliquées</h4>
-          {data.topResources.length === 0 ? (
-            <p className="text-slate-500 text-sm">Aucune donnée</p>
-          ) : (
-            <ul className="space-y-1.5 text-sm">
-              {data.topResources.map((r, i) => (
-                <li key={r.id} className="flex justify-between items-center">
-                  <span className="text-slate-700 truncate max-w-[70%]">
-                    {i + 1}. {r.name}
-                  </span>
-                  <span className="text-teal-600 font-medium shrink-0 ml-2">{r.count}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div>
-          <h4 className="font-semibold text-slate-900 mb-2">Recherches populaires</h4>
-          {data.topSearches.length === 0 ? (
-            <p className="text-slate-500 text-sm">Aucune donnée</p>
-          ) : (
-            <ul className="space-y-1.5 text-sm">
-              {data.topSearches.map((s, i) => (
-                <li key={`${s.query}-${i}`} className="flex justify-between items-center">
-                  <span className="text-slate-700 truncate max-w-[70%]">
-                    {i + 1}. &quot;{s.query}&quot;
-                  </span>
-                  <span className="text-teal-600 font-medium shrink-0 ml-2">{s.count}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Ressources les plus cliquées</h4>
+            {data.topResources.length === 0 ? (
+              <p className="text-slate-500 text-sm">Aucune donnée</p>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {data.topResources.map((r, i) => (
+                  <li key={r.id} className="flex justify-between items-center">
+                    <span className="text-slate-700 truncate max-w-[70%]">
+                      {i + 1}. {r.name}
+                    </span>
+                    <span className="text-teal-600 font-medium shrink-0 ml-2">{r.count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <h4 className="font-semibold text-slate-900 mb-2">Recherches populaires</h4>
+            {data.topSearches.length === 0 ? (
+              <p className="text-slate-500 text-sm">Aucune donnée</p>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {data.topSearches.map((s, i) => (
+                  <li key={`${s.query}-${i}`} className="flex justify-between items-center">
+                    <span className="text-slate-700 truncate max-w-[70%]">
+                      {i + 1}. &quot;{s.query}&quot;
+                    </span>
+                    <span className="text-teal-600 font-medium shrink-0 ml-2">{s.count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
