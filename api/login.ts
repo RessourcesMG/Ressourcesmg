@@ -1,19 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import crypto from 'node:crypto';
-
-/** Création du token directement ici pour éviter tout souci d'import api-utils sur Vercel. */
-function createToken(): string {
-  const secret = process.env.WEBMASTER_SECRET;
-  if (!secret) {
-    throw new Error('WEBMASTER_SECRET doit être défini sur Vercel (Environment Variables).');
-  }
-  const payload = JSON.stringify({
-    t: Date.now(),
-    r: crypto.randomBytes(16).toString('hex'),
-  });
-  const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-  return Buffer.from(payload).toString('base64url') + '.' + signature;
-}
+import { createToken } from '../api-utils/auth';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
