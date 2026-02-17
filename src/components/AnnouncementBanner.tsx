@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Info, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -20,6 +20,7 @@ export function AnnouncementBanner() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const bannerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Charger les IDs des annonces déjà masquées depuis localStorage
@@ -67,10 +68,20 @@ export function AnnouncementBanner() {
   // Filtrer les annonces non masquées
   const visibleAnnouncements = announcements.filter((a) => !dismissedIds.has(a.id));
 
-  if (visibleAnnouncements.length === 0) return null;
-
   // Afficher uniquement la plus récente
-  const latestAnnouncement = visibleAnnouncements[0];
+  const latestAnnouncement = visibleAnnouncements.length > 0 ? visibleAnnouncements[0] : null;
+
+  // Définir une variable CSS pour la hauteur du bandeau (même si pas d'annonce)
+  useEffect(() => {
+    if (bannerRef.current && latestAnnouncement) {
+      const height = bannerRef.current.offsetHeight;
+      document.documentElement.style.setProperty('--announcement-banner-height', `${height}px`);
+    } else {
+      document.documentElement.style.setProperty('--announcement-banner-height', '0px');
+    }
+  }, [visibleAnnouncements.length, latestAnnouncement?.id]);
+
+  if (!latestAnnouncement) return null;
 
   const getIcon = () => {
     switch (latestAnnouncement.type) {
@@ -111,8 +122,16 @@ export function AnnouncementBanner() {
     }
   };
 
+  // Définir une variable CSS pour la hauteur du bandeau
+  useEffect(() => {
+    if (bannerRef.current) {
+      const height = bannerRef.current.offsetHeight;
+      document.documentElement.style.setProperty('--announcement-banner-height', `${height}px`);
+    }
+  }, [visibleAnnouncements.length, latestAnnouncement?.id]);
+
   return (
-    <div className={`border-b ${getBgColor()} sticky top-0 z-50 shadow-sm`}>
+    <div ref={bannerRef} className={`border-b ${getBgColor()} shadow-sm sticky top-0 z-40`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-start gap-3">
           <div className={`shrink-0 ${getIconColor()}`}>

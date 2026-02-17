@@ -184,6 +184,7 @@ function AppContent() {
       <a href="#resources-section" className="skip-link">
         Aller au contenu
       </a>
+      <AnnouncementBanner />
       <Header
         searchQuery={searchQuery}
         onSearch={setSearchQuery}
@@ -202,8 +203,6 @@ function AppContent() {
         }}
         favoritesCount={favoriteIds.length}
       />
-      
-      <AnnouncementBanner />
       
       <main>
         {/* Hero affiché uniquement quand il n'y a ni recherche, ni catégorie, ni filtre favoris */}
