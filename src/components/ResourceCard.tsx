@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { memo } from 'react';
 import { ExternalLink, Lock, Info, Globe, Star } from 'lucide-react';
 import type { Resource } from '@/types/resources';
 import { trackResourceClick } from '@/lib/analytics';
@@ -7,52 +7,24 @@ import { Badge } from '@/components/ui/badge';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { useFavorites } from '@/contexts/FavoritesContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFavicon } from '@/hooks/useFavicon';
 
 interface ResourceCardProps {
   resource: Resource;
   categoryId?: string;
 }
 
-function getFaviconSources(url: string): string[] {
-  try {
-    const { origin } = new URL(url);
-    const apiBase = typeof window !== 'undefined' ? window.location.origin : '';
-    return [
-      // 1. API qui parse le HTML du site pour trouver le favicon réel
-      `${apiBase}/api/favicon?url=${encodeURIComponent(url)}`,
-      // 2. Chemins directs (vraies 404 si absent)
-      `${origin}/favicon.ico`,
-      `${origin}/favicon.png`,
-      `${origin}/apple-touch-icon.png`,
-      `${origin}/favicon-32x32.png`,
-      `${origin}/favicon-16x16.png`,
-    ];
-  } catch {
-    return [];
-  }
-}
-
 function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
   const { isCompact } = useCompactMode();
   const { isFavorite, toggleFavorite } = useFavorites();
-  const sources = getFaviconSources(resource.url);
+  const faviconUrl = useFavicon(resource.url);
   const fav = isFavorite(resource.id);
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     toggleFavorite(resource.id);
   };
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const faviconUrl = sources[currentIndex] ?? '';
-  const showFallbackIcon = !faviconUrl || currentIndex >= sources.length;
-
-  const handleFaviconError = () => {
-    if (currentIndex < sources.length - 1) {
-      setCurrentIndex((i) => i + 1);
-    } else {
-      setCurrentIndex(sources.length);
-    }
-  };
+  const showFallbackIcon = !faviconUrl;
 
   // Mode compact : une ligne par ressource, avec petit favicon, format liste
   if (isCompact) {
@@ -70,7 +42,6 @@ function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
               height={20}
               loading="lazy"
               decoding="async"
-              onError={handleFaviconError}
             />
           )}
         </div>
@@ -130,7 +101,6 @@ function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
               height={32}
               loading="lazy"
               decoding="async"
-              onError={handleFaviconError}
             />
               )}
             </div>
