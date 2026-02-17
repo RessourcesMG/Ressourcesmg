@@ -1,5 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createToken } from '../api-utils/auth';
+import crypto from 'node:crypto';
+
+const SECRET = process.env.WEBMASTER_SECRET || 'ressourcesmg-default-secret-change-me';
+const TOKEN_DURATION_MS = 8 * 60 * 60 * 1000; // 8 heures
+
+function createToken(): string {
+  const payload = JSON.stringify({ t: Date.now(), r: crypto.randomBytes(16).toString('hex') });
+  const signature = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+  return Buffer.from(payload).toString('base64url') + '.' + signature;
+}
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -16,7 +25,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   const expectedPassword = process.env.WEBMASTER_PASSWORD;
   if (!expectedPassword) {
-    return res.status(500).json({ success: false, error: 'WEBMASTER_PASSWORD manquant sur Vercel.' });
+    return res.status(500).json({ success: false, error: 'Configuration manquante' });
   }
 
   const { password } = req.body || {};
@@ -28,11 +37,6 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ success: false, error: 'Mot de passe incorrect' });
   }
 
-  try {
-    const token = createToken();
-    return res.status(200).json({ success: true, token });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Erreur inattendue';
-    return res.status(500).json({ success: false, error: msg });
-  }
+  const token = createToken();
+  return res.status(200).json({ success: true, token });
 }

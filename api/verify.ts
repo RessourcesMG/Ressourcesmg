@@ -1,5 +1,22 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyToken } from '../api-utils/auth';
+import crypto from 'crypto';
+
+const SECRET = process.env.WEBMASTER_SECRET || 'ressourcesmg-default-secret-change-me';
+const TOKEN_DURATION_MS = 8 * 60 * 60 * 1000;
+
+function verifyToken(token: string): boolean {
+  try {
+    const [payloadB64, signature] = token.split('.');
+    if (!payloadB64 || !signature) return false;
+    const payload = Buffer.from(payloadB64, 'base64url').toString();
+    const expected = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+    if (signature !== expected) return false;
+    const data = JSON.parse(payload);
+    return Date.now() - data.t < TOKEN_DURATION_MS;
+  } catch {
+    return false;
+  }
+}
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
