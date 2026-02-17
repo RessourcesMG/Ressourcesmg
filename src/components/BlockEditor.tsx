@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus, GripVertical, Globe, Stethoscope, ArrowDownAZ, Search, EyeOff } from 'lucide-react';
+import { Pencil, ChevronDown, ChevronRight, Database, Trash2, Plus, GripVertical, Globe, Stethoscope, ArrowDownAZ, Search, EyeOff, Eye } from 'lucide-react';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import type { Category, Resource } from '@/types/resources';
 import { getSortAlphabetically, setSortAlphabetically } from '@/lib/sortAzPrefs';
@@ -374,6 +374,19 @@ export function BlockEditor() {
     [dragResource, generalCategories, medicalSpecialties, getDisplayedResources, reorderResources]
   );
 
+  const toggleResourceVisibility = useCallback(
+    async (resourceId: string, currentHidden: boolean) => {
+      setSaveError('');
+      setSaving(true);
+      const result = await updateResource(resourceId, { isHidden: !currentHidden });
+      setSaving(false);
+      if (!result.success) {
+        setSaveError(result.error || 'Erreur lors du changement de visibilité');
+      }
+    },
+    [updateResource]
+  );
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
@@ -384,6 +397,16 @@ export function BlockEditor() {
     setDeleteLoading(false);
     if (result.success) setDeleteTarget(null);
     else setSaveError(result.error || 'Erreur');
+  };
+
+  const toggleResourceVisibility = async (resourceId: string, currentHidden: boolean) => {
+    setSaveError('');
+    setSaving(true);
+    const result = await updateResource(resourceId, { isHidden: !currentHidden });
+    setSaving(false);
+    if (!result.success) {
+      setSaveError(result.error || 'Erreur lors du changement de visibilité');
+    }
   };
 
   const toggleCategory = (id: string) => {
@@ -622,6 +645,16 @@ export function BlockEditor() {
                                       <Button
                                         variant="ghost"
                                         size="icon"
+                                        className={`h-8 w-8 ${res.isHidden ? 'text-slate-500 hover:text-slate-700' : 'text-slate-600 hover:text-slate-800'}`}
+                                        onClick={() => toggleResourceVisibility(res.id, res.isHidden ?? false)}
+                                        title={res.isHidden ? 'Afficher sur le site' : 'Masquer sur le site'}
+                                        disabled={saving}
+                                      >
+                                        {res.isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
                                         className="h-8 w-8"
                                         onClick={() => openEditResource(cat, res)}
                                         title="Modifier la ressource"
@@ -832,6 +865,16 @@ export function BlockEditor() {
                                       <p className={`text-xs truncate ${res.isHidden ? 'text-slate-400' : 'text-slate-500'}`}>{res.description}</p>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-8 w-8 ${res.isHidden ? 'text-slate-500 hover:text-slate-700' : 'text-slate-600 hover:text-slate-800'}`}
+                                        onClick={() => toggleResourceVisibility(res.id, res.isHidden ?? false)}
+                                        title={res.isHidden ? 'Afficher sur le site' : 'Masquer sur le site'}
+                                        disabled={saving}
+                                      >
+                                        {res.isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                      </Button>
                                       <Button
                                         variant="ghost"
                                         size="icon"
