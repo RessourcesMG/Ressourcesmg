@@ -64,31 +64,45 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       .order('is_specialty', { ascending: true })
       .order('sort_order', { ascending: true });
     
-    // Si c'est le webmaster, inclure toutes les ressources (y compris cachées)
-    // Sinon, filtrer les ressources cachées
-    // Note: on utilise .or() pour inclure les ressources où is_hidden est false ou NULL (non masquées)
-    let resourceQuery = supabase
+    // Récupérer toutes les ressources
+    const { data: allRess, error: ressError } = await supabase
       .from('managed_resources')
       .select('*')
       .order('sort_order', { ascending: true });
     
-    if (!isWebmaster) {
-      // Inclure les ressources où is_hidden n'est pas true (donc false ou NULL = non masquées)
-      resourceQuery = resourceQuery.neq('is_hidden', true);
+    // Si erreur, logger mais continuer avec un tableau vide
+    if (ressError) {
+      console.warn('Erreur lors de la récupération des ressources:', ressError.message);
     }
     
-    const { data: ress } = await resourceQuery;
+    // Filtrer les ressources masquées côté serveur
+    // Si is_hidden est undefined/null/false, la ressource est visible (non masquée)
+    // Seulement filtrer si on n'est pas webmaster ET qu'on a des ressources
+    let ress = allRess || [];
+    if (!isWebmaster && ress.length > 0) {
+      ress = ress.filter((r) => {
+        // Si is_hidden n'existe pas dans l'objet (undefined), considérer comme visible
+        // Si is_hidden est null ou false, considérer comme visible
+        // Seulement masquer si is_hidden est explicitement true
+        return r.is_hidden !== true;
+      });
+    }
 
+    // Si pas de catégories ET pas de ressources, retourner fromDb: false
+    // Mais si on a des catégories (même sans ressources), c'est qu'on vient de la DB
     if (!cats?.length && !ress?.length) {
       return res.status(200).json({ categories: [], fromDb: false });
     }
+    
+    // Si on a des catégories mais pas de ressources, c'est normal (toutes masquées ou pas encore de ressources)
+    // On retourne quand même fromDb: true pour utiliser les catégories de la DB
 
     const categories = (cats || []).map((c) => ({
       id: c.id,
       name: c.name,
       icon: c.icon,
       isSpecialty: c.is_specialty ?? false,
-      resources: (ress || [])
+      resources: ress
         .filter((r) => r.category_id === c.id)
         .map((r) => ({
           id: r.id,
