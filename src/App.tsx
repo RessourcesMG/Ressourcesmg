@@ -4,6 +4,7 @@ import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
+import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import {
   getSearchTermGroups,
