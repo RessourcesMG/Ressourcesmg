@@ -169,6 +169,8 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         description: p.description ?? '',
         status: p.status,
         categoryId: p.category_id ?? undefined,
+        note: p.note ?? undefined,
+        requiresAuth: p.requires_auth ?? false,
         createdAt: p.created_at,
       })),
     });
@@ -187,6 +189,8 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       name?: string;
       url?: string;
       description?: string;
+      note?: string;
+      requiresAuth?: boolean;
     };
 
     const { id, action } = body;
@@ -197,7 +201,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     if (action === 'accept') {
       const { data: prop } = await supabase
         .from('resource_proposals')
-        .select('name, url, description')
+        .select('name, url, description, note, requires_auth')
         .eq('id', id)
         .single();
 
@@ -215,8 +219,8 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         name: prop.name,
         description: prop.description ?? '',
         url: prop.url,
-        requires_auth: false,
-        note: null,
+        requires_auth: prop.requires_auth ?? false,
+        note: prop.note ?? null,
         sort_order: 9999,
       });
 
@@ -246,6 +250,9 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       if (body.name !== undefined) up.name = body.name.trim();
       if (body.url !== undefined) up.url = body.url.trim();
       if (body.description !== undefined) up.description = body.description;
+      if (body.categoryId !== undefined) up.category_id = body.categoryId.trim();
+      if (body.note !== undefined) up.note = body.note.trim() || null;
+      if (body.requiresAuth !== undefined) up.requires_auth = body.requiresAuth;
 
       if (Object.keys(up).length === 0) {
         return res.status(400).json({ error: 'Aucun champ à modifier' });
