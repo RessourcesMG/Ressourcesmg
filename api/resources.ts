@@ -1,37 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClient } from '@supabase/supabase-js';
-import crypto from 'crypto';
-
-let _supabase: ReturnType<typeof createClient> | null = null;
-function getSupabase() {
-  if (_supabase) return _supabase;
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  try {
-    _supabase = createClient(url, key, { auth: { persistSession: false } });
-    return _supabase;
-  } catch {
-    return null;
-  }
-}
-
-const SECRET = process.env.WEBMASTER_SECRET || 'ressourcesmg-default-secret-change-me';
-const TOKEN_MS = 8 * 60 * 60 * 1000;
-function verifyToken(token: string | null | undefined): boolean {
-  if (!token) return false;
-  try {
-    const [payloadB64, sig] = token.split('.');
-    if (!payloadB64 || !sig) return false;
-    const payload = Buffer.from(payloadB64, 'base64url').toString();
-    const expected = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
-    if (sig !== expected) return false;
-    const data = JSON.parse(payload);
-    return Date.now() - data.t < TOKEN_MS;
-  } catch {
-    return false;
-  }
-}
+import { getSupabase } from '../api-utils/supabase';
+import { getToken, verifyToken } from '../api-utils/auth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -80,9 +49,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     if (!supabase) return res.status(503).json({ error: 'Base de données non configurée' });
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    if (!verifyToken(token)) {
+    if (!verifyToken(getToken(req))) {
       return res.status(401).json({ error: 'Non autorisé' });
     }
 
@@ -124,9 +91,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'DELETE') {
     if (!supabase) return res.status(503).json({ error: 'Base de données non configurée' });
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-    if (!verifyToken(token)) {
+    if (!verifyToken(getToken(req))) {
       return res.status(401).json({ error: 'Non autorisé' });
     }
 
