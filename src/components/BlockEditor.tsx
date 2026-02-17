@@ -599,7 +599,7 @@ export function BlockEditor() {
                                       dragResource?.resourceId === res.id && dragResource?.categoryId === cat.id
                                         ? 'opacity-40 bg-slate-100'
                                         : res.isHidden
-                                        ? 'bg-slate-50 opacity-60 hover:bg-slate-100'
+                                        ? 'opacity-60 bg-slate-50 hover:bg-slate-100'
                                         : 'hover:bg-slate-50'
                                     }`}
                                   >
@@ -608,14 +608,12 @@ export function BlockEditor() {
                                     </span>
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-center gap-2">
-                                        <p className={`font-medium truncate ${res.isHidden ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
-                                          {res.name}
-                                        </p>
+                                        <p className={`font-medium truncate ${res.isHidden ? 'text-slate-500' : 'text-slate-800'}`}>{res.name}</p>
                                         {res.isHidden && (
-                                          <div className="flex items-center gap-1 text-xs px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded" title="Ressource masquée sur le site public">
+                                          <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded" title="Ressource masquée sur le site public">
                                             <EyeOff className="w-3 h-3" />
-                                            <span>Masquée</span>
-                                          </div>
+                                            Masquée
+                                          </span>
                                         )}
                                       </div>
                                       <p className={`text-xs truncate ${res.isHidden ? 'text-slate-400' : 'text-slate-500'}`}>{res.description}</p>
@@ -814,7 +812,7 @@ export function BlockEditor() {
                                       dragResource?.resourceId === res.id && dragResource?.categoryId === cat.id
                                         ? 'opacity-40 bg-slate-100'
                                         : res.isHidden
-                                        ? 'bg-slate-50 opacity-60 hover:bg-slate-100'
+                                        ? 'opacity-60 bg-slate-50 hover:bg-slate-100'
                                         : 'hover:bg-slate-50'
                                     }`}
                                   >
@@ -823,14 +821,12 @@ export function BlockEditor() {
                                     </span>
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-center gap-2">
-                                        <p className={`font-medium truncate ${res.isHidden ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
-                                          {res.name}
-                                        </p>
+                                        <p className={`font-medium truncate ${res.isHidden ? 'text-slate-500' : 'text-slate-800'}`}>{res.name}</p>
                                         {res.isHidden && (
-                                          <div className="flex items-center gap-1 text-xs px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded" title="Ressource masquée sur le site public">
+                                          <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded" title="Ressource masquée sur le site public">
                                             <EyeOff className="w-3 h-3" />
-                                            <span>Masquée</span>
-                                          </div>
+                                            Masquée
+                                          </span>
                                         )}
                                       </div>
                                       <p className={`text-xs truncate ${res.isHidden ? 'text-slate-400' : 'text-slate-500'}`}>{res.description}</p>
