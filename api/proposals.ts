@@ -154,7 +154,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     if (emailjsServiceId && emailjsTemplateId && emailjsPublicKey && notifyEmail) {
       try {
         const emailjsUrl = `https://api.emailjs.com/api/v1.0/email/send`;
-        await fetch(emailjsUrl, {
+        const emailjsResponse = await fetch(emailjsUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -171,7 +171,13 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
             },
           }),
         });
-      } catch {
+        
+        if (!emailjsResponse.ok) {
+          const errorText = await emailjsResponse.text();
+          console.error('[EmailJS] Erreur:', emailjsResponse.status, errorText);
+        }
+      } catch (err) {
+        console.error('[EmailJS] Exception:', err instanceof Error ? err.message : String(err));
         // Ne pas bloquer la réponse si l'email échoue
       }
     }
