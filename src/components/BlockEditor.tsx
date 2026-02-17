@@ -399,16 +399,6 @@ export function BlockEditor() {
     else setSaveError(result.error || 'Erreur');
   };
 
-  const toggleResourceVisibility = async (resourceId: string, currentHidden: boolean) => {
-    setSaveError('');
-    setSaving(true);
-    const result = await updateResource(resourceId, { isHidden: !currentHidden });
-    setSaving(false);
-    if (!result.success) {
-      setSaveError(result.error || 'Erreur lors du changement de visibilité');
-    }
-  };
-
   const toggleCategory = (id: string) => {
     setOpenCategories((prev) => ({ ...prev, [id]: !prev[id] }));
   };
