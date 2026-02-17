@@ -10,6 +10,40 @@ interface FaviconCache {
   };
 }
 
+/**
+ * Nettoie le cache pour supprimer toutes les entrées Google (placeholders)
+ */
+function cleanGoogleEntriesFromCache(): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const cached = localStorage.getItem(FAVICON_CACHE_KEY);
+    if (!cached) return;
+    
+    const cache: FaviconCache = JSON.parse(cached);
+    let hasChanges = false;
+    
+    // Supprimer toutes les entrées qui pointent vers Google
+    for (const [key, value] of Object.entries(cache)) {
+      if (value.faviconUrl.includes('google.com/s2/favicons')) {
+        delete cache[key];
+        hasChanges = true;
+      }
+    }
+    
+    if (hasChanges) {
+      localStorage.setItem(FAVICON_CACHE_KEY, JSON.stringify(cache));
+    }
+  } catch {
+    // Ignorer les erreurs
+  }
+}
+
+// Nettoyer le cache Google au chargement du module
+if (typeof window !== 'undefined') {
+  cleanGoogleEntriesFromCache();
+}
+
 function getCachedFavicon(url: string): string | null {
   if (typeof window === 'undefined') return null;
   
@@ -21,6 +55,13 @@ function getCachedFavicon(url: string): string | null {
     const entry = cache[url];
     
     if (entry && Date.now() - entry.timestamp < CACHE_DURATION) {
+      // Ignorer les anciennes entrées Google (placeholder) qui pourraient être en cache
+      if (entry.faviconUrl.includes('google.com/s2/favicons')) {
+        // Retirer du cache et retourner null pour forcer une nouvelle recherche
+        delete cache[url];
+        localStorage.setItem(FAVICON_CACHE_KEY, JSON.stringify(cache));
+        return null;
+      }
       return entry.faviconUrl;
     }
     
@@ -28,7 +69,10 @@ function getCachedFavicon(url: string): string | null {
     const cleaned: FaviconCache = {};
     for (const [key, value] of Object.entries(cache)) {
       if (Date.now() - value.timestamp < CACHE_DURATION) {
-        cleaned[key] = value;
+        // Ignorer aussi les entrées Google lors du nettoyage
+        if (!value.faviconUrl.includes('google.com/s2/favicons')) {
+          cleaned[key] = value;
+        }
       }
     }
     localStorage.setItem(FAVICON_CACHE_KEY, JSON.stringify(cleaned));
@@ -54,19 +98,17 @@ function setCachedFavicon(url: string, faviconUrl: string): void {
 
 function getFaviconSources(url: string): string[] {
   try {
-    const { origin, hostname } = new URL(url);
+    const { origin } = new URL(url);
     const apiBase = typeof window !== 'undefined' ? window.location.origin : '';
     
     return [
-      // 1. Service Google (très rapide, bon taux de réussite)
-      `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`,
-      // 2. Chemins directs (rapides, testés en parallèle)
+      // 1. Chemins directs (rapides, testés en parallèle)
       `${origin}/favicon.ico`,
       `${origin}/favicon.png`,
       `${origin}/apple-touch-icon.png`,
       `${origin}/favicon-32x32.png`,
       `${origin}/favicon-16x16.png`,
-      // 3. API qui parse le HTML (plus lent mais plus précis, en dernier)
+      // 2. API qui parse le HTML (plus lent mais plus précis)
       `${apiBase}/api/favicon?url=${encodeURIComponent(url)}`,
     ];
   } catch {
@@ -75,8 +117,7 @@ function getFaviconSources(url: string): string[] {
 }
 
 /**
- * Teste si une URL d'image est valide.
- * Pour l'API Google (s2/favicons), rejette le placeholder par défaut (toujours 16x16 même avec sz=64).
+ * Teste si une URL d'image est valide
  */
 async function testImageUrl(url: string, timeout = 2000): Promise<boolean> {
   return new Promise((resolve) => {
@@ -89,11 +130,6 @@ async function testImageUrl(url: string, timeout = 2000): Promise<boolean> {
     
     img.onload = () => {
       clearTimeout(timer);
-      // Google renvoie une icône planète grise 16x16 quand il n'a pas de favicon ; on la rejette
-      if (url.includes('google.com/s2/favicons') && img.naturalWidth === 16 && img.naturalHeight === 16) {
-        resolve(false);
-        return;
-      }
       resolve(true);
     };
     
@@ -110,23 +146,23 @@ async function testImageUrl(url: string, timeout = 2000): Promise<boolean> {
  * Trouve le premier favicon valide parmi plusieurs sources en parallèle
  */
 async function findFirstValidFavicon(sources: string[]): Promise<string | null> {
-  // Essayer d'abord les sources rapides en parallèle (Google + chemins directs)
-  const fastSources = sources.slice(0, -1); // Tout sauf l'API
+  // Essayer d'abord les chemins directs en parallèle (rapides)
+  const directSources = sources.slice(0, -1); // Tout sauf l'API
   const apiSource = sources[sources.length - 1]; // L'API en dernier
   
-  // Tester les sources rapides en parallèle avec un timeout court
-  const fastPromises = fastSources.map(url => 
+  // Tester les chemins directs en parallèle avec un timeout court
+  const directPromises = directSources.map(url => 
     testImageUrl(url, 1500).then(valid => valid ? url : null)
   );
   
-  const fastResults = await Promise.all(fastPromises);
-  const firstValid = fastResults.find(url => url !== null);
+  const directResults = await Promise.all(directPromises);
+  const firstValid = directResults.find(url => url !== null);
   
   if (firstValid) {
     return firstValid;
   }
   
-  // Si aucune source rapide n'a fonctionné, essayer l'API (avec timeout plus long)
+  // Si aucun chemin direct n'a fonctionné, essayer l'API (avec timeout plus long)
   if (apiSource) {
     const apiValid = await testImageUrl(apiSource, 3000);
     if (apiValid) {
