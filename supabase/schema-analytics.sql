@@ -26,5 +26,9 @@ ALTER TABLE analytics_search_queries ENABLE ROW LEVEL SECURITY;
 
 -- Lecture : aucune (données sensibles, accessibles uniquement via API avec auth webmaster)
 -- Insertion : publique (pour enregistrer les clics/recherches côté client)
+-- DROP IF EXISTS permet de réexécuter le script sans erreur si les policies existent déjà
+DROP POLICY IF EXISTS "Insertion publique analytics_clicks" ON analytics_resource_clicks;
 CREATE POLICY "Insertion publique analytics_clicks" ON analytics_resource_clicks FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Insertion publique analytics_search" ON analytics_search_queries;
 CREATE POLICY "Insertion publique analytics_search" ON analytics_search_queries FOR INSERT WITH CHECK (true);
