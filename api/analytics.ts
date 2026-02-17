@@ -110,7 +110,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     const since = new Date();
     since.setDate(since.getDate() - periodDays);
 
-    // Top 20 ressources les plus cliquées
+    // Top 10 ressources les plus cliquées
     const { data: clicks } = await supabase
       .from('analytics_resource_clicks')
       .select('resource_id, resource_name, category_id')
@@ -126,9 +126,9 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     const topResources = [...clickCounts.entries()]
       .map(([id, data]) => ({ id, ...data }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 20);
+      .slice(0, 10);
 
-    // Top 20 recherches
+    // Top 10 recherches populaires
     const { data: searches } = await supabase
       .from('analytics_search_queries')
       .select('query')
@@ -142,7 +142,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     const topSearches = [...searchCounts.entries()]
       .map(([query, count]) => ({ query, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 20);
+      .slice(0, 10);
 
     return res.status(200).json({
       topResources,
