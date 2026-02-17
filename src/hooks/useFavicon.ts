@@ -75,7 +75,8 @@ function getFaviconSources(url: string): string[] {
 }
 
 /**
- * Teste si une URL d'image est valide
+ * Teste si une URL d'image est valide.
+ * Pour l'API Google (s2/favicons), rejette le placeholder par défaut (toujours 16x16 même avec sz=64).
  */
 async function testImageUrl(url: string, timeout = 2000): Promise<boolean> {
   return new Promise((resolve) => {
@@ -88,6 +89,11 @@ async function testImageUrl(url: string, timeout = 2000): Promise<boolean> {
     
     img.onload = () => {
       clearTimeout(timer);
+      // Google renvoie une icône planète grise 16x16 quand il n'a pas de favicon ; on la rejette
+      if (url.includes('google.com/s2/favicons') && img.naturalWidth === 16 && img.naturalHeight === 16) {
+        resolve(false);
+        return;
+      }
       resolve(true);
     };
     
