@@ -478,7 +478,7 @@ export function BlockEditor() {
                   </Button>
                 </div>
                 <div className="max-h-[420px] overflow-y-auto space-y-2">
-                  {filteredCategories.general.map((cat, idx) => {
+                  {filteredCategories.general.map((cat) => {
                     const originalCat = generalCategories.find((c) => c.id === cat.id);
                     if (!originalCat) return null;
                     const originalIdx = generalCategories.findIndex((c) => c.id === cat.id);
@@ -490,7 +490,7 @@ export function BlockEditor() {
                         onDragLeave={() => setDropIndicator(null)}
                         onDrop={(e) => handleCategoryDropZoneDrop(e, 'general', originalIdx)}
                       >
-                        {dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === idx && (
+                        {dropIndicator?.type === 'category' && dropIndicator.section === 'general' && dropIndicator.index === originalIdx && (
                           <div className="h-1 w-full max-w-[calc(100%-1rem)] mx-2 bg-teal-500 rounded-full shrink-0" />
                         )}
                       </div>
@@ -681,7 +681,7 @@ export function BlockEditor() {
                   </Button>
                 </div>
                 <div className="max-h-[420px] overflow-y-auto space-y-2">
-                  {filteredCategories.specialty.map((cat, idx) => {
+                  {filteredCategories.specialty.map((cat) => {
                     const originalCat = medicalSpecialties.find((c) => c.id === cat.id);
                     if (!originalCat) return null;
                     const originalIdx = medicalSpecialties.findIndex((c) => c.id === cat.id);
