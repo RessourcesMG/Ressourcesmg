@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabase } from '../api-utils/supabase';
-import { getToken, verifyToken } from '../api-utils/auth';
+import { getSupabase } from './lib/supabase';
+import { getToken, verifyToken } from './lib/auth';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -44,7 +44,12 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         resource_name: resourceName,
         category_id: categoryId,
       });
-      if (error) return res.status(500).json({ error: error.message });
+      if (error) {
+        return res.status(503).json({
+          error:
+            'Tables analytics manquantes. Exécutez supabase/schema-analytics.sql dans le SQL Editor de Supabase.',
+        });
+      }
       return res.status(204).end();
     }
 
@@ -56,7 +61,12 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         query,
         result_count: resultCount,
       });
-      if (error) return res.status(500).json({ error: error.message });
+      if (error) {
+        return res.status(503).json({
+          error:
+            'Tables analytics manquantes. Exécutez supabase/schema-analytics.sql dans le SQL Editor de Supabase.',
+        });
+      }
       return res.status(204).end();
     }
 
@@ -68,17 +78,28 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     if (!verifyToken(getToken(req))) {
       return res.status(401).json({ error: 'Non autorisé' });
     }
-    if (!supabase) return res.status(503).json({ error: 'Analytics non disponibles' });
+    if (!supabase) {
+      return res.status(503).json({
+        error: 'Analytics non disponibles. Vérifiez SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY sur Vercel.',
+      });
+    }
 
     const periodDays = 30; // Derniers 30 jours
     const since = new Date();
     since.setDate(since.getDate() - periodDays);
 
     // Top 10 ressources les plus cliquées
-    const { data: clicks } = await supabase
+    const { data: clicks, error: clicksError } = await supabase
       .from('analytics_resource_clicks')
       .select('resource_id, resource_name, category_id')
       .gte('clicked_at', since.toISOString());
+
+    if (clicksError) {
+      return res.status(503).json({
+        error:
+          'Tables analytics manquantes. Exécutez supabase/schema-analytics.sql dans le SQL Editor de Supabase.',
+      });
+    }
 
     const clickCounts = new Map<string, { name: string; categoryId: string; count: number }>();
     for (const c of clicks || []) {
@@ -93,10 +114,17 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
       .slice(0, 10);
 
     // Top 10 recherches populaires
-    const { data: searches } = await supabase
+    const { data: searches, error: searchesError } = await supabase
       .from('analytics_search_queries')
       .select('query')
       .gte('searched_at', since.toISOString());
+
+    if (searchesError) {
+      return res.status(503).json({
+        error:
+          'Tables analytics manquantes. Exécutez supabase/schema-analytics.sql dans le SQL Editor de Supabase.',
+      });
+    }
 
     const searchCounts = new Map<string, number>();
     for (const s of searches || []) {
