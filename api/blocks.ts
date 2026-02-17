@@ -66,13 +66,15 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     
     // Si c'est le webmaster, inclure toutes les ressources (y compris cachées)
     // Sinon, filtrer les ressources cachées
+    // Note: on utilise .or() pour inclure les ressources où is_hidden est false ou NULL (non masquées)
     let resourceQuery = supabase
       .from('managed_resources')
       .select('*')
       .order('sort_order', { ascending: true });
     
     if (!isWebmaster) {
-      resourceQuery = resourceQuery.eq('is_hidden', false);
+      // Inclure les ressources où is_hidden n'est pas true (donc false ou NULL = non masquées)
+      resourceQuery = resourceQuery.neq('is_hidden', true);
     }
     
     const { data: ress } = await resourceQuery;

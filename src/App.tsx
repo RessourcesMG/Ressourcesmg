@@ -69,9 +69,10 @@ function AppContent() {
 
   // Calculate totals (exclure les ressources masquées)
   // Utiliser les catégories fusionnées pour inclure les ressources personnalisées
+  // Note: traiter undefined/null comme non masqué (ressource visible)
   const totalResources = useMemo(() => {
     return [...generalCategories, ...mergedSpecialties].reduce(
-      (acc, cat) => acc + cat.resources.filter((r) => !r.isHidden).length,
+      (acc, cat) => acc + cat.resources.filter((r) => r.isHidden !== true).length,
       0
     );
   }, [generalCategories, mergedSpecialties]);
