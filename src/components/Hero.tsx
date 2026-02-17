@@ -49,14 +49,14 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
           </div>
 
           {/* Title */}
-          <h1 className={`font-bold text-slate-900 leading-tight ${isCompact ? 'text-3xl sm:text-4xl mb-4' : 'text-4xl sm:text-5xl lg:text-6xl mb-6'}`}>
+          <h1 className={`font-bold text-slate-900 leading-tight ${isCompact ? 'text-2xl sm:text-3xl mb-4' : 'text-3xl sm:text-4xl lg:text-5xl mb-6'}`}>
             Vos ressources médicales{' '}
             <span className="text-teal-600">en un clic</span>
           </h1>
 
           {/* Description */}
           <p className={`text-slate-600 leading-relaxed ${isCompact ? 'text-base mb-4' : 'text-lg sm:text-xl mb-8'}`}>
-            Un référencement complet des outils web utiles pour la pratique quotidienne en médecine générale en France. Organisé par spécialité pour une consultation rapide.
+            Un référencement participatif des outils web utiles pour la pratique de la médecine générale en France. Organisé par spécialité pour une consultation rapide.
           </p>
 
           {/* Stats avec léger fade-in au chargement */}
