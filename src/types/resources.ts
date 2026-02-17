@@ -5,6 +5,7 @@ export interface Resource {
   url: string;
   requiresAuth?: boolean;
   note?: string;
+  isHidden?: boolean;
 }
 
 export interface Category {
