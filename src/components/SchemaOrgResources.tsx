@@ -15,16 +15,19 @@ interface SchemaOrgResourcesProps {
 export function SchemaOrgResources({ generalCategories, medicalSpecialties }: SchemaOrgResourcesProps) {
   const jsonLd = useMemo(() => {
     const allCategories = [...generalCategories, ...medicalSpecialties];
-    const itemListElements: Array<{ '@type': string; position: number; name: string; url: string }> = [];
+    const itemListElements: Array<{ '@type': string; position: number; name: string; url: string; description?: string }> = [];
     let position = 1;
     for (const cat of allCategories) {
       for (const res of cat.resources) {
-        itemListElements.push({
-          '@type': 'ListItem',
-          position: position++,
-          name: res.name,
-          url: res.url,
-        });
+        if (res.isHidden !== true) {
+          itemListElements.push({
+            '@type': 'ListItem',
+            position: position++,
+            name: res.name,
+            url: res.url,
+            description: res.description || undefined,
+          });
+        }
       }
     }
     if (itemListElements.length === 0) return null;
@@ -35,7 +38,16 @@ export function SchemaOrgResources({ generalCategories, medicalSpecialties }: Sc
       description: 'Outils web utiles pour la pratique en médecine générale, organisés par spécialité',
       url: `${BASE_URL}/`,
       numberOfItems: itemListElements.length,
-      itemListElement: itemListElements.slice(0, 100), // Limiter pour ne pas alourdir
+      itemListElement: itemListElements.slice(0, 100).map(item => ({
+        '@type': 'ListItem',
+        position: item.position,
+        item: {
+          '@type': 'WebSite' as const,
+          name: item.name,
+          url: item.url,
+          ...(item.description && { description: item.description }),
+        },
+      })),
     };
   }, [generalCategories, medicalSpecialties]);
 
