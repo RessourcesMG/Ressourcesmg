@@ -1,6 +1,7 @@
 import { Stethoscope, ArrowDown, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCompactMode } from '@/contexts/CompactModeContext';
+import { useEffect, useRef } from 'react';
 
 interface HeroProps {
   totalResources: number;
@@ -10,6 +11,16 @@ interface HeroProps {
 
 export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) {
   const { isCompact } = useCompactMode();
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    // Nettoyer le timeout au démontage
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const scrollToResources = () => {
     const element = document.getElementById('resources-section');
@@ -19,26 +30,58 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
   };
 
   const scrollToAddResource = () => {
+    // Annuler tout scroll en cours
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
     // Fonction récursive pour attendre que l'élément soit disponible
     const tryScroll = (attempts = 0) => {
       const element = document.getElementById('add-resource-form');
       if (element) {
+        // Vérifier que l'élément a une taille (est vraiment rendu)
+        const rect = element.getBoundingClientRect();
+        const hasSize = rect.width > 0 || rect.height > 0;
+        
+        if (!hasSize && attempts < 15) {
+          // L'élément existe mais n'est pas encore mesurable, réessayer
+          scrollTimeoutRef.current = setTimeout(() => tryScroll(attempts + 1), 100);
+          return;
+        }
+
         // Utiliser requestAnimationFrame pour s'assurer que le DOM est prêt
         requestAnimationFrame(() => {
-          // Calculer la position avec un offset pour le header sticky
-          const header = document.querySelector('header');
-          const headerHeight = header ? header.offsetHeight : 0;
-          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-          const offsetPosition = elementPosition - headerHeight - 20; // 20px de marge supplémentaire
-          
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
+          // Utiliser scrollIntoView qui est plus fiable que le calcul manuel
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
           });
+          
+          // Vérification après le scroll pour s'assurer que ça a fonctionné
+          scrollTimeoutRef.current = setTimeout(() => {
+            const newRect = element.getBoundingClientRect();
+            const header = document.querySelector('header');
+            const headerHeight = header ? header.offsetHeight : 0;
+            
+            // Vérifier si l'élément est visible (avec une marge de tolérance)
+            const isVisible = newRect.top >= headerHeight - 100 && newRect.top < window.innerHeight + 200;
+            
+            // Si l'élément n'est toujours pas visible, réessayer avec un calcul manuel
+            if (!isVisible) {
+              const elementTop = newRect.top + window.pageYOffset;
+              const offsetPosition = Math.max(0, elementTop - headerHeight - 20);
+              
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+            }
+          }, 500);
         });
-      } else if (attempts < 10) {
-        // Réessayer jusqu'à 10 fois avec un délai de 50ms
-        setTimeout(() => tryScroll(attempts + 1), 50);
+      } else if (attempts < 40) {
+        // Réessayer jusqu'à 40 fois avec un délai de 50ms (2 secondes max)
+        scrollTimeoutRef.current = setTimeout(() => tryScroll(attempts + 1), 50);
       }
     };
     tryScroll();

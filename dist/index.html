@@ -5,17 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ressources MG - Médecine Générale | Outils et liens pour MG</title>
     <meta name="description" content="Ressources web pour les médecins généralistes : outils par spécialité, recherche, accès rapide. Encyclopédie des ressources médicales en un clic." />
-    <meta name="keywords" content="médecine générale, MG, ressources médicales, outils médecin, liens utiles médecins, spécialités médicales, référentiels" />
+    <meta name="keywords" content="médecine générale, MG, ressources médicales, outils médecin, liens utiles médecins, spécialités médicales, référentiels, médecine générale France, outils MG, ressources professionnelles médecins" />
     <meta name="author" content="Ressources MG" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="language" content="French" />
+    <meta name="geo.region" content="FR" />
     <link rel="canonical" href="https://ressourcesmg.vercel.app/" />
     <!-- Open Graph (aperçu lien partagé) -->
     <meta property="og:title" content="Ressources MG - Médecine Générale | Outils et liens pour MG" />
     <meta property="og:description" content="Ressources web pour les médecins généralistes : outils par spécialité, recherche, accès rapide. Encyclopédie des ressources médicales en un clic." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ressourcesmg.vercel.app/" />
+    <meta property="og:image" content="https://ressourcesmg.vercel.app/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Ressources MG - Outils et ressources pour médecins généralistes" />
     <meta property="og:locale" content="fr_FR" />
     <meta property="og:site_name" content="Ressources MG" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ressources MG - Médecine Générale | Outils et liens pour MG" />
+    <meta name="twitter:description" content="Ressources web pour les médecins généralistes : outils par spécialité, recherche, accès rapide. Encyclopédie des ressources médicales en un clic." />
+    <meta name="twitter:image" content="https://ressourcesmg.vercel.app/og-image.svg" />
+    <meta name="twitter:image:alt" content="Ressources MG - Outils et ressources pour médecins généralistes" />
     <!-- Thème navigateur -->
     <meta name="theme-color" content="#0d9488" />
     <meta name="color-scheme" content="light" />
@@ -31,29 +44,56 @@
           "@id": "https://ressourcesmg.vercel.app/#website",
           "url": "https://ressourcesmg.vercel.app/",
           "name": "Ressources MG",
-          "description": "Ressources web pour les médecins généralistes : outils par spécialité, recherche, accès rapide.",
+          "description": "Ressources web pour les médecins généralistes : outils par spécialité, recherche, accès rapide. Encyclopédie des ressources médicales en un clic.",
           "inLanguage": "fr-FR",
           "publisher": { "@id": "https://ressourcesmg.vercel.app/#organization" },
           "potentialAction": {
             "@type": "SearchAction",
             "target": { "@type": "EntryPoint", "urlTemplate": "https://ressourcesmg.vercel.app/?q={search_term_string}" },
             "query-input": "required name=search_term_string"
+          },
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Médecins généralistes",
+            "geographicArea": {
+              "@type": "Country",
+              "name": "France"
+            }
           }
         },
         {
           "@type": "Organization",
           "@id": "https://ressourcesmg.vercel.app/#organization",
           "name": "Ressources MG",
-          "url": "https://ressourcesmg.vercel.app/"
+          "url": "https://ressourcesmg.vercel.app/",
+          "logo": "https://ressourcesmg.vercel.app/favicon.svg",
+          "description": "Plateforme de ressources web pour médecins généralistes",
+          "sameAs": []
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://ressourcesmg.vercel.app/#webpage",
+          "url": "https://ressourcesmg.vercel.app/",
+          "name": "Ressources MG - Médecine Générale",
+          "description": "Ressources web pour les médecins généralistes : outils par spécialité, recherche, accès rapide. Encyclopédie des ressources médicales en un clic.",
+          "inLanguage": "fr-FR",
+          "isPartOf": { "@id": "https://ressourcesmg.vercel.app/#website" },
+          "about": { "@id": "https://ressourcesmg.vercel.app/#organization" },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": "https://ressourcesmg.vercel.app/og-image.svg",
+            "width": 1200,
+            "height": 630
+          }
         }
       ]
     }
     </script>
-    <script type="module" crossorigin src="./assets/index-I8kVEoHz.js"></script>
+    <script type="module" crossorigin src="./assets/index-D7LOiSL_.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/react-vendor-BVKlYuRN.js">
     <link rel="modulepreload" crossorigin href="./assets/radix-Brl1PKV-.js">
     <link rel="modulepreload" crossorigin href="./assets/router-BA_zgeIM.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-CY_LHIGT.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-DMCQ9qCu.css">
   <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
   <body>
     <div id="root"></div>
