@@ -11,7 +11,7 @@ interface HeroProps {
 
 export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) {
   const { isCompact } = useCompactMode();
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Nettoyer le timeout au démontage
