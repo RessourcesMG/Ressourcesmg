@@ -36,7 +36,7 @@ function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
           ) : (
             <img
               src={faviconUrl}
-              alt=""
+              alt={`Icône de ${resource.name}`}
               className="w-full h-full object-contain"
               width={20}
               height={20}
@@ -95,7 +95,7 @@ function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
               ) : (
             <img
               src={faviconUrl}
-              alt=""
+              alt={`Icône de ${resource.name}`}
               className="w-full h-full object-contain"
               width={32}
               height={32}
