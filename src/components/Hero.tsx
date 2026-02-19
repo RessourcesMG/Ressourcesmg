@@ -19,10 +19,29 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
   };
 
   const scrollToAddResource = () => {
-    const element = document.getElementById('add-resource-form');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Fonction récursive pour attendre que l'élément soit disponible
+    const tryScroll = (attempts = 0) => {
+      const element = document.getElementById('add-resource-form');
+      if (element) {
+        // Utiliser requestAnimationFrame pour s'assurer que le DOM est prêt
+        requestAnimationFrame(() => {
+          // Calculer la position avec un offset pour le header sticky
+          const header = document.querySelector('header');
+          const headerHeight = header ? header.offsetHeight : 0;
+          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - headerHeight - 20; // 20px de marge supplémentaire
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        });
+      } else if (attempts < 10) {
+        // Réessayer jusqu'à 10 fois avec un délai de 50ms
+        setTimeout(() => tryScroll(attempts + 1), 50);
+      }
+    };
+    tryScroll();
   };
 
   const scrollToEssentielles = () => {
