@@ -22,65 +22,38 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
     };
   }, []);
 
+  const SCROLL_OFFSET_PX = 120; // 7.5rem pour header + scroll-margin
+
+  const smoothScrollToElement = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const top = window.scrollY + rect.top - SCROLL_OFFSET_PX;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  };
+
   const scrollToResources = () => {
-    const element = document.getElementById('resources-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    smoothScrollToElement('resources-section');
   };
 
   const scrollToAddResource = () => {
-    // Annuler tout scroll en cours
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
-
-    // Fonction récursive pour attendre que l'élément soit disponible
     const tryScroll = (attempts = 0) => {
       const element = document.getElementById('add-resource-form');
       if (element) {
-        // Vérifier que l'élément a une taille (est vraiment rendu)
         const rect = element.getBoundingClientRect();
         const hasSize = rect.width > 0 || rect.height > 0;
-        
         if (!hasSize && attempts < 15) {
-          // L'élément existe mais n'est pas encore mesurable, réessayer
           scrollTimeoutRef.current = setTimeout(() => tryScroll(attempts + 1), 100);
           return;
         }
-
-        // Utiliser requestAnimationFrame pour s'assurer que le DOM est prêt
-        requestAnimationFrame(() => {
-          // Utiliser scrollIntoView qui est plus fiable que le calcul manuel
-          element.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          });
-          
-          // Vérification après le scroll pour s'assurer que ça a fonctionné
-          scrollTimeoutRef.current = setTimeout(() => {
-            const newRect = element.getBoundingClientRect();
-            const header = document.querySelector('header');
-            const headerHeight = header ? header.offsetHeight : 0;
-            
-            // Vérifier si l'élément est visible (avec une marge de tolérance)
-            const isVisible = newRect.top >= headerHeight - 100 && newRect.top < window.innerHeight + 200;
-            
-            // Si l'élément n'est toujours pas visible, réessayer avec un calcul manuel
-            if (!isVisible) {
-              const elementTop = newRect.top + window.pageYOffset;
-              const offsetPosition = Math.max(0, elementTop - headerHeight - 20);
-              
-              window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-              });
-            }
-          }, 500);
-        });
-      } else if (attempts < 40) {
-        // Réessayer jusqu'à 40 fois avec un délai de 50ms (2 secondes max)
+        const top = window.scrollY + rect.top - SCROLL_OFFSET_PX;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        return;
+      }
+      if (attempts < 40) {
         scrollTimeoutRef.current = setTimeout(() => tryScroll(attempts + 1), 50);
       }
     };
@@ -88,10 +61,7 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
   };
 
   const scrollToEssentielles = () => {
-    const element = document.getElementById('ressources-essentielles');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    smoothScrollToElement('ressources-essentielles');
   };
 
   return (
