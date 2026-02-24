@@ -37,6 +37,8 @@ import {
   Star,
   Loader2,
   ExternalLink,
+  MessageCircleQuestion,
+  X,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -222,15 +224,15 @@ export function Header({
 
   return (
     <header 
-      className={`fixed left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed left-0 right-0 z-50 transition-all duration-300 pt-4 pb-0 ${
         isScrolled 
           ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200' 
           : 'bg-white'
       }`}
       style={{ top: 'var(--announcement-banner-height, 0px)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 min-h-[3.25rem] py-2 sm:py-3">
           {/* Logo : retour accueil et réinitialisation recherche / filtres */}
           <Link
             to="/"
@@ -245,7 +247,7 @@ export function Header({
           </Link>
 
           {/* Barre de recherche + Recherche par question */}
-          <div className="flex-1 max-w-xl flex flex-col gap-1 relative z-[60]">
+          <div className="flex-1 min-w-0 max-w-xl flex flex-col gap-1 relative z-[60]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <Input
@@ -255,7 +257,7 @@ export function Header({
                 placeholder="Rechercher (ex. rein, pédiatrie, ordonnance…)"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="pl-10 pr-4 w-full bg-slate-50 border-slate-200 focus:bg-white focus-visible:border-teal-500/60 focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:outline-none"
+                className="pl-10 pr-4 w-full min-h-[44px] sm:min-h-[2.25rem] bg-slate-50 border-slate-200 focus:bg-white focus-visible:border-teal-500/60 focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:outline-none touch-manipulation text-base sm:text-sm"
                 aria-label="Rechercher une ressource médicale"
               />
             </div>
@@ -268,28 +270,36 @@ export function Header({
                       setAiSearchEnabled(true);
                       setAiPanelOpen(true);
                     }}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md px-2 py-1 -mx-1 transition-colors w-fit"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md px-2 py-2 sm:py-1 -mx-1 transition-colors w-fit min-h-[44px] sm:min-h-0 items-center touch-manipulation"
                     aria-label="Activer la recherche par question"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <MessageCircleQuestion className="w-3.5 h-3.5 shrink-0" />
                     Recherche par question
                   </button>
                 ) : (
                   <Collapsible open={aiPanelOpen} onOpenChange={setAiPanelOpen} className="w-full">
                     <CollapsibleTrigger
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline py-2 sm:py-0 min-h-[44px] sm:min-h-0 items-center touch-manipulation"
                       aria-expanded={aiPanelOpen}
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <MessageCircleQuestion className="w-3.5 h-3.5 shrink-0" />
                       Poser une question
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-2 relative z-[100]">
-                      <div className="absolute left-0 top-full mt-1 w-full max-w-[min(100%,400px)] rounded-lg border border-slate-200 bg-white p-3 shadow-lg space-y-2 z-[100]">
+                      <div className="absolute left-0 right-0 sm:right-auto top-full mt-1 w-full sm:max-w-[400px] rounded-lg border border-slate-200 bg-white p-3 sm:p-3 shadow-lg space-y-3 z-[100]">
+                        <button
+                          type="button"
+                          onClick={() => setAiPanelOpen(false)}
+                          className="absolute top-2 right-2 p-2 sm:p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 touch-manipulation min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+                          aria-label="Fermer"
+                        >
+                          <X className="w-5 h-5 sm:w-4 sm:h-4" />
+                        </button>
                         <textarea
                           placeholder="Ex. Quelle ressource pour les recommandations HTA ?"
                           value={aiQuestion}
                           onChange={(e) => setAiQuestion(e.target.value)}
-                          className="w-full min-h-[72px] rounded-md border border-slate-200 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/60 resize-none"
+                          className="w-full min-h-[80px] sm:min-h-[72px] rounded-md border border-slate-200 px-3 py-3 sm:py-2 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/60 resize-none touch-manipulation"
                           rows={2}
                           disabled={aiLoading}
                         />
@@ -298,7 +308,7 @@ export function Header({
                           size="sm"
                           onClick={handleAskAI}
                           disabled={aiLoading || aiQuestion.trim().length < 2}
-                          className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
+                          className="bg-teal-600 hover:bg-teal-700 text-white text-sm sm:text-xs min-h-[44px] sm:min-h-9 w-full sm:w-auto touch-manipulation"
                         >
                           {aiLoading ? (
                             <>
@@ -341,18 +351,6 @@ export function Header({
                             )}
                           </div>
                         )}
-                        <p className="pt-1 border-t border-slate-100">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAiSearchEnabled(false);
-                              setAiPanelOpen(false);
-                            }}
-                            className="text-xs text-slate-500 hover:text-slate-700"
-                          >
-                            Désactiver la recherche par question
-                          </button>
-                        </p>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
