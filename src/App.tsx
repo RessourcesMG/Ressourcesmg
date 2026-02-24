@@ -10,7 +10,9 @@ import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
 import {
   getSearchTermGroups,
+  getSearchTermGroupsForQuestion,
   matchesSearch,
+  matchesSearchAny,
   scoreSearchMatch,
   getDidYouMeanSuggestions,
 } from '@/lib/searchSynonyms';
@@ -158,28 +160,37 @@ function AppContent() {
     (question: string): AiSuggestion[] => {
       const q = question.trim();
       if (!q || q.length < 2) return [];
-      const allGeneral = filterAndSortCategories(generalCategories, q, null);
-      const allSpecialties = filterAndSortCategories(mergedSpecialties, q, null);
-      const suggestions: AiSuggestion[] = [];
-      const seen = new Set<string>();
-      const push = (cat: Category) => {
+      const termGroups = getSearchTermGroupsForQuestion(q);
+      if (termGroups.length === 0) return [];
+      const allCats = [...generalCategories, ...mergedSpecialties];
+      const scored: Array<{ resource: (typeof allCats)[0]['resources'][0]; categoryName: string; score: number }> = [];
+      for (const cat of allCats) {
         for (const r of cat.resources) {
-          if (seen.has(r.id)) continue;
-          seen.add(r.id);
-          suggestions.push({
-            resourceName: r.name,
-            resourceUrl: r.url,
-            categoryName: cat.name,
-            reason: `Ressource en « ${cat.name} » correspondant à votre question.`,
-          });
-          if (suggestions.length >= 8) return;
+          if (r.isHidden === true) continue;
+          const searchableText = `${cat.name} ${r.name} ${r.description} ${r.note ?? ''}`;
+          if (!matchesSearchAny(searchableText, termGroups)) continue;
+          const score = scoreSearchMatch(
+            { categoryName: cat.name, name: r.name, description: r.description, note: r.note },
+            termGroups
+          );
+          scored.push({ resource: r, categoryName: cat.name, score });
         }
-      };
-      for (const cat of [...allGeneral, ...allSpecialties]) {
-        push(cat);
-        if (suggestions.length >= 8) break;
       }
-      return suggestions;
+      scored.sort((a, b) => b.score - a.score);
+      const seen = new Set<string>();
+      return scored
+        .filter(({ resource }) => {
+          if (seen.has(resource.id)) return false;
+          seen.add(resource.id);
+          return true;
+        })
+        .slice(0, 8)
+        .map(({ resource, categoryName }) => ({
+          resourceName: resource.name,
+          resourceUrl: resource.url,
+          categoryName,
+          reason: `Ressource en « ${categoryName} » correspondant à votre question.`,
+        }));
     },
     [generalCategories, mergedSpecialties]
   );
