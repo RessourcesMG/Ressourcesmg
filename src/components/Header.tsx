@@ -104,7 +104,7 @@ interface HeaderProps {
   showOnlyFavorites?: boolean;
   onShowOnlyFavoritesChange?: (value: boolean) => void;
   favoritesCount?: number;
-  /** Catalogue pour la recherche par IA (optionnel, affiché seulement si l'utilisateur a activé la fonctionnalité). */
+  /** Catalogue pour la recherche par question (affichage du bloc si des catégories existent). */
   catalogForAI?: CatalogEntry[];
   /** Recherche locale à partir d’une question (gratuite, sans API). */
   getSuggestionsForQuestion?: (question: string) => AiSuggestion[];
@@ -244,7 +244,7 @@ export function Header({
             <span className="font-bold text-slate-900 text-lg hidden sm:block">Ressources MG</span>
           </Link>
 
-          {/* Search Bar + Recherche par IA (activation et panneau dans le header) */}
+          {/* Barre de recherche + Recherche par question */}
           <div className="flex-1 max-w-xl flex flex-col gap-1 relative z-[60]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -269,10 +269,10 @@ export function Header({
                       setAiPanelOpen(true);
                     }}
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md px-2 py-1 -mx-1 transition-colors w-fit"
-                    aria-label="Activer la recherche par IA"
+                    aria-label="Activer la recherche par question"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    Recherche par IA
+                    Recherche par question
                   </button>
                 ) : (
                   <Collapsible open={aiPanelOpen} onOpenChange={setAiPanelOpen} className="w-full">
@@ -281,10 +281,10 @@ export function Header({
                       aria-expanded={aiPanelOpen}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
-                      Poser ma question à l&apos;IA
+                      Poser une question
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-2 relative z-[100]">
-                      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg space-y-2 relative z-[100]">
+                      <div className="absolute left-0 top-full mt-1 w-full max-w-[min(100%,400px)] rounded-lg border border-slate-200 bg-white p-3 shadow-lg space-y-2 z-[100]">
                         <textarea
                           placeholder="Ex. Quelle ressource pour les recommandations HTA ?"
                           value={aiQuestion}
@@ -306,7 +306,7 @@ export function Header({
                               Recherche…
                             </>
                           ) : (
-                            'Envoyer à l\'IA'
+                            'Trouver des ressources'
                           )}
                         </Button>
                         {aiResult && (
@@ -350,7 +350,7 @@ export function Header({
                             }}
                             className="text-xs text-slate-500 hover:text-slate-700"
                           >
-                            Désactiver la recherche par IA
+                            Désactiver la recherche par question
                           </button>
                         </p>
                       </div>

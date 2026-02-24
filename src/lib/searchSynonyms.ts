@@ -235,6 +235,15 @@ export function getSearchTermGroups(query: string): string[][] {
 }
 
 /**
+ * Comme getSearchTermGroups mais en excluant les groupes dont le mot principal est un mot vide.
+ * À utiliser pour la « recherche par question » : on ne garde que les termes porteurs de sens.
+ */
+export function getSearchTermGroupsForQuestion(query: string): string[][] {
+  const groups = getSearchTermGroups(query);
+  return groups.filter((group) => group.length > 0 && !isStopWordTerm(group[0]));
+}
+
+/**
  * Vérifie si un terme est un mot de liaison (stop word).
  * Ces termes sont matchés en mot entier uniquement (pas en sous-chaîne).
  */
@@ -289,6 +298,24 @@ function termMatchesText(normalizedText: string, normalizedTerm: string, fuzzy: 
  */
 export function matchesSearch(text: string, termGroups: string[][]): boolean {
   return matchesSearchInternal(text, termGroups, false);
+}
+
+/** Retourne true si au moins un des groupes de termes matche le texte (pour recherche par question). */
+export function matchesSearchAny(text: string, termGroups: string[][]): boolean {
+  if (termGroups.length === 0) return true;
+  const normalizedText = normalizeText(text);
+  return termGroups.some((group) =>
+    group.some((term) => {
+      const normalizedTerm = normalizeTerm(term);
+      if (normalizedTerm.length < 2) return false;
+      if (isStopWordTerm(term)) {
+        const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const wordBoundaryRegex = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i');
+        return wordBoundaryRegex.test(normalizedText);
+      }
+      return termMatchesText(normalizedText, normalizedTerm, false);
+    })
+  );
 }
 
 /**
