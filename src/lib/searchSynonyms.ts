@@ -302,9 +302,14 @@ export function matchesSearch(text: string, termGroups: string[][]): boolean {
 
 /** Retourne true si au moins un des groupes de termes matche le texte (pour recherche par question). */
 export function matchesSearchAny(text: string, termGroups: string[][]): boolean {
-  if (termGroups.length === 0) return true;
+  return countMatchingTermGroups(text, termGroups) > 0;
+}
+
+/** Nombre de groupes de termes qui matchent le texte (pour trier par pertinence : plus = mieux). */
+export function countMatchingTermGroups(text: string, termGroups: string[][]): number {
+  if (termGroups.length === 0) return 0;
   const normalizedText = normalizeText(text);
-  return termGroups.some((group) =>
+  return termGroups.filter((group) =>
     group.some((term) => {
       const normalizedTerm = normalizeTerm(term);
       if (normalizedTerm.length < 2) return false;
@@ -315,7 +320,7 @@ export function matchesSearchAny(text: string, termGroups: string[][]): boolean 
       }
       return termMatchesText(normalizedText, normalizedTerm, false);
     })
-  );
+  ).length;
 }
 
 /**

@@ -12,7 +12,7 @@ import {
   getSearchTermGroups,
   getSearchTermGroupsForQuestion,
   matchesSearch,
-  matchesSearchAny,
+  countMatchingTermGroups,
   scoreSearchMatch,
   getDidYouMeanSuggestions,
 } from '@/lib/searchSynonyms';
@@ -163,20 +163,21 @@ function AppContent() {
       const termGroups = getSearchTermGroupsForQuestion(q);
       if (termGroups.length === 0) return [];
       const allCats = [...generalCategories, ...mergedSpecialties];
-      const scored: Array<{ resource: (typeof allCats)[0]['resources'][0]; categoryName: string; score: number }> = [];
+      const scored: Array<{ resource: (typeof allCats)[0]['resources'][0]; categoryName: string; score: number; matchCount: number }> = [];
       for (const cat of allCats) {
         for (const r of cat.resources) {
           if (r.isHidden === true) continue;
           const searchableText = `${cat.name} ${r.name} ${r.description} ${r.note ?? ''}`;
-          if (!matchesSearchAny(searchableText, termGroups)) continue;
+          const matchCount = countMatchingTermGroups(searchableText, termGroups);
+          if (matchCount === 0) continue;
           const score = scoreSearchMatch(
             { categoryName: cat.name, name: r.name, description: r.description, note: r.note },
             termGroups
           );
-          scored.push({ resource: r, categoryName: cat.name, score });
+          scored.push({ resource: r, categoryName: cat.name, score, matchCount });
         }
       }
-      scored.sort((a, b) => b.score - a.score);
+      scored.sort((a, b) => b.matchCount - a.matchCount || b.score - a.score);
       const seen = new Set<string>();
       return scored
         .filter(({ resource }) => {
@@ -280,7 +281,7 @@ function AppContent() {
 
         <section
           id="resources-section"
-          className={`scroll-mt-[7.5rem] ${isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}`}
+          className={`scroll-mt-[8.5rem] sm:scroll-mt-[8rem] ${isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}`}
           aria-label="Ressources"
         >
           <div className="max-w-7xl mx-auto">
