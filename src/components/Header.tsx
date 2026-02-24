@@ -37,7 +37,7 @@ import {
   Star,
   Loader2,
   ExternalLink,
-  MessageCircleQuestion,
+  HelpCircle,
   X,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -273,7 +273,7 @@ export function Header({
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md px-2 py-2 sm:py-1 -mx-1 transition-colors w-fit min-h-[44px] sm:min-h-0 items-center touch-manipulation"
                     aria-label="Activer la recherche par question"
                   >
-                    <MessageCircleQuestion className="w-3.5 h-3.5 shrink-0" />
+                    <HelpCircle className="w-3.5 h-3.5 shrink-0" />
                     Recherche par question
                   </button>
                 ) : (
@@ -282,7 +282,7 @@ export function Header({
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline py-2 sm:py-0 min-h-[44px] sm:min-h-0 items-center touch-manipulation"
                       aria-expanded={aiPanelOpen}
                     >
-                      <MessageCircleQuestion className="w-3.5 h-3.5 shrink-0" />
+                      <HelpCircle className="w-3.5 h-3.5 shrink-0" />
                       Poser une question
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-2 relative z-[100]">
