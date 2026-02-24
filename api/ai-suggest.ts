@@ -96,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(503).json({
       suggestions: [],
       error: 'Recherche par IA non disponible (configuration manquante).',
-    } satisfies AiSuggestResponse);
+    } as AiSuggestResponse);
   }
 
   const body = req.body as AiSuggestBody | undefined;
@@ -107,25 +107,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({
       suggestions: [],
       error: 'Veuillez poser une question plus précise (au moins quelques mots).',
-    } satisfies AiSuggestResponse);
+    } as AiSuggestResponse);
   }
 
   if (catalog.length === 0) {
     return res.status(400).json({
       suggestions: [],
       error: 'Catalogue des ressources indisponible.',
-    } satisfies AiSuggestResponse);
+    } as AiSuggestResponse);
   }
 
   try {
     const catalogText = buildCatalogText(catalog);
     const suggestions = await callOpenAI(catalogText, question);
-    return res.status(200).json({ suggestions } satisfies AiSuggestResponse);
+    return res.status(200).json({ suggestions } as AiSuggestResponse);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Erreur lors de la suggestion';
     return res.status(500).json({
       suggestions: [],
       error: message,
-    } satisfies AiSuggestResponse);
+    } as AiSuggestResponse);
   }
 }
