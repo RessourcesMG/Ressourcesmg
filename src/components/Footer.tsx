@@ -158,7 +158,7 @@ export function Footer({ categories = [] }: FooterProps) {
           </div>
 
           {/* Formulaire : largeur équilibrée */}
-          <div id="add-resource-form" className="lg:col-span-7 order-1 lg:order-2">
+          <div id="add-resource-form" className="scroll-mt-[7.5rem] lg:col-span-7 order-1 lg:order-2">
             <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
               <h3 className="font-semibold text-white mb-1 text-sm">Proposer une ressource</h3>
               <p className="text-slate-400 text-xs mb-3">
