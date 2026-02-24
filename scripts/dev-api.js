@@ -307,6 +307,89 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // POST /api/ai-suggest (recherche par IA : appelle OpenAI si OPENAI_API_KEY est défini)
+  if (url.pathname === '/api/ai-suggest' && req.method === 'POST') {
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    const body = await parseBody(req);
+    const question = typeof body.question === 'string' ? body.question.trim() : '';
+    const catalog = Array.isArray(body.catalog) ? body.catalog : [];
+    if (!OPENAI_API_KEY) {
+      res.writeHead(503);
+      res.end(JSON.stringify({ suggestions: [], error: 'Recherche par IA non disponible (OPENAI_API_KEY manquante).' }));
+      return;
+    }
+    if (!question || question.length < 5) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ suggestions: [], error: 'Veuillez poser une question plus précise (au moins quelques mots).' }));
+      return;
+    }
+    if (catalog.length === 0) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ suggestions: [], error: 'Catalogue des ressources indisponible.' }));
+      return;
+    }
+    const catalogText = catalog
+      .map((cat) => {
+        const resources = (cat.resources || [])
+          .map((r) => `- ${r.name}: ${r.description || '(sans description)'} (${r.url})`)
+          .join('\n');
+        return `[${cat.categoryName}]\n${resources}`;
+      })
+      .join('\n\n');
+    const systemPrompt = `Tu es un assistant pour des médecins généralistes. On te donne un catalogue de sites web médicaux (nom, courte description, URL) organisés par catégorie. Ta tâche : pour une question clinique posée par l'utilisateur, recommander les sites du catalogue qui peuvent y répondre.
+
+Réponds UNIQUEMENT avec un JSON valide, sans texte avant ou après, de la forme :
+{"suggestions":[{"resourceName":"Nom du site","resourceUrl":"https://...","categoryName":"Nom de la catégorie","reason":"Une phrase courte expliquant pourquoi ce site est pertinent"}]}
+
+Règles :
+- Ne recommande que des sites qui sont dans le catalogue fourni. Utilise exactement le nom et l'URL du catalogue.
+- Maximum 5 suggestions, par ordre de pertinence.
+- reason doit être en français, une phrase courte.
+- Si aucun site ne correspond vraiment, retourne {"suggestions":[]}.`;
+    const userMessage = `Catalogue des ressources disponibles :\n\n${catalogText}\n\n---\nQuestion clinique de l'utilisateur :\n${question}`;
+    try {
+      const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
+          ],
+          response_format: { type: 'json_object' },
+          max_tokens: 800,
+        }),
+      });
+      if (!openaiRes.ok) {
+        const err = await openaiRes.text();
+        res.writeHead(500);
+        res.end(JSON.stringify({ suggestions: [], error: `OpenAI: ${openaiRes.status} ${err}` }));
+        return;
+      }
+      const data = await openaiRes.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        res.writeHead(500);
+        res.end(JSON.stringify({ suggestions: [], error: 'Réponse OpenAI vide' }));
+        return;
+      }
+      const parsed = JSON.parse(content);
+      const suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : [];
+      res.setHeader('Content-Type', 'application/json');
+      res.writeHead(200);
+      res.end(JSON.stringify({ suggestions }));
+    } catch (e) {
+      const message = e?.message || 'Erreur lors de la suggestion';
+      res.writeHead(500);
+      res.end(JSON.stringify({ suggestions: [], error: message }));
+    }
+    return;
+  }
+
   // GET /api/favicon?url=...
   if (url.pathname === '/api/favicon' && req.method === 'GET') {
     const targetUrl = url.searchParams.get('url');

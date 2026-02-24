@@ -34,7 +34,9 @@ import {
   ChevronRight,
   LayoutGrid,
   List,
-  Star
+  Star,
+  Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -46,9 +48,12 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from '@/components/ui/tooltip';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';
+import { useAiSearch } from '@/contexts/AiSearchContext';
+import { suggestResources, type CatalogEntry } from '@/lib/aiSuggest';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -99,6 +104,8 @@ interface HeaderProps {
   showOnlyFavorites?: boolean;
   onShowOnlyFavoritesChange?: (value: boolean) => void;
   favoritesCount?: number;
+  /** Catalogue pour la recherche par IA (optionnel, affiché seulement si l'utilisateur a activé la fonctionnalité). */
+  catalogForAI?: CatalogEntry[];
 }
 
 export function Header({
@@ -110,13 +117,34 @@ export function Header({
   showOnlyFavorites = false,
   onShowOnlyFavoritesChange,
   favoritesCount = 0,
+  catalogForAI = [],
 }: HeaderProps) {
   const { isCompact, setCompact } = useCompactMode();
+  const { aiSearchEnabled, setAiSearchEnabled } = useAiSearch();
   const [isScrolled, setIsScrolled] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<{ suggestions: Array<{ resourceName: string; resourceUrl: string; categoryName: string; reason: string }>; error?: string } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleAskAI = useCallback(async () => {
+    const q = aiQuestion.trim();
+    if (!q || q.length < 5 || catalogForAI.length === 0 || aiLoading) return;
+    setAiLoading(true);
+    setAiResult(null);
+    try {
+      const data = await suggestResources(q, catalogForAI);
+      setAiResult({ suggestions: data.suggestions, error: data.error });
+    } catch {
+      setAiResult({ suggestions: [], error: 'Erreur réseau. Réessayez.' });
+    } finally {
+      setAiLoading(false);
+    }
+  }, [aiQuestion, catalogForAI, aiLoading]);
 
   const updateScrollArrows = useCallback(() => {
     const el = categoriesScrollRef.current;
@@ -208,8 +236,8 @@ export function Header({
             <span className="font-bold text-slate-900 text-lg hidden sm:block">Ressources MG</span>
           </Link>
 
-          {/* Search Bar + termes associés */}
-          <div className="flex-1 max-w-xl">
+          {/* Search Bar + Recherche par IA (activation et panneau dans le header) */}
+          <div className="flex-1 max-w-xl flex flex-col gap-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <Input
@@ -223,6 +251,101 @@ export function Header({
                 aria-label="Rechercher une ressource médicale"
               />
             </div>
+            {catalogForAI.length > 0 && (
+              <>
+                {!aiSearchEnabled ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAiSearchEnabled(true);
+                      setAiPanelOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md px-2 py-1 -mx-1 transition-colors w-fit"
+                    aria-label="Activer la recherche par IA"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Recherche par IA
+                  </button>
+                ) : (
+                  <Collapsible open={aiPanelOpen} onOpenChange={setAiPanelOpen} className="w-full">
+                    <CollapsibleTrigger
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline"
+                      aria-expanded={aiPanelOpen}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Poser ma question à l&apos;IA
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="pt-2">
+                      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm space-y-2">
+                        <textarea
+                          placeholder="Ex. Quelle ressource pour les recommandations HTA ?"
+                          value={aiQuestion}
+                          onChange={(e) => setAiQuestion(e.target.value)}
+                          className="w-full min-h-[72px] rounded-md border border-slate-200 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/60 resize-none"
+                          rows={2}
+                          disabled={aiLoading}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleAskAI}
+                          disabled={aiLoading || aiQuestion.trim().length < 5}
+                          className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
+                        >
+                          {aiLoading ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                              Recherche…
+                            </>
+                          ) : (
+                            'Envoyer à l\'IA'
+                          )}
+                        </Button>
+                        {aiResult && (
+                          <div className="mt-2 pt-2 border-t border-slate-100 text-left">
+                            {aiResult.error && (
+                              <p className="text-xs text-amber-600 mb-2">{aiResult.error}</p>
+                            )}
+                            {aiResult.suggestions.length > 0 ? (
+                              <ul className="space-y-1.5 text-xs">
+                                {aiResult.suggestions.map((s, i) => (
+                                  <li key={i}>
+                                    <a
+                                      href={s.resourceUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 hover:underline"
+                                    >
+                                      <span className="font-medium">{s.resourceName}</span>
+                                      <ExternalLink className="w-3 h-3 shrink-0" />
+                                    </a>
+                                    <span className="text-slate-500"> — {s.reason}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : !aiResult.error && (
+                              <p className="text-xs text-slate-500">Aucune ressource suggérée pour cette question.</p>
+                            )}
+                          </div>
+                        )}
+                        <p className="pt-1 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAiSearchEnabled(false);
+                              setAiPanelOpen(false);
+                            }}
+                            className="text-xs text-slate-500 hover:text-slate-700"
+                          >
+                            Désactiver la recherche par IA
+                          </button>
+                        </p>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </>
+            )}
           </div>
 
           {/* Toggle vue compacte - Mobile : pill "Liste" / "Cartes" pour bien distinguer du menu */}
