@@ -12,7 +12,6 @@ import {
   getSearchTermGroups,
   getSearchTermGroupsForQuestion,
   matchesSearch,
-  matchesSearchAny,
   countMatchingTermGroups,
   scoreSearchMatch,
   getDidYouMeanSuggestions,
