@@ -469,7 +469,7 @@ export function Header({
                       key={category.id}
                       onClick={() => {
                         handleCategoryClick(category.id);
-                        showOnlyFavorites && onShowOnlyFavoritesChange?.(false);
+                        if (showOnlyFavorites) onShowOnlyFavoritesChange?.(false);
                       }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                         selectedCategory === category.id && !showOnlyFavorites
@@ -544,7 +544,7 @@ export function Header({
                 key={category.id}
                 onClick={() => {
                   handleCategoryClick(category.id);
-                  showOnlyFavorites && onShowOnlyFavoritesChange?.(false);
+                  if (showOnlyFavorites) onShowOnlyFavoritesChange?.(false);
                 }}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors shrink-0 ${
                   selectedCategory === category.id && !showOnlyFavorites

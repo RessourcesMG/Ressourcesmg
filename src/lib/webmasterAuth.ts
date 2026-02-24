@@ -45,7 +45,7 @@ function recordFailedAttempt(): void {
   try {
     const raw = localStorage.getItem(RATE_LIMIT_KEY);
     const now = Date.now();
-    let data = raw ? JSON.parse(raw) : { attempts: 0 };
+    const data = raw ? JSON.parse(raw) : { attempts: 0 };
     data.attempts = (data.attempts || 0) + 1;
     if (data.attempts >= MAX_ATTEMPTS) {
       data.lockedUntil = now + LOCKOUT_MS;
