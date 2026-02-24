@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { CompactModeProvider, useCompactMode } from '@/contexts/CompactModeContext';
+import { AiSearchProvider } from '@/contexts/AiSearchContext';
 import { Header } from '@/components/Header';
+import type { CatalogEntry } from '@/lib/aiSuggest';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
@@ -78,6 +80,21 @@ function AppContent() {
   }, [generalCategories, mergedSpecialties]);
 
   const specialtyCount = baseSpecialties.length;
+
+  // Catalogue pour la recherche par IA (ressources visibles uniquement)
+  const catalogForAI = useMemo((): CatalogEntry[] => {
+    const cats = [...generalCategories, ...mergedSpecialties];
+    return cats.map((cat) => ({
+      categoryName: cat.name,
+      resources: cat.resources
+        .filter((r) => r.isHidden !== true)
+        .map((r) => ({
+          name: r.name,
+          description: r.description || '',
+          url: r.url,
+        })),
+    })).filter((cat) => cat.resources.length > 0);
+  }, [generalCategories, mergedSpecialties]);
 
   function filterAndSortCategories(
     list: Category[],
@@ -204,6 +221,7 @@ function AppContent() {
           if (v) setSelectedCategory(null);
         }}
         favoritesCount={favoriteIds.length}
+        catalogForAI={catalogForAI}
       />
       
       <main>
@@ -461,7 +479,9 @@ function AppContent() {
 function App() {
   return (
     <CompactModeProvider>
-      <AppContent />
+      <AiSearchProvider>
+        <AppContent />
+      </AiSearchProvider>
     </CompactModeProvider>
   );
 }
