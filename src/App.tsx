@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { CompactModeProvider, useCompactMode } from '@/contexts/CompactModeContext';
 import { AiSearchProvider } from '@/contexts/AiSearchContext';
 import { Header } from '@/components/Header';
-import type { CatalogEntry } from '@/lib/aiSuggest';
+import type { CatalogEntry, AiSuggestion } from '@/lib/aiSuggest';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
@@ -98,12 +98,13 @@ function AppContent() {
 
   function filterAndSortCategories(
     list: Category[],
-    query: string
+    query: string,
+    categoryOverride?: string | null
   ): Category[] {
     let result = list;
-
-    if (selectedCategory) {
-      result = result.filter((cat) => cat.id === selectedCategory);
+    const categoryFilter = categoryOverride !== undefined ? categoryOverride : selectedCategory;
+    if (categoryFilter) {
+      result = result.filter((cat) => cat.id === categoryFilter);
     }
 
     if (!query.trim()) return result;
@@ -150,6 +151,37 @@ function AppContent() {
   const filteredSpecialties = useMemo(
     () => filterAndSortCategories(mergedSpecialties, debouncedQuery),
     [debouncedQuery, selectedCategory, mergedSpecialties]
+  );
+
+  /** Recherche 100 % locale à partir d’une question : extrait les mots-clés (synonymes) et retourne les ressources correspondantes. Gratuit, sans API. */
+  const getSuggestionsForQuestion = useCallback(
+    (question: string): AiSuggestion[] => {
+      const q = question.trim();
+      if (!q || q.length < 2) return [];
+      const allGeneral = filterAndSortCategories(generalCategories, q, null);
+      const allSpecialties = filterAndSortCategories(mergedSpecialties, q, null);
+      const suggestions: AiSuggestion[] = [];
+      const seen = new Set<string>();
+      const push = (cat: Category) => {
+        for (const r of cat.resources) {
+          if (seen.has(r.id)) continue;
+          seen.add(r.id);
+          suggestions.push({
+            resourceName: r.name,
+            resourceUrl: r.url,
+            categoryName: cat.name,
+            reason: `Ressource en « ${cat.name} » correspondant à votre question.`,
+          });
+          if (suggestions.length >= 8) return;
+        }
+      };
+      for (const cat of [...allGeneral, ...allSpecialties]) {
+        push(cat);
+        if (suggestions.length >= 8) break;
+      }
+      return suggestions;
+    },
+    [generalCategories, mergedSpecialties]
   );
 
   // Appliquer le filtre "Mes favoris" si actif
@@ -222,6 +254,7 @@ function AppContent() {
         }}
         favoritesCount={favoriteIds.length}
         catalogForAI={catalogForAI}
+        getSuggestionsForQuestion={getSuggestionsForQuestion}
       />
       
       <main>
