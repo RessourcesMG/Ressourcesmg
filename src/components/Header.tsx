@@ -53,7 +53,7 @@ import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { useAiSearch } from '@/contexts/AiSearchContext';
-import { suggestResources, type CatalogEntry } from '@/lib/aiSuggest';
+import type { CatalogEntry, AiSuggestion } from '@/lib/aiSuggest';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -106,6 +106,8 @@ interface HeaderProps {
   favoritesCount?: number;
   /** Catalogue pour la recherche par IA (optionnel, affiché seulement si l'utilisateur a activé la fonctionnalité). */
   catalogForAI?: CatalogEntry[];
+  /** Recherche locale à partir d’une question (gratuite, sans API). */
+  getSuggestionsForQuestion?: (question: string) => AiSuggestion[];
 }
 
 export function Header({
@@ -118,6 +120,7 @@ export function Header({
   onShowOnlyFavoritesChange,
   favoritesCount = 0,
   catalogForAI = [],
+  getSuggestionsForQuestion,
 }: HeaderProps) {
   const { isCompact, setCompact } = useCompactMode();
   const { aiSearchEnabled, setAiSearchEnabled } = useAiSearch();
@@ -131,20 +134,25 @@ export function Header({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
 
-  const handleAskAI = useCallback(async () => {
+  const handleAskAI = useCallback(() => {
     const q = aiQuestion.trim();
-    if (!q || q.length < 5 || catalogForAI.length === 0 || aiLoading) return;
+    if (!q || q.length < 2 || !getSuggestionsForQuestion || aiLoading) return;
     setAiLoading(true);
     setAiResult(null);
-    try {
-      const data = await suggestResources(q, catalogForAI);
-      setAiResult({ suggestions: data.suggestions, error: data.error });
-    } catch {
-      setAiResult({ suggestions: [], error: 'Erreur réseau. Réessayez.' });
-    } finally {
-      setAiLoading(false);
-    }
-  }, [aiQuestion, catalogForAI, aiLoading]);
+    setTimeout(() => {
+      try {
+        const suggestions = getSuggestionsForQuestion(q);
+        setAiResult({
+          suggestions,
+          error: suggestions.length === 0 ? 'Aucune ressource trouvée pour cette question. Essayez d’autres mots-clés.' : undefined,
+        });
+      } catch {
+        setAiResult({ suggestions: [], error: 'Erreur lors de la recherche.' });
+      } finally {
+        setAiLoading(false);
+      }
+    }, 120);
+  }, [aiQuestion, getSuggestionsForQuestion, aiLoading]);
 
   const updateScrollArrows = useCallback(() => {
     const el = categoriesScrollRef.current;
@@ -237,7 +245,7 @@ export function Header({
           </Link>
 
           {/* Search Bar + Recherche par IA (activation et panneau dans le header) */}
-          <div className="flex-1 max-w-xl flex flex-col gap-1">
+          <div className="flex-1 max-w-xl flex flex-col gap-1 relative z-[60]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <Input
@@ -275,8 +283,8 @@ export function Header({
                       <Sparkles className="w-3.5 h-3.5" />
                       Poser ma question à l&apos;IA
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="pt-2">
-                      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm space-y-2">
+                    <CollapsibleContent className="pt-2 relative z-[100]">
+                      <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-lg space-y-2 relative z-[100]">
                         <textarea
                           placeholder="Ex. Quelle ressource pour les recommandations HTA ?"
                           value={aiQuestion}
@@ -289,7 +297,7 @@ export function Header({
                           type="button"
                           size="sm"
                           onClick={handleAskAI}
-                          disabled={aiLoading || aiQuestion.trim().length < 5}
+                          disabled={aiLoading || aiQuestion.trim().length < 2}
                           className="bg-teal-600 hover:bg-teal-700 text-white text-xs"
                         >
                           {aiLoading ? (
@@ -304,7 +312,12 @@ export function Header({
                         {aiResult && (
                           <div className="mt-2 pt-2 border-t border-slate-100 text-left">
                             {aiResult.error && (
-                              <p className="text-xs text-amber-600 mb-2">{aiResult.error}</p>
+                              <p className="text-xs mb-2">
+                                <span className="text-amber-600">{aiResult.error}</span>
+                                {(aiResult.error.includes('configuration manquante') || aiResult.error.includes('non disponible')) && (
+                                  <span className="block mt-1 text-slate-500">La recherche par mots-clés ci-dessus reste disponible.</span>
+                                )}
+                              </p>
                             )}
                             {aiResult.suggestions.length > 0 ? (
                               <ul className="space-y-1.5 text-xs">
