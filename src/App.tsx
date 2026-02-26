@@ -182,9 +182,9 @@ function AppContent() {
           scored.push({ resource: r, categoryName: cat.name, score, matchCount });
         }
       }
-      // D'abord : résultats "forts" (plusieurs mots-clés ou score élevé)
+      // D'abord : résultats "forts" (plusieurs mots-clés ou score très élevé)
       const strong = scored.filter(
-        (item) => item.matchCount >= 2 || item.score >= 120
+        (item) => item.matchCount >= 2 || item.score >= 140
       );
       const weak = scored.filter((item) => !strong.includes(item));
 
@@ -194,7 +194,9 @@ function AppContent() {
       strong.sort(byRelevance);
       weak.sort(byRelevance);
 
-      const combined = [...strong, ...weak];
+      // Si on a des "forts", on les privilégie ; sinon, on prend seulement les 2 meilleurs "faibles"
+      const combined =
+        strong.length > 0 ? strong : weak.slice(0, 2);
       const seen = new Set<string>();
       const uniqueTop = combined.filter(({ resource }) => {
         if (seen.has(resource.id)) return false;
@@ -202,7 +204,8 @@ function AppContent() {
         return true;
       });
 
-      return uniqueTop.slice(0, 8).map(({ resource, categoryName, matchCount }) => ({
+      // Limiter volontairement le nombre de résultats pour rester très ciblé
+      return uniqueTop.slice(0, 4).map(({ resource, categoryName, matchCount }) => ({
         resourceName: resource.name,
         resourceUrl: resource.url,
         categoryName,
