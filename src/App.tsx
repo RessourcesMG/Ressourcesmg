@@ -155,7 +155,7 @@ function AppContent() {
     [debouncedQuery, selectedCategory, mergedSpecialties]
   );
 
-  /** Recherche 100 % locale à partir d’une question : extrait les mots-clés (synonymes) et retourne les ressources correspondantes. Gratuit, sans API. */
+  /** Recherche 100 % locale à partir d’une question : privilégie les ressources qui matchent plusieurs mots-clés et/ou le titre. Gratuit, sans API. */
   const getSuggestionsForQuestion = useCallback(
     (question: string): AiSuggestion[] => {
       const q = question.trim();
@@ -163,7 +163,12 @@ function AppContent() {
       const termGroups = getSearchTermGroupsForQuestion(q);
       if (termGroups.length === 0) return [];
       const allCats = [...generalCategories, ...mergedSpecialties];
-      const scored: Array<{ resource: (typeof allCats)[0]['resources'][0]; categoryName: string; score: number; matchCount: number }> = [];
+      const scored: Array<{
+        resource: (typeof allCats)[0]['resources'][0];
+        categoryName: string;
+        score: number;
+        matchCount: number;
+      }> = [];
       for (const cat of allCats) {
         for (const r of cat.resources) {
           if (r.isHidden === true) continue;
@@ -177,21 +182,35 @@ function AppContent() {
           scored.push({ resource: r, categoryName: cat.name, score, matchCount });
         }
       }
-      scored.sort((a, b) => b.matchCount - a.matchCount || b.score - a.score);
+      // D'abord : résultats "forts" (plusieurs mots-clés ou score élevé)
+      const strong = scored.filter(
+        (item) => item.matchCount >= 2 || item.score >= 120
+      );
+      const weak = scored.filter((item) => !strong.includes(item));
+
+      const byRelevance = (a: typeof scored[number], b: typeof scored[number]) =>
+        b.matchCount - a.matchCount || b.score - a.score;
+
+      strong.sort(byRelevance);
+      weak.sort(byRelevance);
+
+      const combined = [...strong, ...weak];
       const seen = new Set<string>();
-      return scored
-        .filter(({ resource }) => {
-          if (seen.has(resource.id)) return false;
-          seen.add(resource.id);
-          return true;
-        })
-        .slice(0, 8)
-        .map(({ resource, categoryName }) => ({
-          resourceName: resource.name,
-          resourceUrl: resource.url,
-          categoryName,
-          reason: `Ressource en « ${categoryName} » correspondant à votre question.`,
-        }));
+      const uniqueTop = combined.filter(({ resource }) => {
+        if (seen.has(resource.id)) return false;
+        seen.add(resource.id);
+        return true;
+      });
+
+      return uniqueTop.slice(0, 8).map(({ resource, categoryName, matchCount }) => ({
+        resourceName: resource.name,
+        resourceUrl: resource.url,
+        categoryName,
+        reason:
+          matchCount >= 2
+            ? `Plusieurs éléments de « ${categoryName} » correspondent à votre question.`
+            : `Ressource en « ${categoryName} » correspondant à votre question.`,
+      }));
     },
     [generalCategories, mergedSpecialties]
   );
