@@ -262,7 +262,7 @@ export function Header({
               />
             </div>
             {catalogForAI.length > 0 && (
-              <>
+              <div className="w-full flex flex-col items-end">
                 {!aiSearchEnabled ? (
                   <button
                     type="button"
@@ -277,7 +277,7 @@ export function Header({
                     Recherche par question
                   </button>
                 ) : (
-                  <Collapsible open={aiPanelOpen} onOpenChange={setAiPanelOpen} className="w-full">
+                  <Collapsible open={aiPanelOpen} onOpenChange={setAiPanelOpen} className="w-full flex flex-col items-end">
                     <CollapsibleTrigger
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline py-2 sm:py-0 min-h-[44px] sm:min-h-0 items-center touch-manipulation"
                       aria-expanded={aiPanelOpen}
@@ -285,8 +285,8 @@ export function Header({
                       <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                       Rechercher en posant une question
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="pt-2 relative z-[100]">
-                      <div className="absolute left-0 right-0 sm:right-auto top-full mt-1 w-full sm:max-w-[400px] rounded-lg border border-slate-200 bg-white p-3 sm:p-3 shadow-lg space-y-3 z-[100]">
+                    <CollapsibleContent className="pt-2 relative z-[100] w-full">
+                      <div className="absolute left-0 right-0 top-full mt-1 w-full min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-lg space-y-3 z-[100]">
                         <button
                           type="button"
                           onClick={() => setAiPanelOpen(false)}
@@ -355,7 +355,7 @@ export function Header({
                     </CollapsibleContent>
                   </Collapsible>
                 )}
-              </>
+              </div>
             )}
           </div>
 
