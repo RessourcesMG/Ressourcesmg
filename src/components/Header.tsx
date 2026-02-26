@@ -287,38 +287,51 @@ export function Header({
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-2 relative z-[100] w-full">
                       <div className="absolute left-0 right-0 top-full mt-1 w-full min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-lg space-y-3 z-[100]">
-                        <button
-                          type="button"
-                          onClick={() => setAiPanelOpen(false)}
-                          className="absolute top-2 right-2 p-2 sm:p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 touch-manipulation min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
-                          aria-label="Fermer"
-                        >
-                          <X className="w-5 h-5 sm:w-4 sm:h-4" />
-                        </button>
-                        <textarea
-                          placeholder="Ex. Quelle ressource pour les recommandations HTA ?"
-                          value={aiQuestion}
-                          onChange={(e) => setAiQuestion(e.target.value)}
-                          className="w-full min-h-[80px] sm:min-h-[72px] rounded-md border border-slate-200 px-3 py-3 sm:py-2 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/60 resize-none touch-manipulation"
-                          rows={2}
-                          disabled={aiLoading}
-                        />
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={handleAskAI}
-                          disabled={aiLoading || aiQuestion.trim().length < 2}
-                          className="bg-teal-600 hover:bg-teal-700 text-white text-sm sm:text-xs min-h-[44px] sm:min-h-9 w-full sm:w-auto touch-manipulation"
-                        >
-                          {aiLoading ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                              Recherche…
-                            </>
-                          ) : (
-                            'Trouver des ressources'
-                          )}
-                        </Button>
+                        <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
+                            <MessageCircle className="w-3.5 h-3.5 shrink-0 text-teal-600" />
+                            <span>Recherche par question</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setAiPanelOpen(false)}
+                            className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 touch-manipulation flex items-center justify-center"
+                            aria-label="Fermer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          <textarea
+                            placeholder="Ex. Quelle ressource pour les recommandations HTA ?"
+                            value={aiQuestion}
+                            onChange={(e) => setAiQuestion(e.target.value)}
+                            className="w-full min-h-[80px] sm:min-h-[72px] rounded-md border border-slate-200 px-3 py-3 sm:py-2 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/60 resize-none touch-manipulation"
+                            rows={2}
+                            disabled={aiLoading}
+                          />
+                          <p className="text-[11px] text-slate-500">
+                            Décrivez votre question clinique en une ou deux phrases. Nous vous suggérerons les ressources les plus adaptées.
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-end">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleAskAI}
+                            disabled={aiLoading || aiQuestion.trim().length < 2}
+                            className="bg-teal-600 hover:bg-teal-700 text-white text-sm sm:text-xs min-h-[36px] sm:min-h-9 px-4 touch-manipulation"
+                          >
+                            {aiLoading ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                Recherche…
+                              </>
+                            ) : (
+                              'Trouver des ressources'
+                            )}
+                          </Button>
+                        </div>
                         {aiResult && (
                           <div className="mt-2 pt-2 border-t border-slate-100 text-left">
                             {aiResult.error && (
