@@ -37,7 +37,7 @@ import {
   Star,
   Loader2,
   ExternalLink,
-  HelpCircle,
+  MessageCircle,
   X,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -224,7 +224,7 @@ export function Header({
 
   return (
     <header 
-      className={`fixed left-0 right-0 z-50 transition-all duration-300 pt-4 pb-0 ${
+      className={`fixed left-0 right-0 z-50 transition-all duration-300 pt-2 pb-0 ${
         isScrolled 
           ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200' 
           : 'bg-white'
@@ -232,7 +232,7 @@ export function Header({
       style={{ top: 'var(--announcement-banner-height, 0px)' }}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 sm:gap-4 min-h-[3.25rem] py-2 sm:py-3">
+        <div className="flex items-start justify-between gap-2 sm:gap-4 pt-1 pb-2">
           {/* Logo : retour accueil et réinitialisation recherche / filtres */}
           <Link
             to="/"
@@ -273,7 +273,7 @@ export function Header({
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md px-2 py-2 sm:py-1 -mx-1 transition-colors w-fit min-h-[44px] sm:min-h-0 items-center touch-manipulation"
                     aria-label="Activer la recherche par question"
                   >
-                    <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+                    <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                     Recherche par question
                   </button>
                 ) : (
@@ -282,8 +282,8 @@ export function Header({
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline py-2 sm:py-0 min-h-[44px] sm:min-h-0 items-center touch-manipulation"
                       aria-expanded={aiPanelOpen}
                     >
-                      <HelpCircle className="w-3.5 h-3.5 shrink-0" />
-                      Poser une question
+                      <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                      Rechercher en posant une question
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-2 relative z-[100]">
                       <div className="absolute left-0 right-0 sm:right-auto top-full mt-1 w-full sm:max-w-[400px] rounded-lg border border-slate-200 bg-white p-3 sm:p-3 shadow-lg space-y-3 z-[100]">
@@ -383,12 +383,12 @@ export function Header({
             )}
           </button>
 
-          {/* Toggle vue compacte - Desktop : discret, proportionné à la barre de recherche */}
+          {/* Toggle vue compacte - Desktop : aligné en haut */}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className={`hidden lg:flex items-center gap-2 shrink-0 pl-2.5 pr-1.5 py-1 rounded-full border transition-colors cursor-pointer h-9 ${
+                  className={`hidden lg:flex items-center gap-2 shrink-0 pl-2.5 pr-1.5 py-1.5 rounded-full border transition-colors cursor-pointer h-9 mt-0.5 ${
                     isCompact
                       ? 'bg-teal-50 border-teal-300 text-teal-800'
                       : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
