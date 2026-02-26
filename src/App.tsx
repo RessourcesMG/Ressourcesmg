@@ -269,7 +269,7 @@ function AppContent() {
         getSuggestionsForQuestion={getSuggestionsForQuestion}
       />
       
-      <main>
+      <main className="pt-[8.25rem] sm:pt-[8.5rem]">
         {/* Hero affiché uniquement quand il n'y a ni recherche, ni catégorie, ni filtre favoris */}
         {!searchQuery && !selectedCategory && !showOnlyFavorites && (
           <Hero 

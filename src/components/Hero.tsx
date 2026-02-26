@@ -94,7 +94,7 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
   }, [smoothScrollToElement]);
 
   return (
-    <section className={`relative bg-gradient-to-br from-teal-50 via-white to-slate-50 overflow-hidden ${isCompact ? 'pt-[7.5rem] pb-10' : 'pt-32 pb-16'}`}>
+    <section className={`relative bg-gradient-to-br from-teal-50 via-white to-slate-50 overflow-hidden ${isCompact ? 'pt-4 pb-10' : 'pt-6 pb-16'}`}>
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-teal-100/50 rounded-full blur-3xl" />
