@@ -35,22 +35,12 @@ import {
   LayoutGrid,
   List,
   Star,
-  Loader2,
-  ExternalLink,
-  MessageCircle,
-  X,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from '@/components/ui/tooltip';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';

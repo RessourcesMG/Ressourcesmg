@@ -6,14 +6,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
 import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
-import {
-  getSearchTermGroups,
-  matchesSearch,
-  matchesSearchFuzzy,
-  countMatchingTermGroups,
-  scoreSearchMatch,
-  getDidYouMeanSuggestions,
-} from '@/lib/searchSynonyms';
+import { getSearchTermGroups, matchesSearch, matchesSearchFuzzy, scoreSearchMatch, getDidYouMeanSuggestions } from '@/lib/searchSynonyms';
 import { trackSearch } from '@/lib/analytics';
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
@@ -80,21 +73,6 @@ function AppContent() {
   }, [generalCategories, mergedSpecialties]);
 
   const specialtyCount = baseSpecialties.length;
-
-  // Catalogue pour la recherche par IA (ressources visibles uniquement)
-  const catalogForAI = useMemo((): CatalogEntry[] => {
-    const cats = [...generalCategories, ...mergedSpecialties];
-    return cats.map((cat) => ({
-      categoryName: cat.name,
-      resources: cat.resources
-        .filter((r) => r.isHidden !== true)
-        .map((r) => ({
-          name: r.name,
-          description: r.description || '',
-          url: r.url,
-        })),
-    })).filter((cat) => cat.resources.length > 0);
-  }, [generalCategories, mergedSpecialties]);
 
   function filterAndSortCategories(
     list: Category[],
