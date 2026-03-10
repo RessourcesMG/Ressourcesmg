@@ -42,7 +42,7 @@ import { Switch } from '@/components/ui/switch';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { Link } from 'react-router-dom';
-import { categories } from '@/types/resources';
+import type { Category } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
@@ -90,6 +90,7 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   onCategorySelect: (categoryId: string | null) => void;
   selectedCategory: string | null;
+  categories: Category[];
   onGoHome?: () => void;
   showOnlyFavorites?: boolean;
   onShowOnlyFavoritesChange?: (value: boolean) => void;
@@ -101,6 +102,7 @@ export function Header({
   onSearch,
   onCategorySelect,
   selectedCategory,
+  categories,
   onGoHome,
   showOnlyFavorites = false,
   onShowOnlyFavoritesChange,
