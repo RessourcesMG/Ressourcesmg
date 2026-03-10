@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { X, Info, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -67,7 +67,14 @@ export function AnnouncementBanner() {
   const visibleAnnouncements = announcements.filter((a) => !dismissedIds.has(a.id));
   const latestAnnouncement = visibleAnnouncements.length > 0 ? visibleAnnouncements[0] : null;
 
-  // Toujours synchroniser la hauteur du bandeau (0 si pas d'annonce visible)
+  // Forcer 0 dès le premier rendu (avant peinture) pour éviter bandeau gris
+  useLayoutEffect(() => {
+    if (!latestAnnouncement) {
+      document.documentElement.style.setProperty('--announcement-banner-height', '0px');
+    }
+  }, [latestAnnouncement]);
+
+  // Mettre à jour la hauteur quand une annonce est affichée
   useEffect(() => {
     if (bannerRef.current && latestAnnouncement) {
       const updateHeight = () => {
@@ -81,7 +88,9 @@ export function AnnouncementBanner() {
       resizeObserver.observe(bannerRef.current);
       return () => resizeObserver.disconnect();
     }
-    document.documentElement.style.setProperty('--announcement-banner-height', '0px');
+    if (!latestAnnouncement) {
+      document.documentElement.style.setProperty('--announcement-banner-height', '0px');
+    }
   }, [loading, latestAnnouncement]);
 
   if (loading) return null;

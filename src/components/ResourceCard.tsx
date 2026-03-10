@@ -85,13 +85,13 @@ function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
   }
 
   return (
-    <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 motion-reduce:hover:translate-y-0 border border-slate-200 bg-white">
-      <CardHeader className="px-3 pt-3 pb-2 sm:px-4 sm:pt-4 sm:pb-2">
+    <Card className="group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 motion-reduce:hover:translate-y-0 border border-slate-200 bg-white p-0 gap-0 rounded-xl overflow-hidden">
+      <CardHeader className="px-4 pt-3 pb-1.5 sm:pt-4 sm:pb-2">
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
-            <div className="w-8 h-8 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center rounded bg-slate-100 border border-slate-200/60 overflow-hidden">
               {showFallbackIcon ? (
-                <Globe className="w-5 h-5 text-slate-400" />
+                <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
               ) : (
             <img
               src={faviconUrl}
@@ -104,7 +104,7 @@ function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
             />
               )}
             </div>
-            <h3 className="font-semibold text-slate-900 text-base leading-tight group-hover:text-teal-600 transition-colors truncate min-w-0" title={resource.name}>
+            <h3 className="font-semibold text-slate-900 text-sm sm:text-base leading-tight group-hover:text-teal-600 transition-colors truncate min-w-0" title={resource.name}>
               {resource.name}
             </h3>
           </div>
@@ -127,18 +127,18 @@ function ResourceCardInner({ resource, categoryId = '' }: ResourceCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pt-1 pb-2 sm:px-4 sm:pt-2 sm:pb-3 flex-1 flex flex-col min-h-0">
-        <p className="text-slate-600 text-sm leading-relaxed mb-2 sm:mb-3 line-clamp-3">
+      <CardContent className="px-4 pt-0 pb-2 sm:pb-3 flex-1 flex flex-col min-h-0">
+        <p className="text-slate-600 text-sm leading-snug line-clamp-2 sm:line-clamp-3">
           {resource.description}
         </p>
         {resource.note && (
-          <div className="flex items-start gap-1.5 text-xs text-slate-500 mb-2 sm:mb-3 bg-slate-50 p-2 rounded">
+          <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-2 bg-slate-50 p-2 rounded">
             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400 flex-shrink-0" />
             <span className="line-clamp-2">{resource.note}</span>
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex w-full items-center justify-between gap-3 px-3 pt-2 pb-3 sm:px-4 sm:pt-3">
+      <CardFooter className="flex w-full items-center justify-between gap-3 px-4 pt-2 pb-3 sm:pt-3 border-t border-slate-100">
         <a
           href={resource.url}
           target="_blank"

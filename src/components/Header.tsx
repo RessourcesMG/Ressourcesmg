@@ -117,7 +117,7 @@ export function Header({
 
   return (
     <header 
-      className={`fixed left-0 right-0 z-50 transition-all duration-300 pt-1 pb-1 sm:pt-2 sm:pb-0 ${
+      className={`fixed left-0 right-0 z-50 transition-all duration-300 pb-1 sm:pb-0 pt-[max(0.25rem,env(safe-area-inset-top))] sm:pt-2 ${
         isScrolled 
           ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200' 
           : 'bg-white'
