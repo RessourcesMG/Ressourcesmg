@@ -132,7 +132,7 @@ export function Footer({ categories = [] }: FooterProps) {
   return (
     <footer className="bg-slate-900 text-slate-300 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
           {/* Infos site + contact : même poids visuel que le formulaire */}
           <div className="lg:col-span-5 order-2 lg:order-1 flex flex-col justify-center">
             <div className="flex items-center gap-2 mb-3">
@@ -157,13 +157,23 @@ export function Footer({ categories = [] }: FooterProps) {
             </a>
           </div>
 
-          {/* Formulaire : largeur équilibrée */}
-          <div id="add-resource-form" className="scroll-mt-[7.5rem] lg:col-span-7 order-1 lg:order-2">
-            <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-700/80">
-              <h3 className="font-semibold text-white mb-1 text-sm">Proposer une ressource</h3>
-              <p className="text-slate-400 text-xs mb-3">
-                Un site utile ? Proposez-le rapidement.
-              </p>
+          {/* Formulaire : carte plus lisible et structurée */}
+          <div
+            id="add-resource-form"
+            className="scroll-mt-[7.5rem] lg:col-span-7 order-1 lg:order-2 lg:max-w-2xl lg:ml-auto"
+          >
+            <div className="bg-slate-800/70 rounded-2xl p-5 sm:p-6 border border-slate-700/80 shadow-[0_18px_45px_rgba(15,23,42,0.75)]">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <h3 className="font-semibold text-white text-sm sm:text-base">Proposer une ressource</h3>
+                  <p className="text-slate-400 text-xs sm:text-sm mt-1">
+                    Un site que vous utilisez au quotidien&nbsp;? Proposez-le pour enrichir la base.
+                  </p>
+                </div>
+                <span className="inline-flex items-center rounded-full border border-teal-500/40 bg-teal-500/10 px-2.5 py-0.5 text-[11px] font-medium text-teal-200">
+                  1&nbsp;min
+                </span>
+              </div>
               {submitted ? (
                 <div className="bg-teal-900/50 border border-teal-700 rounded-xl p-6 text-center">
                   <CheckCircle className="w-12 h-12 text-teal-400 mx-auto mb-3" aria-hidden />
@@ -171,55 +181,57 @@ export function Footer({ categories = [] }: FooterProps) {
                   <p className="text-teal-400 text-sm mt-1">Elle sera examinée par l&apos;équipe.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-3">
-                  {categories.length > 0 && (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {categories.length > 0 && (
+                      <div className="sm:col-span-2">
+                        <label className="block text-slate-300 text-xs font-medium mb-1.5">
+                          Catégorie
+                        </label>
+                        <Select
+                          value={effectiveCategoryId}
+                          onValueChange={(v) => setFormData((f) => ({ ...f, categoryId: v }))}
+                          required
+                        >
+                          <SelectTrigger className="w-full bg-slate-900/40 border-slate-600/70 text-white min-h-10 h-10 rounded-lg text-sm focus-visible:ring-teal-500/40">
+                            <SelectValue placeholder="Choisir une catégorie" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id} className="text-slate-900">
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div>
-                      <label className="block text-slate-400 text-xs font-medium mb-1.5">
-                        Catégorie
+                      <label className="block text-slate-300 text-xs font-medium mb-1.5">
+                        Nom du site <span className="text-red-400">*</span>
                       </label>
-                      <Select
-                        value={effectiveCategoryId}
-                        onValueChange={(v) => setFormData((f) => ({ ...f, categoryId: v }))}
+                      <Input
+                        type="text"
+                        placeholder="Ex. Recomed, Ordotype…"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="bg-slate-900/40 border-slate-600/70 text-white placeholder:text-slate-500 text-sm min-h-10 h-10 rounded-lg focus-visible:ring-teal-500/40"
                         required
-                      >
-                        <SelectTrigger className="w-full bg-slate-800 border-slate-600 text-white min-h-10 h-10 rounded-lg text-sm">
-                          <SelectValue placeholder="Choisir une catégorie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id} className="text-slate-900">
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      />
                     </div>
-                  )}
-                  <div>
-                    <label className="block text-slate-400 text-xs font-medium mb-1.5">
-                      Nom du site
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="Ex. Recomed, Ordotype…"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-10 h-10 rounded-lg"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs font-medium mb-1.5">
-                      Lien du site
-                    </label>
-                    <Input
-                      type="url"
-                      placeholder="https://…"
-                      value={formData.url}
-                      onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-10 h-10 rounded-lg"
-                      required
-                    />
+                    <div>
+                      <label className="block text-slate-300 text-xs font-medium mb-1.5">
+                        Lien du site <span className="text-red-400">*</span>
+                      </label>
+                      <Input
+                        type="url"
+                        placeholder="https://…"
+                        value={formData.url}
+                        onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                        className="bg-slate-900/40 border-slate-600/70 text-white placeholder:text-slate-500 text-sm min-h-10 h-10 rounded-lg focus-visible:ring-teal-500/40"
+                        required
+                      />
+                    </div>
                   </div>
                   {/* Honeypot anti-spam : champ caché, ne pas remplir */}
                   <div className="absolute -left-[9999px] w-1 h-1 overflow-hidden" aria-hidden="true">
@@ -234,41 +246,50 @@ export function Footer({ categories = [] }: FooterProps) {
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-slate-400 text-xs font-medium mb-1.5">
-                      Description (optionnel)
-                    </label>
-                    <Textarea
-                      placeholder="En quelques mots, à quoi sert ce site ?"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 text-sm min-h-[70px] rounded-lg resize-none"
-                    />
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-slate-300 text-xs font-medium mb-1.5">
+                        Description <span className="text-slate-500">(optionnel)</span>
+                      </label>
+                      <Textarea
+                        placeholder="En quelques mots, à quoi sert ce site ?"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        className="bg-slate-900/40 border-slate-600/70 text-white placeholder:text-slate-500 text-sm min-h-[80px] rounded-lg resize-none focus-visible:ring-teal-500/40"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      Merci de ne pas proposer de sites promotionnels ou à but purement commercial.
+                    </p>
                   </div>
                   {error && (
-                    <p className="text-red-400 text-xs">{error}</p>
+                    <div className="rounded-md border border-red-500/50 bg-red-950/40 px-3 py-2 text-xs text-red-200">
+                      {error}
+                    </div>
                   )}
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="w-full bg-teal-600 hover:bg-teal-500 text-white min-h-10 h-10 rounded-lg font-medium text-sm"
-                    disabled={loading}
-                  >
-                    <Send className="w-3.5 h-3.5 mr-1.5" />
-                    {loading ? 'Envoi...' : 'Proposer'}
-                  </Button>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1">
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="w-full sm:w-auto bg-teal-500 hover:bg-teal-400 text-white min-h-10 h-10 rounded-lg font-medium text-sm"
+                      disabled={loading}
+                    >
+                      <Send className="w-3.5 h-3.5 mr-1.5" />
+                      {loading ? 'Envoi...' : 'Proposer la ressource'}
+                    </Button>
+                    <p className="text-[11px] text-slate-500">
+                      Réponse par email uniquement en cas de question complémentaire.
+                    </p>
+                  </div>
                 </form>
               )}
             </div>
           </div>
         </div>
 
-        {/* Bottom bar : copyright + liens + retour en haut */}
+        {/* Bottom bar : bouton haut de page à gauche + infos */}
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500">
-            {currentYear} Ressources MG.
-          </p>
-          <div className="flex items-center gap-3 text-slate-500 text-xs flex-wrap justify-center sm:justify-end">
+          <div className="flex items-center gap-3 text-slate-500 text-xs flex-wrap justify-start w-full sm:w-auto">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -278,6 +299,11 @@ export function Footer({ categories = [] }: FooterProps) {
               <ArrowUp className="w-3.5 h-3.5 shrink-0" />
               Haut de page
             </button>
+            <p className="text-sm text-slate-500">
+              {currentYear} Ressources MG.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-slate-500 text-xs flex-wrap justify-center sm:justify-end">
             <p className="flex items-center gap-1">
               Fait avec <Heart className="w-4 h-4 text-red-500 fill-red-500" /> pour la médecine générale
             </p>
