@@ -167,7 +167,7 @@ export function Footer({ categories = [] }: FooterProps) {
                 <div>
                   <h3 className="font-semibold text-white text-sm sm:text-base">Proposer une ressource</h3>
                   <p className="text-slate-400 text-xs sm:text-sm mt-1">
-                    Un site que vous utilisez au quotidien&nbsp;? Proposez-le pour enrichir la base.
+                    Un site que vous utilisez au quotidien&nbsp;? Proposez-le pour enrichir le nôtre&nbsp;!
                   </p>
                 </div>
               </div>
