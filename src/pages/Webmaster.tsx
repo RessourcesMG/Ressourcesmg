@@ -30,6 +30,7 @@ export function Webmaster() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [rateLimitStatus, setRateLimitStatus] = useState(getRateLimitStatus);
   const [addLoading, setAddLoading] = useState(false);
@@ -76,13 +77,39 @@ export function Webmaster() {
     setIsLoggedIn(false);
   };
 
+  const validateResourceForm = () => {
+    if (!form.categoryId) {
+      return 'Choisissez une catégorie pour classer la ressource.';
+    }
+    if (!form.name.trim()) {
+      return 'Le nom de la ressource est requis.';
+    }
+    const url = form.url.trim();
+    if (!url) {
+      return 'L’URL de la ressource est requise.';
+    }
+    try {
+      // Valide les URL de type https://… (même logique que le formulaire public)
+      // new URL lèvera une erreur si le format est invalide.
+      // eslint-disable-next-line no-new
+      new URL(url);
+    } catch {
+      return 'Veuillez entrer une URL valide (ex. https://…).';
+    }
+    return '';
+  };
+
   const handleAddResource = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.categoryId || !form.name.trim() || !form.url.trim()) {
-      setError('Remplissez au moins : catégorie, nom et URL.');
+    setError('');
+    setSuccessMessage('');
+
+    const validationError = validateResourceForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
-    setError('');
+
     setAddLoading(true);
     const token = getToken();
     if (!token) {
@@ -108,6 +135,7 @@ export function Webmaster() {
         note: '',
       });
       setError('');
+      setSuccessMessage('Ressource ajoutée avec succès.');
     } else {
       setError(result.error || 'Erreur lors de l\'ajout.');
     }
@@ -230,7 +258,7 @@ export function Webmaster() {
               La ressource sera ajoutée dans les blocs éditables ci-dessous et visible pour tous les visiteurs.
             </p>
           </CardHeader>
-          <CardContent>
+            <CardContent>
             {!fromDb ? (
               <p className="text-slate-500 text-sm">Initialisez d'abord les blocs dans la section « Éditer les blocs » pour pouvoir ajouter des ressources.</p>
             ) : (
@@ -263,6 +291,9 @@ export function Webmaster() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                <p className="mt-1 text-xs text-slate-500">
+                  Choisissez où la ressource apparaîtra sur le site (bloc global ou spécialité).
+                </p>
               </div>
               <div>
                 <Label htmlFor="name">Nom de la ressource</Label>
@@ -295,6 +326,9 @@ export function Webmaster() {
                   placeholder="https://..."
                   className="mt-1"
                 />
+                <p className="mt-1 text-xs text-slate-500">
+                  Utilisez une URL complète (ex. https://exemple.fr).
+                </p>
               </div>
               <div>
                 <Label htmlFor="note">Note (optionnel)</Label>
@@ -320,6 +354,11 @@ export function Webmaster() {
               </div>
               {error && (
                 <p className="text-sm text-red-600">{error}</p>
+              )}
+              {successMessage && !error && (
+                <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
+                  {successMessage}
+                </p>
               )}
               <Button type="submit" disabled={addLoading}>
                 {addLoading ? 'Ajout...' : (
