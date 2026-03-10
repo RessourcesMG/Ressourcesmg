@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
-  List,
   Star,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -157,28 +156,18 @@ export function Header({
             </div>
           </div>
 
-          {/* Toggle vue compacte - Mobile : pill "Liste" / "Cartes" pour bien distinguer du menu */}
+          {/* Toggle vue compacte - Mobile : libellé seul (tap pour basculer) */}
           <button
             type="button"
             onClick={() => setCompact(!isCompact)}
-            className={`lg:hidden shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-full border-2 touch-manipulation transition-colors ${
+            className={`lg:hidden shrink-0 min-h-[44px] px-3 py-2 rounded-full border-2 touch-manipulation transition-colors text-xs font-semibold ${
               isCompact
                 ? 'bg-teal-50 border-teal-300 text-teal-800'
                 : 'bg-slate-50 border-slate-200 text-slate-700'
             }`}
-            aria-label={isCompact ? 'Revenir à la vue cartes' : 'Passer en vue liste'}
+            aria-label={isCompact ? 'Revenir à la vue standard' : 'Passer en vue compacte'}
           >
-            {isCompact ? (
-              <>
-                <LayoutGrid className="w-4 h-4 shrink-0" aria-hidden />
-                <span className="text-xs font-semibold">Compact</span>
-              </>
-            ) : (
-              <>
-                <List className="w-4 h-4 shrink-0" aria-hidden />
-                <span className="text-xs font-semibold">Standard</span>
-              </>
-            )}
+            {isCompact ? 'Compact' : 'Standard'}
           </button>
 
           {/* Toggle vue compacte - Desktop : aligné en haut */}
