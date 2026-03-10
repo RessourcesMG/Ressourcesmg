@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Plus, LogOut, Shield, Eye, EyeOff } from 'lucide-react';
+import { Lock, Plus, LogOut, Shield, Eye, EyeOff, LayoutList, Database, BarChart3 } from 'lucide-react';
 import { isWebmasterLoggedIn, login, logout, getToken, getRateLimitStatus } from '@/lib/webmasterAuth';
 import { getSortAlphabetically } from '@/lib/sortAzPrefs';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -240,144 +241,168 @@ export function Webmaster() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* Bandeaux d'informations */}
-        <AnnouncementManager />
+      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <Tabs defaultValue="propositions" className="w-full">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <LayoutList className="w-4 h-4 text-teal-600" />
+              <span>Choisissez une rubrique à gérer</span>
+            </div>
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="propositions">
+                <Inbox className="w-4 h-4" />
+                Propositions
+              </TabsTrigger>
+              <TabsTrigger value="ressources">
+                <Database className="w-4 h-4" />
+                Ressources & blocs
+              </TabsTrigger>
+              <TabsTrigger value="analytics">
+                <BarChart3 className="w-4 h-4" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* Propositions des utilisateurs */}
-        <ProposalManager />
+          <TabsContent value="propositions" className="space-y-6">
+            <AnnouncementManager />
+            <ProposalManager />
+          </TabsContent>
 
-        {/* Formulaire d'ajout */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              Ajouter une ressource
-            </CardTitle>
-            <p className="text-sm text-slate-600">
-              La ressource sera ajoutée dans les blocs éditables ci-dessous et visible pour tous les visiteurs.
-            </p>
-          </CardHeader>
-            <CardContent>
-            {!fromDb ? (
-              <p className="text-slate-500 text-sm">Initialisez d'abord les blocs dans la section « Éditer les blocs » pour pouvoir ajouter des ressources.</p>
-            ) : (
-            <form onSubmit={handleAddResource} className="space-y-4">
-              <div>
-                <Label>Catégorie</Label>
-                <Select
-                  value={form.categoryId}
-                  onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Choisir une section" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Ressources globales</SelectLabel>
-                      {generalCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                    <SelectGroup>
-                      <SelectLabel>Ressources par spécialités</SelectLabel>
-                      {medicalSpecialties.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <p className="mt-1 text-xs text-slate-500">
-                  Choisissez où la ressource apparaîtra sur le site (bloc global ou spécialité).
+          <TabsContent value="ressources" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Ajouter une ressource
+                </CardTitle>
+                <p className="text-sm text-slate-600">
+                  La ressource sera ajoutée dans les blocs éditables ci-dessous et visible pour tous les visiteurs.
                 </p>
-              </div>
-              <div>
-                <Label htmlFor="name">Nom de la ressource</Label>
-                <Input
-                  id="name"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="Ex: Nom du site"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  placeholder="Courte description de la ressource"
-                  className="mt-1"
-                  rows={2}
-                />
-              </div>
-              <div>
-                <Label htmlFor="url">URL du site</Label>
-                <Input
-                  id="url"
-                  type="url"
-                  value={form.url}
-                  onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-                  placeholder="https://..."
-                  className="mt-1"
-                />
-                <p className="mt-1 text-xs text-slate-500">
-                  Utilisez une URL complète (ex. https://exemple.fr).
-                </p>
-              </div>
-              <div>
-                <Label htmlFor="note">Note (optionnel)</Label>
-                <Input
-                  id="note"
-                  value={form.note ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
-                  placeholder="Ex: Abonnement nécessaire"
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="requiresAuth"
-                  checked={form.requiresAuth ?? false}
-                  onCheckedChange={(c) =>
-                    setForm((f) => ({ ...f, requiresAuth: !!c }))
-                  }
-                />
-                <Label htmlFor="requiresAuth" className="cursor-pointer">
-                  Nécessite une connexion
-                </Label>
-              </div>
-              {error && (
-                <p className="text-sm text-red-600">{error}</p>
-              )}
-              {successMessage && !error && (
-                <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
-                  {successMessage}
-                </p>
-              )}
-              <Button type="submit" disabled={addLoading}>
-                {addLoading ? 'Ajout...' : (
-                  <>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Ajouter
-                  </>
+              </CardHeader>
+              <CardContent>
+                {!fromDb ? (
+                  <p className="text-slate-500 text-sm">
+                    Initialisez d&apos;abord les blocs dans la section « Éditer les blocs » pour pouvoir ajouter des ressources.
+                  </p>
+                ) : (
+                  <form onSubmit={handleAddResource} className="space-y-4">
+                    <div>
+                      <Label>Catégorie</Label>
+                      <Select
+                        value={form.categoryId}
+                        onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Choisir une section" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Ressources globales</SelectLabel>
+                            {generalCategories.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id} title={cat.name}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>Ressources par spécialités</SelectLabel>
+                            {medicalSpecialties.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.id} title={cat.name}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Choisissez où la ressource apparaîtra sur le site (bloc global ou spécialité).
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="name">Nom de la ressource</Label>
+                      <Input
+                        id="name"
+                        value={form.name}
+                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                        placeholder="Ex: Nom du site"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={form.description}
+                        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                        placeholder="Courte description de la ressource"
+                        className="mt-1"
+                        rows={2}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="url">URL du site</Label>
+                      <Input
+                        id="url"
+                        type="url"
+                        value={form.url}
+                        onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+                        placeholder="https://..."
+                        className="mt-1"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">
+                        Utilisez une URL complète (ex. https://exemple.fr).
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="note">Note (optionnel)</Label>
+                      <Input
+                        id="note"
+                        value={form.note ?? ''}
+                        onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
+                        placeholder="Ex: Abonnement nécessaire"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="requiresAuth"
+                        checked={form.requiresAuth ?? false}
+                        onCheckedChange={(c) =>
+                          setForm((f) => ({ ...f, requiresAuth: !!c }))
+                        }
+                      />
+                      <Label htmlFor="requiresAuth" className="cursor-pointer">
+                        Nécessite une connexion
+                      </Label>
+                    </div>
+                    {error && (
+                      <p className="text-sm text-red-600">{error}</p>
+                    )}
+                    {successMessage && !error && (
+                      <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
+                        {successMessage}
+                      </p>
+                    )}
+                    <Button type="submit" disabled={addLoading}>
+                      {addLoading ? 'Ajout...' : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Ajouter
+                        </>
+                      )}
+                    </Button>
+                  </form>
                 )}
-              </Button>
-            </form>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+            <BlockEditor />
+          </TabsContent>
 
-        {/* Dashboard Analytics */}
-        <AnalyticsDashboard />
-
-        {/* Éditer les blocs */}
-        <BlockEditor />
+          <TabsContent value="analytics" className="space-y-4">
+            <AnalyticsDashboard />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
