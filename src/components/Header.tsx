@@ -3,33 +3,7 @@ import {
   Search,
   Menu,
   Stethoscope,
-  Wind,
-  Heart,
-  Smile,
-  ScanFace,
-  Activity,
-  User,
-  Baby,
-  Droplet,
-  Bug,
-  Briefcase,
-  Accessibility,
-  Brain,
-  Apple,
-  Ribbon,
-  Eye,
-  Ear,
-  Bone,
-  Pill,
-  BrainCircuit,
-  Scan,
-  Hand,
-  FileText,
-  HeartHandshake,
-  Sparkles,
-  MoreHorizontal,
   Circle,
-  BriefcaseMedical,
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
@@ -44,7 +18,6 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { Link } from 'react-router-dom';
 import type { Category } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';
-import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 import { iconComponents as categoryIconComponents } from '@/lib/categoryIcons';
 
 interface HeaderProps {
