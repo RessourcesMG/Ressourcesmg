@@ -67,28 +67,22 @@ export function AnnouncementBanner() {
   const visibleAnnouncements = announcements.filter((a) => !dismissedIds.has(a.id));
   const latestAnnouncement = visibleAnnouncements.length > 0 ? visibleAnnouncements[0] : null;
 
-  // Définir une variable CSS pour la hauteur du bandeau
+  // Toujours synchroniser la hauteur du bandeau (0 si pas d'annonce visible)
   useEffect(() => {
     if (bannerRef.current && latestAnnouncement) {
-      // Utiliser ResizeObserver pour détecter les changements de hauteur
       const updateHeight = () => {
         if (bannerRef.current) {
           const height = bannerRef.current.offsetHeight;
           document.documentElement.style.setProperty('--announcement-banner-height', `${height}px`);
         }
       };
-      
       updateHeight();
       const resizeObserver = new ResizeObserver(updateHeight);
       resizeObserver.observe(bannerRef.current);
-      
-      return () => {
-        resizeObserver.disconnect();
-      };
-    } else {
-      document.documentElement.style.setProperty('--announcement-banner-height', '0px');
+      return () => resizeObserver.disconnect();
     }
-  }, [latestAnnouncement?.id]);
+    document.documentElement.style.setProperty('--announcement-banner-height', '0px');
+  }, [loading, latestAnnouncement]);
 
   if (loading) return null;
   if (!latestAnnouncement) return null;
