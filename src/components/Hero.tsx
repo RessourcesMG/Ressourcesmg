@@ -3,13 +3,6 @@ import { Button } from '@/components/ui/button';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { useEffect, useRef, useCallback } from 'react';
 
-const SCROLL_OFFSET_PX = 120;
-const SCROLL_DURATION_MS = 500;
-
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
 interface HeroProps {
   totalResources: number;
   totalCategories: number;
@@ -28,40 +21,15 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
     };
   }, []);
 
-  const scrollToY = useCallback((targetY: number) => {
-    if (scrollRafRef.current != null) cancelAnimationFrame(scrollRafRef.current);
-    const startY = window.scrollY;
-    const distance = targetY - startY;
-    const startTime = performance.now();
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (prefersReducedMotion || Math.abs(distance) < 10) {
-      window.scrollTo(0, targetY);
-      return;
-    }
-
-    const tick = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / SCROLL_DURATION_MS, 1);
-      const eased = easeInOutCubic(progress);
-      const currentY = startY + distance * eased;
-      window.scrollTo(0, Math.round(currentY));
-      if (progress < 1) {
-        scrollRafRef.current = requestAnimationFrame(tick);
-      } else {
-        scrollRafRef.current = null;
-      }
-    };
-    scrollRafRef.current = requestAnimationFrame(tick);
-  }, []);
-
   const smoothScrollToElement = useCallback((id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const top = Math.max(0, window.scrollY + rect.top - SCROLL_OFFSET_PX);
-    scrollToY(top);
-  }, [scrollToY]);
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }, []);
 
   const scrollToResources = useCallback(() => {
     smoothScrollToElement('resources-section');
@@ -78,8 +46,11 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
           scrollTimeoutRef.current = setTimeout(() => tryScroll(attempts + 1), 100);
           return;
         }
-        const top = Math.max(0, window.scrollY + rect.top - SCROLL_OFFSET_PX);
-        scrollToY(top);
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        element.scrollIntoView({
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+          block: 'start',
+        });
         return;
       }
       if (attempts < 40) {
@@ -87,7 +58,7 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
       }
     };
     tryScroll();
-  }, [scrollToY]);
+  }, []);
 
   const scrollToEssentielles = useCallback(() => {
     smoothScrollToElement('ressources-essentielles');
