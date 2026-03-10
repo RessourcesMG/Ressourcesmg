@@ -45,45 +45,7 @@ import { Link } from 'react-router-dom';
 import type { Category } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
-
-// Icon mapping for categories
-const iconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
-  Stethoscope,
-  Wind,
-  Heart,
-  Smile,
-  ScanFace,
-  Activity,
-  User,
-  Baby,
-  Droplet,
-  Bug,
-  Search,
-  Briefcase,
-  Accessibility,
-  Brain,
-  Apple,
-  Ribbon,
-  Eye,
-  Ear,
-  Bone,
-  Pill,
-  BrainCircuit,
-  Scan,
-  Hand,
-  FileText,
-  HeartHandshake,
-  Sparkles,
-  MoreHorizontal,
-  Circle,
-  BriefcaseMedical,
-  // Icônes médicales personnalisées
-  ThyroidIcon,
-  UterusIcon,
-  ToothIcon,
-  TestTubeIcon,
-  PregnantWomanIcon,
-};
+import { iconComponents as categoryIconComponents } from '@/lib/categoryIcons';
 
 interface HeaderProps {
   searchQuery: string;
@@ -183,7 +145,7 @@ export function Header({
 
   return (
     <header 
-      className={`fixed left-0 right-0 z-50 transition-all duration-300 pt-2 pb-0 ${
+      className={`fixed left-0 right-0 z-50 transition-all duration-300 pt-1 pb-1 sm:pt-2 sm:pb-0 ${
         isScrolled 
           ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200' 
           : 'bg-white'
@@ -191,7 +153,7 @@ export function Header({
       style={{ top: 'var(--announcement-banner-height, 0px)' }}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-start justify-between gap-2 sm:gap-4 pt-1 pb-2">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 pt-1 sm:pt-2 pb-2">
           {/* Logo : retour accueil et réinitialisation recherche / filtres */}
           <Link
             to="/"
@@ -236,12 +198,12 @@ export function Header({
             {isCompact ? (
               <>
                 <LayoutGrid className="w-4 h-4 shrink-0" aria-hidden />
-                <span className="text-xs font-semibold">Cartes</span>
+                <span className="text-xs font-semibold">Compact</span>
               </>
             ) : (
               <>
                 <List className="w-4 h-4 shrink-0" aria-hidden />
-                <span className="text-xs font-semibold">Liste</span>
+                <span className="text-xs font-semibold">Standard</span>
               </>
             )}
           </button>
@@ -286,7 +248,7 @@ export function Header({
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 overflow-y-auto">
+            <SheetContent side="right" className="w-80 overflow-y-auto px-4 py-4">
               <Link to="/" onClick={onGoHome} className="flex items-center gap-2 mb-4 hover:opacity-90 transition-opacity">
                 <div className="p-2 bg-teal-600 rounded-lg">
                   <Stethoscope className="w-5 h-5 text-white" />
@@ -321,12 +283,12 @@ export function Header({
                   </span>
                 </button>
               )}
-              <nav className="space-y-1">
+              <nav className="space-y-1 pr-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 px-2">
                   Spécialités
                 </p>
                 {categories.map((category) => {
-                  const IconComponent = iconComponents[category.icon] || Circle;
+                  const IconComponent = categoryIconComponents[category.icon] || Circle;
                   return (
                     <button
                       key={category.id}
