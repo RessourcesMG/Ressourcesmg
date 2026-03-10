@@ -140,29 +140,24 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
           </div>
 
           {/* CTA Buttons */}
-          <div className={`flex flex-col items-stretch justify-center max-w-md mx-auto ${isCompact ? 'gap-2' : 'gap-3'}`}>
+          <div className={`flex flex-col sm:flex-row items-center justify-center ${isCompact ? 'gap-2' : 'gap-4'}`}>
             <Button 
               onClick={scrollToEssentielles}
               size={isCompact ? 'default' : 'lg'}
-              className="bg-teal-600 hover:bg-teal-700 text-white px-8 w-full"
-              aria-label="Aller aux ressources essentielles, les onglets pour débuter ma journée de consultation"
+              className="bg-teal-600 hover:bg-teal-700 text-white px-8 w-full sm:w-auto inline-flex items-center justify-center gap-2"
+              aria-label="Aller aux ressources essentielles"
             >
-              <FolderHeart className="w-4 h-4 mr-2 text-teal-100" />
-              <span className="flex flex-col items-start leading-tight">
-                <span>Ressources essentielles</span>
-                <span className="text-[11px] text-teal-100/80">
-                  Les onglets pour débuter ma journée de consultation
-                </span>
-              </span>
+              <FolderHeart className="w-4 h-4" />
+              <span>Ressources essentielles</span>
             </Button>
             <Button 
               onClick={scrollToAddResource}
               size={isCompact ? 'default' : 'lg'}
               variant="outline"
-              className="border-teal-600 text-teal-700 hover:bg-teal-50 px-8 w-full"
+              className="border-teal-600 text-teal-700 hover:bg-teal-50 px-8 w-full sm:w-auto inline-flex items-center justify-center gap-2"
             >
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Ajouter une ressource
+              <PlusCircle className="w-4 h-4" />
+              <span>Ajouter une ressource</span>
             </Button>
           </div>
         </div>

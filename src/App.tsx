@@ -471,7 +471,7 @@ function AppContent() {
                   Ressources essentielles
                 </h2>
                 <p className="text-slate-600 text-sm">
-                  Les outils les plus utilisés au quotidien
+                  Les onglets pour débuter ma journée de consultation
                 </p>
               </div>
 
