@@ -54,8 +54,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Link } from 'react-router-dom';
 import { categories } from '@/types/resources';
 import { useCompactMode } from '@/contexts/CompactModeContext';
-import { useAiSearch } from '@/contexts/AiSearchContext';
-import type { CatalogEntry, AiSuggestion } from '@/lib/aiSuggest';
 import { ThyroidIcon, UterusIcon, ToothIcon, TestTubeIcon, PregnantWomanIcon } from './icons/MedicalIcons';
 
 // Icon mapping for categories
@@ -106,10 +104,6 @@ interface HeaderProps {
   showOnlyFavorites?: boolean;
   onShowOnlyFavoritesChange?: (value: boolean) => void;
   favoritesCount?: number;
-  /** Catalogue pour la recherche par question (affichage du bloc si des catégories existent). */
-  catalogForAI?: CatalogEntry[];
-  /** Recherche locale à partir d’une question (gratuite, sans API). */
-  getSuggestionsForQuestion?: (question: string) => AiSuggestion[];
 }
 
 export function Header({
@@ -121,40 +115,13 @@ export function Header({
   showOnlyFavorites = false,
   onShowOnlyFavoritesChange,
   favoritesCount = 0,
-  catalogForAI = [],
-  getSuggestionsForQuestion,
 }: HeaderProps) {
   const { isCompact, setCompact } = useCompactMode();
-  const { aiSearchEnabled, setAiSearchEnabled } = useAiSearch();
   const [isScrolled, setIsScrolled] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [aiPanelOpen, setAiPanelOpen] = useState(false);
-  const [aiQuestion, setAiQuestion] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResult, setAiResult] = useState<{ suggestions: Array<{ resourceName: string; resourceUrl: string; categoryName: string; reason: string }>; error?: string } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
-
-  const handleAskAI = useCallback(() => {
-    const q = aiQuestion.trim();
-    if (!q || q.length < 2 || !getSuggestionsForQuestion || aiLoading) return;
-    setAiLoading(true);
-    setAiResult(null);
-    setTimeout(() => {
-      try {
-        const suggestions = getSuggestionsForQuestion(q);
-        setAiResult({
-          suggestions,
-          error: suggestions.length === 0 ? 'Aucune ressource trouvée pour cette question. Essayez d’autres mots-clés.' : undefined,
-        });
-      } catch {
-        setAiResult({ suggestions: [], error: 'Erreur lors de la recherche.' });
-      } finally {
-        setAiLoading(false);
-      }
-    }, 120);
-  }, [aiQuestion, getSuggestionsForQuestion, aiLoading]);
 
   const updateScrollArrows = useCallback(() => {
     const el = categoriesScrollRef.current;
@@ -246,7 +213,7 @@ export function Header({
             <span className="font-bold text-slate-900 text-lg hidden sm:block">Ressources MG</span>
           </Link>
 
-          {/* Barre de recherche + Recherche par question */}
+          {/* Barre de recherche */}
           <div className="flex-1 min-w-0 max-w-xl flex flex-col gap-1 relative z-[60]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -261,115 +228,6 @@ export function Header({
                 aria-label="Rechercher une ressource médicale"
               />
             </div>
-            {catalogForAI.length > 0 && (
-              <div className="w-full flex flex-col items-end">
-                {!aiSearchEnabled ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAiSearchEnabled(true);
-                      setAiPanelOpen(true);
-                    }}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md px-2 py-2 sm:py-1 -mx-1 transition-colors w-fit min-h-[44px] sm:min-h-0 items-center touch-manipulation"
-                    aria-label="Activer la recherche par question"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-                    Recherche par question
-                  </button>
-                ) : (
-                  <Collapsible open={aiPanelOpen} onOpenChange={setAiPanelOpen} className="w-full flex flex-col items-end">
-                    <CollapsibleTrigger
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700 hover:underline py-2 sm:py-0 min-h-[44px] sm:min-h-0 items-center touch-manipulation"
-                      aria-expanded={aiPanelOpen}
-                    >
-                      <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-                      Rechercher en posant une question
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="pt-2 relative z-[100] w-full">
-                      <div className="absolute left-0 right-0 top-full mt-1 w-full min-w-0 rounded-lg border border-slate-200 bg-white p-3 shadow-lg space-y-3 z-[100]">
-                        <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100">
-                          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700">
-                            <MessageCircle className="w-3.5 h-3.5 shrink-0 text-teal-600" />
-                            <span>Recherche par question</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setAiPanelOpen(false)}
-                            className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 touch-manipulation flex items-center justify-center"
-                            aria-label="Fermer"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <div className="space-y-2">
-                          <textarea
-                            placeholder="Ex. Quelle ressource pour les recommandations HTA ?"
-                            value={aiQuestion}
-                            onChange={(e) => setAiQuestion(e.target.value)}
-                            className="w-full min-h-[80px] sm:min-h-[72px] rounded-md border border-slate-200 px-3 py-3 sm:py-2 text-base sm:text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/60 resize-none touch-manipulation"
-                            rows={2}
-                            disabled={aiLoading}
-                          />
-                          <p className="text-[11px] text-slate-500">
-                            Décrivez votre question clinique en une ou deux phrases. Nous vous suggérerons les ressources les plus adaptées.
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-end">
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={handleAskAI}
-                            disabled={aiLoading || aiQuestion.trim().length < 2}
-                            className="bg-teal-600 hover:bg-teal-700 text-white text-sm sm:text-xs min-h-[36px] sm:min-h-9 px-4 touch-manipulation"
-                          >
-                            {aiLoading ? (
-                              <>
-                                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                                Recherche…
-                              </>
-                            ) : (
-                              'Trouver des ressources'
-                            )}
-                          </Button>
-                        </div>
-                        {aiResult && (
-                          <div className="mt-2 pt-2 border-t border-slate-100 text-left">
-                            {aiResult.error && (
-                              <p className="text-xs mb-2">
-                                <span className="text-amber-600">{aiResult.error}</span>
-                                {(aiResult.error.includes('configuration manquante') || aiResult.error.includes('non disponible')) && (
-                                  <span className="block mt-1 text-slate-500">La recherche par mots-clés ci-dessus reste disponible.</span>
-                                )}
-                              </p>
-                            )}
-                            {aiResult.suggestions.length > 0 ? (
-                              <ul className="space-y-1.5 text-xs">
-                                {aiResult.suggestions.map((s, i) => (
-                                  <li key={i}>
-                                    <a
-                                      href={s.resourceUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 hover:underline"
-                                    >
-                                      <span className="font-medium">{s.resourceName}</span>
-                                      <ExternalLink className="w-3 h-3 shrink-0" />
-                                    </a>
-                                    <span className="text-slate-500"> — {s.reason}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : !aiResult.error && (
-                              <p className="text-xs text-slate-500">Aucune ressource suggérée pour cette question.</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Toggle vue compacte - Mobile : pill "Liste" / "Cartes" pour bien distinguer du menu */}
