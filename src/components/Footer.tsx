@@ -141,12 +141,12 @@ export function Footer({ categories = [] }: FooterProps) {
               </div>
               <span className="font-bold text-white text-lg">Ressources MG</span>
             </div>
-            <p className="text-slate-300 text-sm leading-relaxed mb-3 max-w-md">
-              Outils web utiles pour la pratique en médecine générale, organisés par spécialité.
-            </p>
-            <p className="text-slate-500 text-sm italic mb-4 max-w-md">
-              Fait de manière indépendante par une médecin généraliste. Pas de conflits d&apos;intérêt à déclarer.
-            </p>
+              <p className="text-slate-300 text-sm leading-relaxed mb-3 max-w-md">
+                Outils web utiles pour la pratique en médecine générale, organisés par spécialité.
+              </p>
+              <p className="text-slate-500 text-sm italic mb-4 max-w-md">
+                Site web à but non lucratif fait de manière indépendante par une médecin généraliste qui veut aider à référencer la médecine du web. Pas de conflits d&apos;intérêt à déclarer.
+              </p>
             <p className="text-slate-400 text-sm font-semibold mb-2">Me contacter</p>
             <a
               href="mailto:ressourcesmedge@gmail.com"
@@ -163,16 +163,13 @@ export function Footer({ categories = [] }: FooterProps) {
             className="scroll-mt-[7.5rem] lg:col-span-7 order-1 lg:order-2 lg:max-w-2xl lg:ml-auto"
           >
             <div className="bg-slate-800/70 rounded-2xl p-5 sm:p-6 border border-slate-700/80 shadow-[0_18px_45px_rgba(15,23,42,0.75)]">
-              <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex items-start gap-3 mb-4">
                 <div>
                   <h3 className="font-semibold text-white text-sm sm:text-base">Proposer une ressource</h3>
                   <p className="text-slate-400 text-xs sm:text-sm mt-1">
                     Un site que vous utilisez au quotidien&nbsp;? Proposez-le pour enrichir la base.
                   </p>
                 </div>
-                <span className="inline-flex items-center rounded-full border border-teal-500/40 bg-teal-500/10 px-2.5 py-0.5 text-[11px] font-medium text-teal-200">
-                  1&nbsp;min
-                </span>
               </div>
               {submitted ? (
                 <div className="bg-teal-900/50 border border-teal-700 rounded-xl p-6 text-center">
@@ -277,9 +274,6 @@ export function Footer({ categories = [] }: FooterProps) {
                       <Send className="w-3.5 h-3.5 mr-1.5" />
                       {loading ? 'Envoi...' : 'Proposer la ressource'}
                     </Button>
-                    <p className="text-[11px] text-slate-500">
-                      Réponse par email uniquement en cas de question complémentaire.
-                    </p>
                   </div>
                 </form>
               )}
@@ -288,22 +282,22 @@ export function Footer({ categories = [] }: FooterProps) {
         </div>
 
         {/* Bottom bar : bouton haut de page à gauche + infos */}
-        <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-slate-500 text-xs flex-wrap justify-start w-full sm:w-auto">
+        <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
+          <div className="flex items-center gap-3 flex-wrap justify-start w-full sm:w-auto">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-slate-800/80 text-slate-100 hover:bg-slate-700 transition-colors font-medium"
               aria-label="Retour en haut de la page"
             >
               <ArrowUp className="w-3.5 h-3.5 shrink-0" />
               Haut de page
             </button>
-            <p className="text-sm text-slate-500">
+            <p>
               {currentYear} Ressources MG.
             </p>
           </div>
-          <div className="flex items-center gap-3 text-slate-500 text-xs flex-wrap justify-center sm:justify-end">
+          <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-end">
             <p className="flex items-center gap-1">
               Fait avec <Heart className="w-4 h-4 text-red-500 fill-red-500" /> pour la médecine générale
             </p>

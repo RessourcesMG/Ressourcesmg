@@ -1,4 +1,4 @@
-import { Stethoscope, ArrowDown, Sparkles } from 'lucide-react';
+import { Stethoscope, ArrowDown, FolderHeart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { useEffect, useRef, useCallback } from 'react';
@@ -172,10 +172,15 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
             size={isCompact ? 'sm' : 'default'}
             onClick={scrollToEssentielles}
             className={`mt-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 text-slate-600 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 ${isCompact ? 'text-xs' : 'text-sm'}`}
-            aria-label="Aller aux ressources essentielles"
+            aria-label="Aller aux ressources essentielles, les onglets pour débuter ma journée de consultation"
           >
-            <Sparkles className="w-4 h-4 text-teal-500" />
-            <span>Ressources essentielles</span>
+            <FolderHeart className="w-4 h-4 text-teal-500" />
+            <span className="flex flex-col items-start leading-tight">
+              <span>Ressources essentielles</span>
+              <span className="text-[11px] text-slate-500">
+                Les onglets pour débuter ma journée de consultation
+              </span>
+            </span>
           </Button>
         </div>
       </div>
