@@ -75,6 +75,11 @@ export function BlockEditor() {
   const [sortAzPrefs, setSortAzPrefs] = useState<Record<string, boolean>>(() => ({}));
   const [searchQuery, setSearchQuery] = useState('');
 
+  const totalCategories = generalCategories.length + medicalSpecialties.length;
+  const totalResources =
+    generalCategories.reduce((acc, cat) => acc + cat.resources.length, 0) +
+    medicalSpecialties.reduce((acc, cat) => acc + cat.resources.length, 0);
+
   const handleSeed = async () => {
     setSeedError('');
     setSeedLoading(true);
@@ -451,6 +456,11 @@ export function BlockEditor() {
               ? 'Cliquez sur le crayon pour modifier, la corbeille pour supprimer.'
               : 'Initialisez d\'abord les blocs pour pouvoir les éditer.'}
           </p>
+          {fromDb && (
+            <p className="text-xs text-slate-500 mt-1">
+              {totalCategories} catégorie{totalCategories > 1 ? 's' : ''} • {totalResources} ressource{totalResources > 1 ? 's' : ''} au total.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           {!fromDb && (

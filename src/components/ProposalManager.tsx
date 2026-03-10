@@ -261,6 +261,7 @@ export function ProposalManager() {
   const pending = proposals.filter((p) => p.status === 'pending');
   const accepted = proposals.filter((p) => p.status === 'accepted');
   const rejected = proposals.filter((p) => p.status === 'rejected');
+  const total = proposals.length;
 
   const formatDate = (s: string) => {
     try {
@@ -284,6 +285,11 @@ export function ProposalManager() {
         <p className="text-sm text-slate-600">
           Les visiteurs peuvent proposer des sites via le formulaire en bas de page.
         </p>
+        {total > 0 && (
+          <p className="text-xs text-slate-500 mt-1">
+            {total} au total • {pending.length} en attente • {accepted.length} acceptée{accepted.length > 1 ? 's' : ''} • {rejected.length} refusée{rejected.length > 1 ? 's' : ''}.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {error && (
@@ -323,7 +329,7 @@ export function ProposalManager() {
                           )}
                           <p className="text-slate-400 text-xs mt-1">{formatDate(p.createdAt)}</p>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                        <div className="flex flex-col sm:flex-row md:flex-row gap-2 shrink-0 sm:items-stretch">
                           {fromDb && categoriesForSelect.length > 0 ? (
                             <Select
                               value={acceptCategoryId[p.id] ?? ''}
@@ -343,7 +349,7 @@ export function ProposalManager() {
                               </SelectContent>
                             </Select>
                           ) : null}
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 flex-wrap justify-end">
                             <Button
                               size="sm"
                               variant="outline"
