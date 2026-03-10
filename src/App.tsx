@@ -34,6 +34,10 @@ function AppContent() {
     baseSpecialties,
     customResources
   );
+  const headerCategories = useMemo(
+    () => (blocksLoading ? [] : [...generalCategories, ...mergedSpecialties]),
+    [blocksLoading, generalCategories, mergedSpecialties]
+  );
 
   // Vocabulaire pour les suggestions "Vous vouliez dire ?"
   const searchVocabulary = useMemo(() => {
@@ -188,7 +192,7 @@ function AppContent() {
         onSearch={setSearchQuery}
         onCategorySelect={setSelectedCategory}
         selectedCategory={selectedCategory}
-        categories={[...generalCategories, ...mergedSpecialties]}
+        categories={headerCategories}
         onGoHome={() => {
           setSearchQuery('');
           setSelectedCategory(null);
