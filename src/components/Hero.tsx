@@ -12,57 +12,85 @@ interface HeroProps {
 export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) {
   const { isCompact } = useCompactMode();
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const scrollRafRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      if (scrollRafRef.current != null) cancelAnimationFrame(scrollRafRef.current);
     };
   }, []);
 
-  const smoothScrollToElement = useCallback((id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    el.scrollIntoView({
-      behavior: prefersReducedMotion ? 'auto' : 'smooth',
-      block: 'start',
-    });
-  }, []);
+  const scrollToElementWithOffsetAndRetries = useCallback(
+    (getElement: () => HTMLElement | null, maxAttempts = 15, attemptDelayMs = 150) => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
 
-  const scrollToResources = useCallback(() => {
-    smoothScrollToElement('resources-section');
-  }, [smoothScrollToElement]);
-
-  const scrollToAddResource = useCallback(() => {
-    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    const tryScroll = (attempts = 0) => {
-      const element = document.getElementById('add-resource-form');
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const hasSize = rect.width > 0 || rect.height > 0;
-        if (!hasSize && attempts < 15) {
-          scrollTimeoutRef.current = setTimeout(() => tryScroll(attempts + 1), 100);
+      const doScroll = (attempt: number) => {
+        const element = getElement();
+        if (!element) {
+          if (attempt < maxAttempts) {
+            scrollTimeoutRef.current = setTimeout(() => doScroll(attempt + 1), attemptDelayMs);
+          }
           return;
         }
+
+        const rect = element.getBoundingClientRect();
+        const hasSize = rect.width > 0 || rect.height > 0;
+        if (!hasSize && attempt < maxAttempts) {
+          scrollTimeoutRef.current = setTimeout(() => doScroll(attempt + 1), attemptDelayMs);
+          return;
+        }
+
+        // Hauteur approximative de l'en-tête sticky (un peu plus large pour la marge de sécurité)
+        const HEADER_OFFSET_PX = window.innerWidth < 640 ? 96 : 112;
+        const targetTop = Math.max(0, window.scrollY + rect.top - HEADER_OFFSET_PX);
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        element.scrollIntoView({
+
+        window.scrollTo({
+          top: targetTop,
           behavior: prefersReducedMotion ? 'auto' : 'smooth',
-          block: 'start',
         });
-        return;
-      }
-      if (attempts < 40) {
-        scrollTimeoutRef.current = setTimeout(() => tryScroll(attempts + 1), 50);
-      }
-    };
-    tryScroll();
-  }, []);
+
+        if (attempt < maxAttempts) {
+          // Re-vérifier après un court délai pour compenser les décalages de layout tardifs
+          scrollTimeoutRef.current = setTimeout(() => {
+            const checkElement = getElement();
+            if (!checkElement) return;
+            const checkRect = checkElement.getBoundingClientRect();
+            const desiredTop = HEADER_OFFSET_PX;
+            const delta = Math.abs(checkRect.top - desiredTop);
+            // Si l'élément est trop éloigné du bord haut, on réessaie
+            if (delta > 16) {
+              doScroll(attempt + 1);
+            }
+          }, attemptDelayMs);
+        }
+      };
+
+      doScroll(0);
+    },
+    []
+  );
+
+  const scrollToResources = useCallback(() => {
+    scrollToElementWithOffsetAndRetries(
+      () => document.getElementById('resources-section')
+    );
+  }, [scrollToElementWithOffsetAndRetries]);
+
+  const scrollToAddResource = useCallback(() => {
+    scrollToElementWithOffsetAndRetries(
+      () => document.getElementById('add-resource-form'),
+      25,
+      120
+    );
+  }, [scrollToElementWithOffsetAndRetries]);
 
   const scrollToEssentielles = useCallback(() => {
-    smoothScrollToElement('ressources-essentielles');
-  }, [smoothScrollToElement]);
+    scrollToElementWithOffsetAndRetries(
+      () => document.getElementById('ressources-essentielles'),
+      25,
+      120
+    );
+  }, [scrollToElementWithOffsetAndRetries]);
 
   return (
     <section className={`relative bg-gradient-to-br from-teal-50 via-white to-slate-50 overflow-hidden ${isCompact ? 'pt-4 pb-10' : 'pt-6 pb-16'}`}>
