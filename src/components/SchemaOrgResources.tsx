@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { Category } from '@/types/resources';
 
-const BASE_URL = 'https://ressourcesmg.vercel.app';
+const BASE_URL = 'https://www.ressourcesmg.fr';
 
 interface SchemaOrgResourcesProps {
   generalCategories: Category[];
