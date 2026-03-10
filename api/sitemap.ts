@@ -22,28 +22,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
   res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate');
 
-  const urls: Array<{ loc: string; lastmod?: string; changefreq?: string; priority?: number }> = [
-    { loc: `${BASE_URL}/`, lastmod: new Date().toISOString().slice(0, 10), changefreq: 'weekly', priority: 1.0 },
-    { loc: `${BASE_URL}/webmaster`, lastmod: new Date().toISOString().slice(0, 10), changefreq: 'monthly', priority: 0.3 },
-  ];
-
-  const supabase = getSupabase();
-  if (supabase) {
-    const { data: cats } = await supabase
-      .from('managed_categories')
-      .select('id, name')
-      .order('is_specialty', { ascending: true })
-      .order('sort_order', { ascending: true });
-    for (const cat of cats || []) {
-      urls.push({
-        loc: `${BASE_URL}/#${cat.id}`,
+  try {
+    const urls: Array<{ loc: string; lastmod?: string; changefreq?: string; priority?: number }> = [
+      {
+        loc: `${BASE_URL}/`,
+        lastmod: new Date().toISOString().slice(0, 10),
         changefreq: 'weekly',
-        priority: 0.8,
-      });
-    }
-  }
+        priority: 1.0,
+      },
+      {
+        loc: `${BASE_URL}/webmaster`,
+        lastmod: new Date().toISOString().slice(0, 10),
+        changefreq: 'monthly',
+        priority: 0.3,
+      },
+    ];
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        const { data: cats } = await supabase
+          .from('managed_categories')
+          .select('id, name')
+          .order('is_specialty', { ascending: true })
+          .order('sort_order', { ascending: true });
+        for (const cat of cats || []) {
+          urls.push({
+            loc: `${BASE_URL}/#${cat.id}`,
+            changefreq: 'weekly',
+            priority: 0.8,
+          });
+        }
+      } catch {
+        // En cas d'erreur Supabase, on renvoie au moins les URLs de base
+      }
+    }
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
   .map(
@@ -51,10 +66,22 @@ ${urls
     <loc>${escapeXml(u.loc)}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ''}${u.changefreq ? `\n    <changefreq>${u.changefreq}</changefreq>` : ''}${u.priority !== undefined ? `\n    <priority>${u.priority}</priority>` : ''}
   </url>`
   )
-  .join('\n')}
+      .join('\n')}
 </urlset>`;
 
-  return res.status(200).send(xml);
+    return res.status(200).send(xml);
+  } catch {
+    // Fallback ultra simple en cas d'erreur inattendue pour éviter un 500
+    const fallback = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${escapeXml(`${BASE_URL}/`)}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`;
+    return res.status(200).send(fallback);
+  }
 }
 
 function escapeXml(s: string): string {
