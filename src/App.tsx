@@ -188,6 +188,7 @@ function AppContent() {
         onSearch={setSearchQuery}
         onCategorySelect={setSelectedCategory}
         selectedCategory={selectedCategory}
+        categories={[...generalCategories, ...mergedSpecialties]}
         onGoHome={() => {
           setSearchQuery('');
           setSelectedCategory(null);
