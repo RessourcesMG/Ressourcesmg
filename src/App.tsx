@@ -27,6 +27,19 @@ function AppContent() {
 
   const debouncedQuery = useDebouncedValue(searchQuery, 280);
 
+  // Désactiver la restauration automatique du scroll du navigateur
+  // pour éviter les conflits avec nos scrolls programmatiques (notamment après rechargement).
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
+    // Si aucune ancre spécifique n'est demandée, repartir en haut à chaque chargement.
+    if (!window.location.hash) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, []);
+
   const { generalCategories: baseGeneralCategories, medicalSpecialties: baseSpecialties, loading: blocksLoading, error: blocksError, retry: retryBlocks } = useManagedBlocksContext();
   const { resources: customResources } = useCustomResources();
   const { generalCategories, medicalSpecialties: mergedSpecialties } = useCategoriesWithCustom(
