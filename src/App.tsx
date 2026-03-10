@@ -107,35 +107,70 @@ function AppContent() {
     const termGroups = getSearchTermGroups(query);
     const simpleGroup = [[query.trim()]];
 
-    result = result.map((category) => {
-      const contextBase = { categoryName: category.name };
-      const resources = category.resources.filter((resource) => {
-        const searchableText = `${category.name} ${resource.name} ${resource.description} ${resource.note ?? ''}`;
-        const matchesSimple = matchesSearch(searchableText, simpleGroup);
-        const matchesSynonyms = matchesSearch(searchableText, termGroups);
-        const matchesFuzzy = matchesSearchFuzzy(searchableText, termGroups);
-        return matchesSimple || matchesSynonyms || matchesFuzzy;
-      });
+    // 1) Premier passage : uniquement correspondances exactes / synonymes
+    const strictResult = result
+      .map((category) => {
+        const contextBase = { categoryName: category.name };
+        const strictResources = category.resources.filter((resource) => {
+          const searchableText = `${category.name} ${resource.name} ${resource.description} ${resource.note ?? ''}`;
+          const matchesSimple = matchesSearch(searchableText, simpleGroup);
+          const matchesSynonyms = matchesSearch(searchableText, termGroups);
+          return matchesSimple || matchesSynonyms;
+        });
 
-      if (resources.length === 0) return null;
+        if (strictResources.length === 0) return null;
 
-      const withScore = resources.map((resource) => ({
-        resource,
-        score: scoreSearchMatch(
-          {
-            ...contextBase,
-            name: resource.name,
-            description: resource.description,
-            note: resource.note,
-          },
-          termGroups
-        ),
-      }));
-      withScore.sort((a, b) => b.score - a.score);
-      return { ...category, resources: withScore.map((r) => r.resource) };
-    }).filter((c): c is Category => c !== null);
+        const withScore = strictResources.map((resource) => ({
+          resource,
+          score: scoreSearchMatch(
+            {
+              ...contextBase,
+              name: resource.name,
+              description: resource.description,
+              note: resource.note,
+            },
+            termGroups
+          ),
+        }));
+        withScore.sort((a, b) => b.score - a.score);
+        return { ...category, resources: withScore.map((r) => r.resource) };
+      })
+      .filter((c): c is Category => c !== null);
 
-    return result.filter((cat) => cat.resources.length > 0);
+    if (strictResult.length > 0) {
+      return strictResult;
+    }
+
+    // 2) Si aucun résultat strict, on active le fuzzy matching pour "rattraper" les fautes de frappe
+    const fuzzyResult = result
+      .map((category) => {
+        const contextBase = { categoryName: category.name };
+        const fuzzyResources = category.resources.filter((resource) => {
+          const searchableText = `${category.name} ${resource.name} ${resource.description} ${resource.note ?? ''}`;
+          const matchesFuzzy = matchesSearchFuzzy(searchableText, termGroups);
+          return matchesFuzzy;
+        });
+
+        if (fuzzyResources.length === 0) return null;
+
+        const withScore = fuzzyResources.map((resource) => ({
+          resource,
+          score: scoreSearchMatch(
+            {
+              ...contextBase,
+              name: resource.name,
+              description: resource.description,
+              note: resource.note,
+            },
+            termGroups
+          ),
+        }));
+        withScore.sort((a, b) => b.score - a.score);
+        return { ...category, resources: withScore.map((r) => r.resource) };
+      })
+      .filter((c): c is Category => c !== null);
+
+    return fuzzyResult;
   }
 
   const filteredGeneralCategories = useMemo(
