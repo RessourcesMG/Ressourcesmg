@@ -260,9 +260,7 @@ function AppContent() {
         favoritesCount={favoriteIds.length}
       />
       
-      <main 
-        className="pt-[8.25rem] sm:pt-[8.5rem] bg-gradient-to-b from-white to-teal-50 bg-[length:100%_8.25rem] sm:bg-[length:100%_8.5rem] bg-no-repeat"
-      >
+      <main className="pt-[6rem] sm:pt-[7rem]">
         {/* Hero affiché uniquement quand il n'y a ni recherche, ni catégorie, ni filtre favoris */}
         {!searchQuery && !selectedCategory && !showOnlyFavorites && (
           <Hero 
@@ -274,7 +272,7 @@ function AppContent() {
 
         <section
           id="resources-section"
-          className={`scroll-mt-[8.5rem] sm:scroll-mt-[8rem] ${isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}`}
+          className={`scroll-mt-[6rem] sm:scroll-mt-[7rem] ${isCompact ? 'py-6 px-4 sm:px-6 lg:px-8' : 'py-12 px-4 sm:px-6 lg:px-8'}`}
           aria-label="Ressources"
         >
           <div className="max-w-7xl mx-auto">
@@ -467,7 +465,7 @@ function AppContent() {
         {!searchQuery && !selectedCategory && (
           <section
             id="ressources-essentielles"
-            className={`${isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'} scroll-mt-[8.5rem] sm:scroll-mt-[8rem]`}
+            className={`${isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'} scroll-mt-[6rem] sm:scroll-mt-[7rem]`}
           >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className={`text-center ${isCompact ? 'mb-4' : 'mb-8'}`}>
