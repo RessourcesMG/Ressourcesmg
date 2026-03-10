@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Plus, LogOut, Shield, Eye, EyeOff, LayoutList, Database, BarChart3 } from 'lucide-react';
+import { Lock, Plus, LogOut, Shield, Eye, EyeOff, LayoutList, Database, BarChart3, Inbox } from 'lucide-react';
 import { isWebmasterLoggedIn, login, logout, getToken, getRateLimitStatus } from '@/lib/webmasterAuth';
 import { getSortAlphabetically } from '@/lib/sortAzPrefs';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
