@@ -260,7 +260,9 @@ function AppContent() {
         favoritesCount={favoriteIds.length}
       />
       
-      <main className="pt-[8.25rem] sm:pt-[8.5rem]">
+      <main 
+        className="pt-[8.25rem] sm:pt-[8.5rem] bg-gradient-to-b from-white to-teal-50 bg-[length:100%_8.25rem] sm:bg-[length:100%_8.5rem] bg-no-repeat"
+      >
         {/* Hero affiché uniquement quand il n'y a ni recherche, ni catégorie, ni filtre favoris */}
         {!searchQuery && !selectedCategory && !showOnlyFavorites && (
           <Hero 
