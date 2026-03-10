@@ -1,21 +1,12 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { CompactModeProvider, useCompactMode } from '@/contexts/CompactModeContext';
-import { AiSearchProvider } from '@/contexts/AiSearchContext';
 import { Header } from '@/components/Header';
-import type { CatalogEntry, AiSuggestion } from '@/lib/aiSuggest';
 import { Hero } from '@/components/Hero';
 import { CategorySection } from '@/components/CategorySection';
 import { Footer } from '@/components/Footer';
 import { AnnouncementBanner } from '@/components/AnnouncementBanner';
 import { useManagedBlocksContext } from '@/contexts/ManagedBlocksContext';
-import {
-  getSearchTermGroups,
-  getSearchTermGroupsForQuestion,
-  matchesSearch,
-  countMatchingTermGroups,
-  scoreSearchMatch,
-  getDidYouMeanSuggestions,
-} from '@/lib/searchSynonyms';
+import { getSearchTermGroups, matchesSearch, matchesSearchFuzzy, scoreSearchMatch, getDidYouMeanSuggestions } from '@/lib/searchSynonyms';
 import { trackSearch } from '@/lib/analytics';
 import { useCategoriesWithCustom } from '@/hooks/useCategoriesWithCustom';
 import { useCustomResources } from '@/hooks/useCustomResources';
@@ -83,21 +74,6 @@ function AppContent() {
 
   const specialtyCount = baseSpecialties.length;
 
-  // Catalogue pour la recherche par IA (ressources visibles uniquement)
-  const catalogForAI = useMemo((): CatalogEntry[] => {
-    const cats = [...generalCategories, ...mergedSpecialties];
-    return cats.map((cat) => ({
-      categoryName: cat.name,
-      resources: cat.resources
-        .filter((r) => r.isHidden !== true)
-        .map((r) => ({
-          name: r.name,
-          description: r.description || '',
-          url: r.url,
-        })),
-    })).filter((cat) => cat.resources.length > 0);
-  }, [generalCategories, mergedSpecialties]);
-
   function filterAndSortCategories(
     list: Category[],
     query: string,
@@ -120,8 +96,8 @@ function AppContent() {
         const searchableText = `${category.name} ${resource.name} ${resource.description} ${resource.note ?? ''}`;
         const matchesSimple = matchesSearch(searchableText, simpleGroup);
         const matchesSynonyms = matchesSearch(searchableText, termGroups);
-        // Pas de fuzzy matching dans la recherche principale - seulement exact + synonymes pour rester précis
-        return matchesSimple || matchesSynonyms;
+        const matchesFuzzy = matchesSearchFuzzy(searchableText, termGroups);
+        return matchesSimple || matchesSynonyms || matchesFuzzy;
       });
 
       if (resources.length === 0) return null;
@@ -153,69 +129,6 @@ function AppContent() {
   const filteredSpecialties = useMemo(
     () => filterAndSortCategories(mergedSpecialties, debouncedQuery),
     [debouncedQuery, selectedCategory, mergedSpecialties]
-  );
-
-  /** Recherche 100 % locale à partir d’une question : privilégie les ressources qui matchent plusieurs mots-clés et/ou le titre. Gratuit, sans API. */
-  const getSuggestionsForQuestion = useCallback(
-    (question: string): AiSuggestion[] => {
-      const q = question.trim();
-      if (!q || q.length < 2) return [];
-      const termGroups = getSearchTermGroupsForQuestion(q);
-      if (termGroups.length === 0) return [];
-      const allCats = [...generalCategories, ...mergedSpecialties];
-      const scored: Array<{
-        resource: (typeof allCats)[0]['resources'][0];
-        categoryName: string;
-        score: number;
-        matchCount: number;
-      }> = [];
-      for (const cat of allCats) {
-        for (const r of cat.resources) {
-          if (r.isHidden === true) continue;
-          const searchableText = `${cat.name} ${r.name} ${r.description} ${r.note ?? ''}`;
-          const matchCount = countMatchingTermGroups(searchableText, termGroups);
-          if (matchCount === 0) continue;
-          const score = scoreSearchMatch(
-            { categoryName: cat.name, name: r.name, description: r.description, note: r.note },
-            termGroups
-          );
-          scored.push({ resource: r, categoryName: cat.name, score, matchCount });
-        }
-      }
-      // D'abord : résultats "forts" (plusieurs mots-clés ou score très élevé)
-      const strong = scored.filter(
-        (item) => item.matchCount >= 2 || item.score >= 140
-      );
-      const weak = scored.filter((item) => !strong.includes(item));
-
-      const byRelevance = (a: typeof scored[number], b: typeof scored[number]) =>
-        b.matchCount - a.matchCount || b.score - a.score;
-
-      strong.sort(byRelevance);
-      weak.sort(byRelevance);
-
-      // Si on a des "forts", on les privilégie ; sinon, on prend seulement les 2 meilleurs "faibles"
-      const combined =
-        strong.length > 0 ? strong : weak.slice(0, 2);
-      const seen = new Set<string>();
-      const uniqueTop = combined.filter(({ resource }) => {
-        if (seen.has(resource.id)) return false;
-        seen.add(resource.id);
-        return true;
-      });
-
-      // Limiter volontairement le nombre de résultats pour rester très ciblé
-      return uniqueTop.slice(0, 4).map(({ resource, categoryName, matchCount }) => ({
-        resourceName: resource.name,
-        resourceUrl: resource.url,
-        categoryName,
-        reason:
-          matchCount >= 2
-            ? `Plusieurs éléments de « ${categoryName} » correspondent à votre question.`
-            : `Ressource en « ${categoryName} » correspondant à votre question.`,
-      }));
-    },
-    [generalCategories, mergedSpecialties]
   );
 
   // Appliquer le filtre "Mes favoris" si actif
@@ -287,8 +200,6 @@ function AppContent() {
           if (v) setSelectedCategory(null);
         }}
         favoritesCount={favoriteIds.length}
-        catalogForAI={catalogForAI}
-        getSuggestionsForQuestion={getSuggestionsForQuestion}
       />
       
       <main className="pt-[8.25rem] sm:pt-[8.5rem]">
@@ -546,9 +457,7 @@ function AppContent() {
 function App() {
   return (
     <CompactModeProvider>
-      <AiSearchProvider>
-        <AppContent />
-      </AiSearchProvider>
+      <AppContent />
     </CompactModeProvider>
   );
 }
