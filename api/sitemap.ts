@@ -1,9 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-const BASE_URL = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : 'https://ressourcesmg.vercel.app';
+// Domaine canonique du site
+const BASE_URL = 'https://www.ressourcesmg.fr';
 
 let _supabase: ReturnType<typeof createClient> | null = null;
 function getSupabase() {

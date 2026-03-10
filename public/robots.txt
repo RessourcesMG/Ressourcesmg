@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 Disallow: /webmaster
 
-Sitemap: https://ressourcesmg.vercel.app/sitemap.xml
+Sitemap: https://www.ressourcesmg.fr/sitemap.xml

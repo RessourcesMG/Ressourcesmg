@@ -50,9 +50,9 @@ Les réseaux sociaux préfèrent les images PNG/JPG. Vous pouvez :
 
 ### 2. Soumettre le sitemap à Google Search Console
 1. Aller sur [Google Search Console](https://search.google.com/search-console)
-2. Ajouter votre propriété (ressourcesmg.vercel.app)
-3. Vérifier la propriété (via le fichier HTML déjà présent)
-4. Soumettre le sitemap : `https://ressourcesmg.vercel.app/sitemap.xml`
+2. Ajouter votre propriété (`https://www.ressourcesmg.fr/`)
+3. Vérifier la propriété (via le fichier HTML déjà présent ou un autre mode de vérification)
+4. Soumettre le sitemap : `https://www.ressourcesmg.fr/sitemap.xml`
 
 ### 3. Créer un fichier `_headers` ou améliorer les en-têtes HTTP
 Pour Vercel, créer un fichier `vercel.json` avec des headers de sécurité et cache :
