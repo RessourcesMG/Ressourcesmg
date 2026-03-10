@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useCallback } from 'react';
 import { CompactModeProvider, useCompactMode } from '@/contexts/CompactModeContext';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
@@ -26,6 +26,11 @@ function AppContent() {
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
   const debouncedQuery = useDebouncedValue(searchQuery, 280);
+
+  // Éviter tout bandeau gris : forcer la hauteur annonce à 0 dès le premier rendu
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty('--announcement-banner-height', '0px');
+  }, []);
 
   // Désactiver la restauration automatique du scroll du navigateur
   // pour éviter les conflits avec nos scrolls programmatiques (notamment après rechargement).
