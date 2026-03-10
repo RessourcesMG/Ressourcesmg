@@ -410,7 +410,10 @@ function AppContent() {
 
         {/* Quick access section */}
         {!searchQuery && !selectedCategory && (
-          <section id="ressources-essentielles" className={isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'}>
+          <section
+            id="ressources-essentielles"
+            className={`${isCompact ? 'py-6 bg-white border-t border-slate-200' : 'py-12 bg-white border-t border-slate-200'} scroll-mt-[8.5rem] sm:scroll-mt-[8rem]`}
+          >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className={`text-center ${isCompact ? 'mb-4' : 'mb-8'}`}>
                 <div className={`inline-flex items-center justify-center bg-indigo-100 rounded-full mb-4 ${isCompact ? 'w-10 h-10' : 'w-12 h-12'}`}>
