@@ -1,4 +1,4 @@
-import { Stethoscope, ArrowDown, FolderHeart } from 'lucide-react';
+import { Stethoscope, FolderHeart, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCompactMode } from '@/contexts/CompactModeContext';
 import { useEffect, useRef, useCallback } from 'react';
@@ -69,12 +69,6 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
     },
     []
   );
-
-  const scrollToResources = useCallback(() => {
-    scrollToElementWithOffsetAndRetries(
-      () => document.getElementById('resources-section')
-    );
-  }, [scrollToElementWithOffsetAndRetries]);
 
   const scrollToAddResource = useCallback(() => {
     scrollToElementWithOffsetAndRetries(
@@ -148,40 +142,29 @@ export function Hero({ totalResources, totalCategories, isLoading }: HeroProps) 
           {/* CTA Buttons */}
           <div className={`flex flex-col sm:flex-row items-center justify-center ${isCompact ? 'gap-2' : 'gap-4'}`}>
             <Button 
-              onClick={scrollToResources}
+              onClick={scrollToEssentielles}
               size={isCompact ? 'default' : 'lg'}
               className="bg-teal-600 hover:bg-teal-700 text-white px-8 w-full sm:w-auto"
+              aria-label="Aller aux ressources essentielles, les onglets pour débuter ma journée de consultation"
             >
-              Découvrir les ressources
-              <ArrowDown className="w-4 h-4 ml-2" />
+              <FolderHeart className="w-4 h-4 mr-2 text-teal-100" />
+              <span className="flex flex-col items-start leading-tight">
+                <span>Ressources essentielles</span>
+                <span className="text-[11px] text-teal-100/80">
+                  Les onglets pour débuter ma journée de consultation
+                </span>
+              </span>
             </Button>
             <Button 
               onClick={scrollToAddResource}
               size={isCompact ? 'default' : 'lg'}
               variant="outline"
-              className="border-teal-600 text-teal-600 hover:bg-teal-50 px-8 w-full sm:w-auto"
+              className="border-teal-600 text-teal-700 hover:bg-teal-50 px-8 w-full sm:w-auto"
             >
+              <PlusCircle className="w-4 h-4 mr-2" />
               Ajouter une ressource
             </Button>
           </div>
-
-          {/* Lien secondaire visible vers les ressources essentielles */}
-          <Button
-            type="button"
-            variant="ghost"
-            size={isCompact ? 'sm' : 'default'}
-            onClick={scrollToEssentielles}
-            className={`mt-5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 text-slate-600 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 ${isCompact ? 'text-xs' : 'text-sm'}`}
-            aria-label="Aller aux ressources essentielles, les onglets pour débuter ma journée de consultation"
-          >
-            <FolderHeart className="w-4 h-4 text-teal-500" />
-            <span className="flex flex-col items-start leading-tight">
-              <span>Ressources essentielles</span>
-              <span className="text-[11px] text-slate-500">
-                Les onglets pour débuter ma journée de consultation
-              </span>
-            </span>
-          </Button>
         </div>
       </div>
     </section>
