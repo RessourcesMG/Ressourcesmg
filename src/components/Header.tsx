@@ -49,6 +49,23 @@ export function Header({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
 
+  const scrollCategories = useCallback((direction: 'left' | 'right') => {
+    const el = categoriesScrollRef.current;
+    if (!el) return;
+    const delta = direction === 'left' ? -200 : 200;
+    const targetLeft = el.scrollLeft + delta;
+
+    if (typeof el.scrollTo === 'function') {
+      try {
+        el.scrollTo({ left: targetLeft, behavior: 'smooth' });
+      } catch {
+        el.scrollLeft = targetLeft;
+      }
+    } else {
+      el.scrollLeft = targetLeft;
+    }
+  }, []);
+
   const updateScrollArrows = useCallback(() => {
     const el = categoriesScrollRef.current;
     if (!el) return;
@@ -280,7 +297,7 @@ export function Header({
           <button
             type="button"
             onClick={() => {
-              categoriesScrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
+              scrollCategories('left');
             }}
             disabled={!canScrollLeft}
             className={`shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 transition-colors shadow-sm self-center ${
@@ -351,7 +368,7 @@ export function Header({
           <button
             type="button"
             onClick={() => {
-              categoriesScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
+              scrollCategories('right');
             }}
             disabled={!canScrollRight}
             className={`shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 transition-colors shadow-sm self-center ${
