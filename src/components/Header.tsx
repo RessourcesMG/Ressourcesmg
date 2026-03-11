@@ -52,7 +52,7 @@ export function Header({
   const scrollCategories = useCallback((direction: 'left' | 'right') => {
     const el = categoriesScrollRef.current;
     if (!el) return;
-    const delta = direction === 'left' ? -200 : 200;
+    const delta = direction === 'left' ? -320 : 320;
     const targetLeft = el.scrollLeft + delta;
 
     if (typeof el.scrollTo === 'function') {
@@ -299,14 +299,12 @@ export function Header({
             onClick={() => {
               scrollCategories('left');
             }}
-            disabled={!canScrollLeft}
             className={`shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 transition-colors shadow-sm self-center ${
               canScrollLeft
                 ? 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer'
                 : 'opacity-40 cursor-default'
             }`}
             aria-label="Défiler les catégories vers la gauche"
-            aria-disabled={!canScrollLeft}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -370,14 +368,12 @@ export function Header({
             onClick={() => {
               scrollCategories('right');
             }}
-            disabled={!canScrollRight}
             className={`shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 transition-colors shadow-sm self-center ${
               canScrollRight
                 ? 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer'
                 : 'opacity-40 cursor-default'
             }`}
             aria-label="Défiler les catégories vers la droite"
-            aria-disabled={!canScrollRight}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
