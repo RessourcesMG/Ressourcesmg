@@ -275,20 +275,24 @@ export function Header({
           </Sheet>
         </div>
 
-        {/* Category Pills - Desktop avec indicateurs de scroll */}
+        {/* Category Pills - Desktop avec flèches toujours visibles */}
         <div className="hidden lg:flex items-center pb-3 gap-1">
-          {canScrollLeft && (
-            <button
-              type="button"
-              onClick={() => {
-                categoriesScrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
-              }}
-              className="shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm self-center"
-              aria-label="Défiler les catégories vers la gauche"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              categoriesScrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
+            }}
+            disabled={!canScrollLeft}
+            className={`shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 transition-colors shadow-sm self-center ${
+              canScrollLeft
+                ? 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer'
+                : 'opacity-40 cursor-default'
+            }`}
+            aria-label="Défiler les catégories vers la gauche"
+            aria-disabled={!canScrollLeft}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
           <div className="relative flex-1 min-w-0">
             {canScrollLeft && (
               <div className={`absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r ${isScrolled ? 'from-white/95' : 'from-white'} to-transparent pointer-events-none z-10 rounded-l`} aria-hidden />
@@ -344,18 +348,22 @@ export function Header({
             ))}
             </div>
           </div>
-          {canScrollRight && (
-            <button
-              type="button"
-              onClick={() => {
-                categoriesScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
-              }}
-              className="shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors shadow-sm self-center"
-              aria-label="Défiler les catégories vers la droite"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => {
+              categoriesScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' });
+            }}
+            disabled={!canScrollRight}
+            className={`shrink-0 p-1.5 rounded-full bg-slate-100 text-slate-600 transition-colors shadow-sm self-center ${
+              canScrollRight
+                ? 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer'
+                : 'opacity-40 cursor-default'
+            }`}
+            aria-label="Défiler les catégories vers la droite"
+            aria-disabled={!canScrollRight}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>
